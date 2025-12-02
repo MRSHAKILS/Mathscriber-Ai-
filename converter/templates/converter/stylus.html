@@ -6,16 +6,18 @@
 <div class="container mx-auto px-4 py-12">
     <h1 class="text-4xl font-bold mb-8 text-center">Drawing Canvas</h1>
     
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <canvas id="drawing-canvas" width="800" height="600" 
-                class="border-2 border-gray-300 dark:border-gray-600 rounded cursor-crosshair mx-auto block bg-white">
-        </canvas>
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-8">
+        <div class="relative w-full" style="padding-top: 75%;"> <!-- 4:3 aspect ratio -->
+            <canvas id="drawing-canvas"
+                    class="absolute top-0 left-0 w-full h-full border-2 border-gray-300 dark:border-gray-600 rounded cursor-crosshair bg-white">
+            </canvas>
+        </div>
         
-        <div class="flex gap-4 mt-6 justify-center">
-            <button id="clear-btn" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 justify-center">
+            <button id="clear-btn" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 text-base sm:text-lg w-full sm:w-auto">
                 <i class="bi bi-trash"></i> Clear
             </button>
-            <button id="process-btn" class="btn-primary px-6 py-2">
+            <button id="process-btn" class="btn-primary px-6 py-3 text-base sm:text-lg w-full sm:w-auto">
                 <i class="bi bi-magic"></i> Convert to LaTeX
             </button>
         </div>
@@ -29,22 +31,44 @@ let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 
-ctx.strokeStyle = '#000';
-ctx.lineWidth = 2;
-ctx.lineCap = 'round';
-ctx.lineJoin = 'round';
+// Set canvas size to match display size
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+}
+
+// Initial resize
+resizeCanvas();
+
+// Resize on window resize
+window.addEventListener('resize', resizeCanvas);
+
+function getCoordinates(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches && e.touches[0]) {
+        return [
+            e.touches[0].clientX - rect.left,
+            e.touches[0].clientY - rect.top
+        ];
+    }
+    return [e.offsetX, e.offsetY];
+}
 
 function startDrawing(e) {
     isDrawing = true;
-    [lastX, lastY] = [e.offsetX || e.touches[0].clientX - canvas.offsetLeft, 
-                      e.offsetY || e.touches[0].clientY - canvas.offsetTop];
+    [lastX, lastY] = getCoordinates(e);
 }
 
 function draw(e) {
     if (!isDrawing) return;
     
-    const x = e.offsetX || e.touches[0].clientX - canvas.offsetLeft;
-    const y = e.offsetY || e.touches[0].clientY - canvas.offsetTop;
+    const [x, y] = getCoordinates(e);
     
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);

@@ -241,17 +241,55 @@
                         </div>
                         <span class="text-2xl font-bold text-teal-700">MathScriber</span>
                     </div>
+                    
+                    <!-- Desktop Navigation -->
                     <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                         <a href="#overview" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.1s">Overview</a>
                         <a href="{% url 'converter:about' %}" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.2s">About Us</a>
                         <a href="#comparison" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.3s">AI Models</a>
                         <a href="#pricing" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.4s">Pricing</a>
                         <a href="#report" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.5s">Report</a>
-                        <a href="{% url 'converter:upload' %}" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.6s">Convert Now</a>
+                        <a href="{% url 'editor:project_list' %}" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.6s">Editor</a>
+                        <a href="{% url 'converter:upload' %}" class="nav-link border-transparent text-stone-600 hover:border-teal-500 hover:text-stone-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium gsap-fade-in" style="animation-delay: 0.7s">Convert Now</a>
+                    </div>
+                    
+                    <!-- Mobile Hamburger Menu Button -->
+                    <div class="sm:hidden">
+                        <button id="mobile-menu-toggle" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-teal-700 hover:text-teal-900 hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500 transition-colors duration-200">
+                            <span class="sr-only">Open main menu</span>
+                            <i class="bi bi-list text-2xl" id="menu-icon-open"></i>
+                            <i class="bi bi-x text-2xl hidden" id="menu-icon-close"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu Dropdown -->
+                <div id="mobile-menu" class="sm:hidden hidden">
+                    <div class="pt-2 pb-3 space-y-1">
+                        <a href="#overview" class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors">Overview</a>
+                        <a href="{% url 'converter:about' %}" class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors">About Us</a>
+                        <a href="#comparison" class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors">AI Models</a>
+                        <a href="#pricing" class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors">Pricing</a>
+                        <a href="#report" class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors">Report</a>
                     </div>
                 </div>
             </nav>
         </header>
+        
+        <!-- Mobile Floating Action Buttons (Bottom Right) - Only visible on mobile -->
+        <div class="fixed bottom-6 right-4 z-40 flex flex-col gap-3 sm:hidden">
+            <!-- Convert Now Button (Primary Action) -->
+            <a href="{% url 'converter:upload' %}" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-teal-500 via-teal-600 to-emerald-600 hover:from-teal-600 hover:via-teal-700 hover:to-emerald-700 text-white rounded-full shadow-2xl hover:shadow-teal-500/60 transition-all duration-300 hover:scale-105 active:scale-95">
+                <i class="bi bi-lightning-charge-fill text-xl"></i>
+                <span class="text-sm font-bold whitespace-nowrap">Convert Now</span>
+            </a>
+            
+            <!-- Editor Button (Secondary Action) -->
+            <a href="{% url 'editor:project_list' %}" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-700 hover:via-purple-700 hover:to-violet-700 text-white rounded-full shadow-xl hover:shadow-purple-500/60 transition-all duration-300 hover:scale-105 active:scale-95">
+                <i class="bi bi-pencil-square text-lg"></i>
+                <span class="text-xs font-semibold whitespace-nowrap">Editor</span>
+            </a>
+        </div>
 
         <main class="flex-grow">
             <!-- New Banner Section -->
@@ -1511,6 +1549,32 @@
                 console.error('Error initializing Testimonials Swiper:', error);
             }
         }
+
+        // Mobile Menu Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIconOpen = document.getElementById('menu-icon-open');
+            const menuIconClose = document.getElementById('menu-icon-close');
+            
+            if (mobileMenuToggle && mobileMenu) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                    menuIconOpen.classList.toggle('hidden');
+                    menuIconClose.classList.toggle('hidden');
+                });
+                
+                // Close menu when clicking on a link
+                const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+                mobileMenuLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        mobileMenu.classList.add('hidden');
+                        menuIconOpen.classList.remove('hidden');
+                        menuIconClose.classList.add('hidden');
+                    });
+                });
+            }
+        });
 
     </script>
 </body>
