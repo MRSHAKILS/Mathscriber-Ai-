@@ -1,8 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ImageUploadSerializer, LaTeXResponseSerializer
+from django.core.files.base import ContentFile
+from .serializers import ImageUploadSerializer, LaTeXResponseSerializer, ConversionHistorySerializer
 from .converter import GeminiConverter
+from .models import ConversionHistory
 
 
 class ConvertImageView(APIView):
@@ -34,10 +36,18 @@ class ConvertImageView(APIView):
             converter = GeminiConverter()
             latex_code = converter.convert_image_to_latex(image_file)
             
-            # Return LaTeX code
+            # Save to database
+            conversion = ConversionHistory.objects.create(
+                image=image_file,
+                latex_code=latex_code
+            )
+            
+            # Return LaTeX code with conversion ID
             response_data = {
                 'success': True,
+                'id': conversion.id,
                 'latex_code': latex_code,
+                'image_url': self.request.build_absolute_uri(conversion.image.url),
                 'message': 'Image converted successfully'
             }
             
@@ -63,6 +73,55 @@ class ConvertImageView(APIView):
                     'latex_code': ''
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ConversionHistoryListView(APIView):
+    """
+    API endpoint to retrieve all conversion history
+    GET /api/history/
+    """
+    
+    def get(self, request):
+        """Retrieve all conversion history"""
+        conversions = ConversionHistory.objects.all()[:50]  # Limit to last 50
+        serializer = ConversionHistorySerializer(
+            conversions, 
+            many=True, 
+            context={'request': request}
+        )
+        return Response({
+            'success': True,
+            'count': conversions.count(),
+            'results': serializer.data
+        })
+
+
+class ConversionHistoryDetailView(APIView):
+    """
+    API endpoint to retrieve single conversion result
+    GET /api/history/<id>/
+    """
+    
+    def get(self, request, pk):
+        """Retrieve single conversion by ID"""
+        try:
+            conversion = ConversionHistory.objects.get(pk=pk)
+            serializer = ConversionHistorySerializer(
+                conversion, 
+                context={'request': request}
+            )
+            return Response({
+                'success': True,
+                'result': serializer.data
+            })
+        except ConversionHistory.DoesNotExist:
+            return Response(
+                {
+                    'success': False,
+                    'message': 'Conversion not found'
+                },
+                status=status.HTTP_404_NOT_FOUND
             )
 
 
