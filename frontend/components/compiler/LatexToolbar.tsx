@@ -48,11 +48,15 @@ export default function LatexToolbar({ onInsertCode }: LatexToolbarProps) {
 
   const quickTools = [
     {
-      name: 'Upload',
+      name: 'Upload & Convert',
       icon: <Upload className="w-5 h-5" />,
-      description: 'Upload documents & images',
-      color: 'from-blue-500 to-cyan-500',
-      onClick: () => openInNewWindow('/upload', 'Upload Files'),
+      description: 'Upload image → Convert to LaTeX → Insert here',
+      color: 'from-red-500 to-orange-500',
+      onClick: () => {
+        // Store a flag that we're coming from the editor
+        sessionStorage.setItem('returnToEditor', 'true');
+        window.location.href = '/upload';
+      },
     },
     {
       name: 'Scan',
@@ -60,13 +64,6 @@ export default function LatexToolbar({ onInsertCode }: LatexToolbarProps) {
       description: 'Scan & digitize documents',
       color: 'from-green-500 to-emerald-500',
       onClick: () => openInNewWindow('/scan', 'Scan Document'),
-    },
-    {
-      name: 'Image Converter',
-      icon: <Sparkles className="w-5 h-5" />,
-      description: 'Image to LaTeX AI',
-      color: 'from-red-500 to-orange-500',
-      onClick: () => openInNewWindow('/upload', 'Image Converter'),
     },
     {
       name: 'Projects',

@@ -15,6 +15,74 @@ from .services.pdf_generator import PDFGenerator
 import time
 
 
+class DirectCompileView(viewsets.ViewSet):
+    """
+    Direct LaTeX compilation without requiring a file
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    def create(self, request):
+        """Compile LaTeX content directly"""
+        latex_content = request.data.get('content', '')
+        file_name = request.data.get('name', 'document')
+        
+        if not latex_content:
+            return Response(
+                {'error': 'No LaTeX content provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate LaTeX
+        is_valid, errors = LatexCompiler.validate_latex(latex_content)
+        if not is_valid:
+            return Response(
+                {
+                    'status': 'validation_error',
+                    'errors': errors,
+                    'error_log': '\n'.join(errors)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Compile LaTeX
+            compiler = LatexCompiler()
+            success, pdf_bytes, error_log, compile_time = compiler.compile(
+                latex_content,
+                file_name
+            )
+            
+            if success and pdf_bytes:
+                # Return PDF as base64 or URL
+                import base64
+                pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+                
+                return Response({
+                    'status': 'success',
+                    'pdf_data': pdf_base64,
+                    'error_log': error_log,
+                    'compilation_time': compile_time
+                })
+            else:
+                return Response(
+                    {
+                        'status': 'error',
+                        'error_log': error_log or "Unknown compilation error",
+                        'compilation_time': compile_time
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        except Exception as e:
+            return Response(
+                {
+                    'status': 'error',
+                    'error_log': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing LaTeX projects

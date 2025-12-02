@@ -17,7 +17,8 @@ class GeminiConverter:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
         
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        # Use gemini-2.5-flash
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
     
     def convert_image_to_latex(self, image_file):
         """

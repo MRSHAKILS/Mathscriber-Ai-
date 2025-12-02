@@ -15,10 +15,17 @@ class ConvertImageView(APIView):
     
     def post(self, request):
         """Handle image upload and conversion"""
+        print("=" * 60)
+        print("CONVERT IMAGE REQUEST RECEIVED")
+        print(f"Files in request: {request.FILES}")
+        print(f"Data in request: {request.data}")
+        print("=" * 60)
+        
         # Validate incoming data
         serializer = ImageUploadSerializer(data=request.data)
         
         if not serializer.is_valid():
+            print(f"Validation failed: {serializer.errors}")
             return Response(
                 {
                     'success': False,
@@ -31,16 +38,21 @@ class ConvertImageView(APIView):
         try:
             # Get the uploaded image
             image_file = serializer.validated_data['image']
+            print(f"Processing image: {image_file.name}, size: {image_file.size} bytes")
             
             # Convert image to LaTeX using Gemini
             converter = GeminiConverter()
+            print("Calling Gemini API...")
             latex_code = converter.convert_image_to_latex(image_file)
+            print(f"LaTeX code generated ({len(latex_code)} characters)")
+            print(f"First 200 chars: {latex_code[:200]}")
             
             # Save to database
             conversion = ConversionHistory.objects.create(
                 image=image_file,
                 latex_code=latex_code
             )
+            print(f"Saved to database with ID: {conversion.id}")
             
             # Return LaTeX code with conversion ID
             response_data = {
@@ -55,6 +67,7 @@ class ConvertImageView(APIView):
             
         except ValueError as e:
             # API key not configured
+            print(f"ValueError: {e}")
             return Response(
                 {
                     'success': False,
@@ -66,6 +79,9 @@ class ConvertImageView(APIView):
             
         except Exception as e:
             # Other errors
+            print(f"Exception: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             return Response(
                 {
                     'success': False,

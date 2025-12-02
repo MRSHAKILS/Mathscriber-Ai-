@@ -112,12 +112,74 @@ export default function UploadPage() {
   };
 
   const handleSubmit = async () => {
+    if (files.length === 0) return;
+    
     setIsProcessing(true);
-    // Simulate processing
-    setTimeout(() => {
+    
+    try {
+      // Convert each file
+      const results = [];
+      const errors = [];
+      
+      for (const fileItem of files) {
+        const formData = new FormData();
+        formData.append('image', fileItem.file);
+        
+        console.log('Uploading file:', fileItem.file.name);
+        
+        try {
+          const response = await fetch('http://localhost:8000/api/converter/convert-image/', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          console.log('Response status:', response.status);
+          const data = await response.json();
+          console.log('Response data:', data);
+          
+          if (data.success && data.latex_code) {
+            results.push(data.latex_code);
+          } else {
+            errors.push(`${fileItem.file.name}: ${data.message || 'No LaTeX generated'}`);
+          }
+        } catch (fileError: any) {
+          console.error('Error converting file:', fileItem.file.name, fileError);
+          errors.push(`${fileItem.file.name}: ${fileError.message}`);
+        }
+      }
+      
+      console.log('Conversion results:', { successCount: results.length, errorCount: errors.length });
+      
+      if (results.length > 0) {
+        // Combine all LaTeX codes
+        const combinedLatex = results.join('\n\n');
+        
+        console.log('Combined LaTeX length:', combinedLatex.length);
+        console.log('First 200 chars:', combinedLatex.substring(0, 200));
+        
+        // Store in sessionStorage to pass to editor
+        sessionStorage.setItem('latexToInsert', combinedLatex);
+        
+        // Show success message if there were some errors
+        if (errors.length > 0) {
+          alert(`Converted ${results.length} file(s) successfully.\n\nFailed:\n${errors.join('\n')}`);
+        }
+        
+        // Redirect to editor
+        window.location.href = '/editor';
+      } else {
+        const errorMsg = errors.length > 0 
+          ? `Conversion failed:\n\n${errors.join('\n')}`
+          : 'No LaTeX code was generated from the images.';
+        alert(errorMsg);
+        console.error('All conversions failed:', errors);
+      }
+    } catch (error: any) {
+      console.error('Conversion error:', error);
+      alert(`Error converting images: ${error.message}`);
+    } finally {
       setIsProcessing(false);
-      alert('Files processed! (This is a demo)');
-    }, 3000);
+    }
   };
 
   return (

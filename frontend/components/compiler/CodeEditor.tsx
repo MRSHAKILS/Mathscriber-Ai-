@@ -4,8 +4,14 @@ import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { type LatexFile } from '@/lib/compiler-api';
 import { AlertCircle, FileText } from 'lucide-react';
 
+// Support both full LatexFile and simplified file structure
+type SimpleFile = {
+  name: string;
+  content: string;
+};
+
 interface CodeEditorProps {
-  file: LatexFile | null;
+  file: LatexFile | SimpleFile | null;
   onChange: (content: string) => void;
   compilationError?: string | null;
 }
@@ -83,8 +89,12 @@ const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({ file, onChange,
       {/* Editor Header */}
       <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-white font-mono">{file.full_name}</h3>
-          <p className="text-xs text-gray-500 font-mono">{file.path}</p>
+          <h3 className="font-semibold text-white font-mono">
+            {'full_name' in file ? file.full_name : file.name}
+          </h3>
+          {'path' in file && (
+            <p className="text-xs text-gray-500 font-mono">{file.path}</p>
+          )}
         </div>
         <div className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full">
           {file.content.length} characters
@@ -125,16 +135,18 @@ const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({ file, onChange,
       <div className="px-4 py-2 bg-black/50 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
         <div className="flex items-center space-x-4">
           <span className="font-mono">Lines: {file.content.split('\n').length}</span>
-          <span className="font-mono">Type: {file.file_type.toUpperCase()}</span>
-          {file.is_main && (
+          <span className="font-mono">Type: {file.name.split('.').pop()?.toUpperCase() || 'TEX'}</span>
+          {'is_main' in file && file.is_main && (
             <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold">
               Main Document
             </span>
           )}
         </div>
-        <div className="font-mono">
-          Last updated: {new Date(file.updated_at).toLocaleString()}
-        </div>
+        {'updated_at' in file && file.updated_at && (
+          <div className="font-mono">
+            Last updated: {new Date(file.updated_at).toLocaleString()}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -60,6 +60,7 @@ export interface CompilationResult {
   status: 'pending' | 'compiling' | 'success' | 'error';
   pdf_file: string | null;
   pdf_url: string | null;
+  pdf_data?: string; // Base64 encoded PDF for direct compilation
   error_log: string | null;
   compiled_at: string;
   compilation_time: number | null;
@@ -197,6 +198,15 @@ export const compilerApi = {
 
   compileFile: async (id: string): Promise<CompilationResult> => {
     const response = await api.post(`/files/${id}/compile/`);
+    return response.data;
+  },
+
+  // Direct compilation without file ID
+  compileDirect: async (content: string, name: string = 'document'): Promise<CompilationResult> => {
+    const response = await api.post('/compile/', {
+      content,
+      name
+    });
     return response.data;
   },
 
