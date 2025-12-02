@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 from django.conf import settings
 from django.core.files.base import ContentFile
+import google.generativeai as genai
 
 
 class LatexCompiler:
@@ -275,6 +276,43 @@ class LatexCompiler:
             errors.append(f"Unbalanced environments: {begin_count} \\begin, {end_count} \\end")
         
         return len(errors) == 0, errors
+    
+    @staticmethod
+    def get_ai_error_suggestions(latex_content: str, error_log: str) -> str:
+        """Use Gemini AI to analyze LaTeX errors and suggest fixes"""
+        try:
+            api_key = settings.GEMINI_API_KEY
+            if not api_key:
+                return "AI suggestions unavailable: API key not configured"
+            
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            
+            prompt = f"""You are a LaTeX expert. Analyze this LaTeX compilation error and provide clear, actionable fixes.
+
+LaTeX Code:
+```latex
+{latex_content[:1000]}  {"..." if len(latex_content) > 1000 else ""}
+```
+
+Compilation Error:
+```
+{error_log}
+```
+
+Provide:
+1. What the error means in simple terms
+2. Exact line(s) causing the issue
+3. How to fix it with specific code examples
+4. Common mistakes to avoid
+
+Be concise and practical. Focus on the most critical errors first."""
+            
+            response = model.generate_content(prompt)
+            return response.text.strip()
+            
+        except Exception as e:
+            return f"AI analysis failed: {str(e)}"
     
     @staticmethod
     def get_default_template():

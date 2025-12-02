@@ -93,6 +93,7 @@ export default function EditorPage() {
   const [isCompiling, setIsCompiling] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [compilationError, setCompilationError] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<string | null>(null);
   const [files, setFiles] = useState<FileNode[]>([
     { id: '1', name: 'document.tex', type: 'file', content: DEFAULT_CONTENT },
     { id: '2', name: 'references.bib', type: 'file', content: '% Bibliography\n' },
@@ -113,6 +114,48 @@ export default function EditorPage() {
   const [isResizingFileTree, setIsResizingFileTree] = useState(false);
   const [editorWidth, setEditorWidth] = useState(45); // percentage
   const [isResizingEditor, setIsResizingEditor] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isToolbarOpen, setIsToolbarOpen] = useState(true);
+
+  // Function to clean LaTeX code from API responses
+  const cleanLatexCode = (code: string): string => {
+    let cleaned = code;
+    
+    // Remove markdown code blocks
+    cleaned = cleaned.replace(/```latex\n?/gi, '');
+    cleaned = cleaned.replace(/```tex\n?/gi, '');
+    cleaned = cleaned.replace(/```\n?/g, '');
+    
+    // Remove common markdown formatting
+    cleaned = cleaned.replace(/^#+\s+.+$/gm, ''); // Remove markdown headers
+    cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1'); // Remove bold
+    cleaned = cleaned.replace(/\*(.+?)\*/g, '$1'); // Remove italic
+    
+    // Remove "Here's the LaTeX code" type phrases
+    cleaned = cleaned.replace(/^(Here'?s?|This is|The) (the )?LaTeX( code)?:?\s*/gim, '');
+    cleaned = cleaned.replace(/^LaTeX code:?\s*/gim, '');
+    
+    // Remove HTML tags if any
+    cleaned = cleaned.replace(/<[^>]+>/g, '');
+    
+    // Clean up extra whitespace
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n'); // Max 2 consecutive newlines
+    cleaned = cleaned.trim();
+    
+    return cleaned;
+  };
+
+  // Detect screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Check for LaTeX code from upload page
   useEffect(() => {
@@ -121,10 +164,13 @@ export default function EditorPage() {
       // Clear it immediately
       sessionStorage.removeItem('latexToInsert');
       
+      // Clean the LaTeX code before inserting
+      const cleanedLatex = cleanLatexCode(latexToInsert);
+      
       // Wait for editor to be ready, then insert
       setTimeout(() => {
-        if (codeEditorRef.current) {
-          codeEditorRef.current.insertAtCursor(latexToInsert, 0);
+        if (codeEditorRef.current && cleanedLatex) {
+          codeEditorRef.current.insertAtCursor(cleanedLatex, 0);
         }
       }, 500);
     }
@@ -220,8 +266,14 @@ export default function EditorPage() {
       setIsCompiling(true);
       setCompilationError(null);
 
+      console.log('Compiling LaTeX...');
+      console.log('Content length:', currentFile.content.length);
+      console.log('File name:', currentFile.name);
+
       // Use direct compile endpoint
       const result = await compilerApi.compileDirect(currentFile.content, currentFile.name || 'document');
+
+      console.log('Compilation result:', result);
 
       if (result.status === 'success' && result.pdf_data) {
         // Convert base64 to blob URL
@@ -229,13 +281,23 @@ export default function EditorPage() {
         const url = URL.createObjectURL(pdfBlob);
         setPdfUrl(url);
         setCompilationError(null);
+        setAiSuggestions(null);
       } else if (result.status === 'error') {
+        console.error('Compilation error:', result.error_log);
         setCompilationError(result.error_log || 'Compilation failed');
+        setAiSuggestions(result.ai_suggestions || null);
         setPdfUrl(null);
       }
     } catch (error: any) {
       console.error('Compilation error:', error);
-      setCompilationError(error.response?.data?.error_log || error.message || 'Compilation failed');
+      console.error('Error response:', error.response?.data);
+      const errorMsg = error.response?.data?.error_log 
+        || error.response?.data?.error
+        || error.response?.data?.errors?.join('\n')
+        || error.message 
+        || 'Compilation failed';
+      setCompilationError(errorMsg);
+      setAiSuggestions(error.response?.data?.ai_suggestions || null);
       setPdfUrl(null);
     } finally {
       setIsCompiling(false);
@@ -290,6 +352,7 @@ export default function EditorPage() {
       setCurrentFile({ name: file.name, content: file.content });
       setPdfUrl(null);
       setCompilationError(null);
+      setAiSuggestions(null);
     }
   };
 
@@ -336,30 +399,42 @@ export default function EditorPage() {
   return (
     <div className="flex flex-col h-screen bg-black">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-6 py-4 bg-black border-b border-white/10">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-6 py-3 sm:py-4 bg-black border-b border-white/10 gap-3 sm:gap-0">
+        <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+          <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
             LaTeX Editor
           </h1>
-          <span className="px-3 py-1 text-sm text-gray-400 bg-white/5 rounded-lg">
+          <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-400 bg-white/5 rounded-lg truncate max-w-[150px] sm:max-w-none">
             {currentFile.name}
           </span>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
+          <button
+            onClick={() => setIsToolbarOpen(!isToolbarOpen)}
+            className="px-3 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all flex items-center space-x-2"
+            title={isToolbarOpen ? 'Hide LaTeX Tools' : 'Show LaTeX Tools'}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span className="hidden sm:inline">{isToolbarOpen ? 'Hide' : 'Show'} Tools</span>
+          </button>
+          
           <button
             onClick={handleCompile}
             disabled={isCompiling}
-            className="px-6 py-2 bg-gradient-to-r from-red-600 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-3 sm:px-6 py-2 bg-gradient-to-r from-red-600 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base flex-1 sm:flex-initial justify-center"
           >
             {isCompiling ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                <span>Compiling...</span>
+                <span className="hidden sm:inline">Compiling...</span>
+                <span className="sm:hidden">...</span>
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -371,12 +446,13 @@ export default function EditorPage() {
           {pdfUrl && (
             <button
               onClick={handleDownloadPDF}
-              className="px-6 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all flex items-center space-x-2"
+              className="px-3 sm:px-6 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-all flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base flex-1 sm:flex-initial justify-center"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span>Download PDF</span>
+              <span className="hidden sm:inline">Download PDF</span>
+              <span className="sm:hidden">PDF</span>
             </button>
           )}
         </div>
@@ -384,9 +460,9 @@ export default function EditorPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* File Tree Sidebar - Resizable */}
+        {/* File Tree Sidebar - Resizable - Hidden on mobile */}
         <div 
-          className="bg-black/50 border-r border-white/10 flex flex-col"
+          className="hidden lg:flex bg-black/50 border-r border-white/10 flex-col"
           style={{ width: `${fileTreeWidth}px`, minWidth: '200px', maxWidth: '400px' }}
         >
           <div className="px-4 py-3 border-b border-white/10">
@@ -397,44 +473,42 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* File Tree Resize Handle */}
+        {/* File Tree Resize Handle - Hidden on mobile */}
         <div
-          className="w-1 bg-white/5 hover:bg-red-500/50 cursor-col-resize transition-colors flex-shrink-0 relative group"
+          className="hidden lg:block w-1 bg-white/5 hover:bg-red-500/50 cursor-col-resize transition-colors flex-shrink-0 relative group"
           onMouseDown={handleFileTreeMouseDown}
         >
           <div className="absolute inset-y-0 -left-1 -right-1" />
         </div>
 
-        {/* LaTeX Toolbar Sidebar */}
-        <LatexToolbar onInsertCode={handleInsertLatex} />
-
-        {/* Editor and PDF Container */}
-        <div id="editor-container" className="flex flex-1 overflow-hidden">
-          {/* Code Editor - Resizable */}
+        {/* Editor and PDF Container - Stack on mobile, side-by-side on larger screens */}
+        <div id="editor-container" className="flex flex-col md:flex-row flex-1 overflow-hidden">
+          {/* Code Editor - Full width on mobile, resizable on desktop */}
           <div 
-            className="flex flex-col min-w-0"
-            style={{ width: `${editorWidth}%` }}
+            className="flex flex-col min-w-0 w-full md:w-auto"
+            style={{ width: isMobile ? '100%' : `${editorWidth}%` }}
           >
             <CodeEditor
               ref={codeEditorRef}
               file={currentFile}
               onChange={handleFileContentChange}
               compilationError={compilationError}
+              aiSuggestions={aiSuggestions}
             />
           </div>
 
-          {/* Editor/PDF Resize Handle */}
+          {/* Editor/PDF Resize Handle - Hidden on mobile */}
           <div
-            className="w-1 bg-white/5 hover:bg-red-500/50 cursor-col-resize transition-colors flex-shrink-0 relative group"
+            className="hidden md:block w-1 bg-white/5 hover:bg-red-500/50 cursor-col-resize transition-colors flex-shrink-0 relative group"
             onMouseDown={handleEditorMouseDown}
           >
             <div className="absolute inset-y-0 -left-1 -right-1" />
           </div>
 
-          {/* PDF Preview - Responsive width */}
+          {/* PDF Preview - Hidden on small mobile, shown on medium+ */}
           <div 
-            className="border-l border-white/10 flex flex-col"
-            style={{ width: `${100 - editorWidth}%` }}
+            className="hidden md:flex border-l border-white/10 flex-col w-full md:w-auto"
+            style={{ width: isMobile ? '100%' : `${100 - editorWidth}%` }}
           >
             <PDFPreview
               pdfUrl={pdfUrl}
@@ -443,6 +517,13 @@ export default function EditorPage() {
             />
           </div>
         </div>
+
+        {/* LaTeX Toolbar Sidebar - Right side, toggleable */}
+        {isToolbarOpen && (
+          <div className="hidden md:block">
+            <LatexToolbar onInsertCode={handleInsertLatex} />
+          </div>
+        )}
       </div>
     </div>
   );

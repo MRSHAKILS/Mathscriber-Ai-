@@ -23,23 +23,36 @@ class DirectCompileView(viewsets.ViewSet):
     
     def create(self, request):
         """Compile LaTeX content directly"""
+        print("=" * 60)
+        print("DIRECT COMPILE REQUEST")
+        print(f"Request data: {request.data}")
+        print("=" * 60)
+        
         latex_content = request.data.get('content', '')
         file_name = request.data.get('name', 'document')
         
+        print(f"LaTeX content length: {len(latex_content)}")
+        print(f"File name: {file_name}")
+        
         if not latex_content:
+            print("ERROR: No LaTeX content provided")
             return Response(
                 {'error': 'No LaTeX content provided'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         # Validate LaTeX
+        print("Validating LaTeX...")
         is_valid, errors = LatexCompiler.validate_latex(latex_content)
+        print(f"Validation result: is_valid={is_valid}, errors={errors}")
+        
         if not is_valid:
+            print("ERROR: Validation failed")
             return Response(
                 {
                     'status': 'validation_error',
                     'errors': errors,
-                    'error_log': '\n'.join(errors)
+                    'error_log': '\\n'.join(errors)
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -64,10 +77,19 @@ class DirectCompileView(viewsets.ViewSet):
                     'compilation_time': compile_time
                 })
             else:
+                # Get AI suggestions for the error
+                print("Getting AI suggestions for error...")
+                ai_suggestions = LatexCompiler.get_ai_error_suggestions(
+                    latex_content, 
+                    error_log or "Unknown error"
+                )
+                print(f"AI suggestions: {ai_suggestions[:200]}...")
+                
                 return Response(
                     {
                         'status': 'error',
                         'error_log': error_log or "Unknown compilation error",
+                        'ai_suggestions': ai_suggestions,
                         'compilation_time': compile_time
                     },
                     status=status.HTTP_400_BAD_REQUEST

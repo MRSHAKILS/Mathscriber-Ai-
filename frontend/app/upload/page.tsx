@@ -48,6 +48,35 @@ export default function UploadPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Function to clean LaTeX code from Gemini API
+  const cleanLatexCode = (code: string): string => {
+    let cleaned = code;
+    
+    // Remove markdown code blocks
+    cleaned = cleaned.replace(/```latex\n?/gi, '');
+    cleaned = cleaned.replace(/```tex\n?/gi, '');
+    cleaned = cleaned.replace(/```\n?/g, '');
+    
+    // Remove common markdown formatting
+    cleaned = cleaned.replace(/^#+\s+.+$/gm, ''); // Remove markdown headers
+    cleaned = cleaned.replace(/\*\*(.+?)\*\*/g, '$1'); // Remove bold
+    cleaned = cleaned.replace(/\*(.+?)\*/g, '$1'); // Remove italic
+    
+    // Remove explanatory text
+    cleaned = cleaned.replace(/^(Here'?s?|This is|The) (the )?LaTeX( code)?:?\s*/gim, '');
+    cleaned = cleaned.replace(/^LaTeX code:?\s*/gim, '');
+    cleaned = cleaned.replace(/^Output:?\s*/gim, '');
+    
+    // Remove HTML tags
+    cleaned = cleaned.replace(/<[^>]+>/g, '');
+    
+    // Clean up extra whitespace
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+    cleaned = cleaned.trim();
+    
+    return cleaned;
+  };
+
   const particlesInit = useCallback(async (engine: Engine) => {
     await loadSlim(engine);
   }, []);
@@ -138,7 +167,13 @@ export default function UploadPage() {
           console.log('Response data:', data);
           
           if (data.success && data.latex_code) {
-            results.push(data.latex_code);
+            // Clean the LaTeX code before adding to results
+            const cleanedCode = cleanLatexCode(data.latex_code);
+            if (cleanedCode) {
+              results.push(cleanedCode);
+            } else {
+              errors.push(`${fileItem.file.name}: Cleaned LaTeX was empty`);
+            }
           } else {
             errors.push(`${fileItem.file.name}: ${data.message || 'No LaTeX generated'}`);
           }
