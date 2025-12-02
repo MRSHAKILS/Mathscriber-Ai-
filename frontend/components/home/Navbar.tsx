@@ -50,9 +50,9 @@ export default function Navbar() {
   return (
     <>
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-gradient-to-r from-black via-red-950/50 to-black backdrop-blur-xl ${
           isScrolled 
             ? 'shadow-lg shadow-red-900/20 border-b border-red-800/30' 
