@@ -16,6 +16,7 @@ def login_redirect(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('converter.urls')),
+    path('api/', include('converter.api_urls')),  # New API endpoints
     path('editor/', include('editor.urls')),
     path('compiler/', RedirectView.as_view(url='/editor/projects/', permanent=False)),
     path('accounts/login/', login_redirect, name='login'),

@@ -12,6 +12,7 @@
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
     "@types/react-katex": "^3.0.4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.25",
     "gsap": "^3.13.0",
@@ -23,6 +24,7 @@
     "react-intersection-observer": "^10.0.0",
     "react-katex": "^3.1.0",
     "react-scroll": "^1.9.3",
+    "react-syntax-highlighter": "^16.1.0",
     "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7"

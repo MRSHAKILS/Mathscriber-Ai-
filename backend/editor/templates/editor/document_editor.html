@@ -86,6 +86,29 @@
             </div>
         </div>
 
+        <!-- Conversion Sidebar -->
+        <div id="conversion-sidebar" class="w-16 bg-gray-900/50 backdrop-blur-sm border-r border-red-500/10 flex flex-col items-center py-4 gap-3">
+            <button id="upload-btn" class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center hover:scale-105 transition-transform group relative" title="Upload Image">
+                <i class="bi bi-upload text-white text-xl"></i>
+                <div class="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Upload</div>
+            </button>
+            
+            <button id="capture-btn" class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center hover:scale-105 transition-transform group relative" title="Capture Image">
+                <i class="bi bi-camera text-white text-xl"></i>
+                <div class="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Capture</div>
+            </button>
+            
+            <button id="canvas-btn" class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-red-500 flex items-center justify-center hover:scale-105 transition-transform group relative" title="Draw Canvas">
+                <i class="bi bi-pencil text-white text-xl"></i>
+                <div class="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Canvas</div>
+            </button>
+            
+            <button id="history-btn" class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-pink-600 flex items-center justify-center hover:scale-105 transition-transform group relative" title="History">
+                <i class="bi bi-clock-history text-white text-xl"></i>
+                <div class="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">History</div>
+            </button>
+        </div>
+
         <!-- Main content - Editor and Preview -->
         <div class="flex-1 flex">
             <!-- Editor -->
@@ -303,6 +326,84 @@
                 alert('Error: ' + error.message);
             }
         });
+
+        // Expose Ace Editor to window for React integration
+        window.aceEditor = editor;
+
+        // Conversion Sidebar Button Handlers
+        document.getElementById('upload-btn').addEventListener('click', () => {
+            window.open('http://localhost:3000/converter/upload?mode=popup', 'ImageUpload', 'width=800,height=600');
+        });
+
+        document.getElementById('capture-btn').addEventListener('click', () => {
+            window.open('http://localhost:3000/converter/capture?mode=popup', 'ImageCapture', 'width=800,height=600');
+        });
+
+        document.getElementById('canvas-btn').addEventListener('click', () => {
+            window.open('http://localhost:3000/converter/canvas?mode=popup', 'ImageCanvas', 'width=800,height=600');
+        });
+
+        document.getElementById('history-btn').addEventListener('click', () => {
+            window.open('http://localhost:3000/converter/history?mode=popup', 'ConversionHistory', 'width=1000,height=700');
+        });
+
+        // Listen for messages from popup windows
+        window.addEventListener('message', (event) => {
+            if (event.origin !== 'http://localhost:3000') return;
+            
+            if (event.data.type === 'INSERT_LATEX') {
+                insertLatexAtCursor(event.data.latex);
+            }
+        });
+
+        // Function to insert LaTeX at cursor with Gemini intelligence
+        async function insertLatexAtCursor(latex) {
+            try {
+                const currentContent = editor.getValue();
+                const cursorPosition = editor.getCursorPosition();
+                const cursorIndex = editor.session.doc.positionToIndex(cursorPosition);
+
+                const response = await fetch('http://localhost:8000/api/editor/insert-at-cursor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({
+                        latexSnippet: latex,
+                        currentContent: currentContent,
+                        cursorPosition: cursorIndex,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    editor.setValue(data.updatedContent, -1);
+                    showNotification('LaTeX code inserted successfully!', 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to insert');
+                }
+            } catch (error) {
+                console.error('Failed to insert at cursor:', error);
+                showNotification('Failed to insert LaTeX code', 'error');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} fixed bottom-4 right-4 w-96 z-50 shadow-lg`;
+            notification.innerHTML = `
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
     </script>
 </body>
 </html>
