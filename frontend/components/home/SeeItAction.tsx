@@ -21,15 +21,17 @@ export default function SeeItAction() {
             </p>
 
             <div className="flex gap-4">
-              <Link href="/upload">
-                <a className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform">
-                  Try Live Demo
-                </a>
+              <Link 
+                href="/upload"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform"
+              >
+                Try Live Demo
               </Link>
-              <Link href="#how">
-                <a className="inline-flex items-center gap-2 px-6 py-3 border border-white/10 rounded-lg text-white/90 hover:bg-white/5 transition">
-                  Learn How It Works
-                </a>
+              <Link 
+                href="#how"
+                className="inline-flex items-center gap-2 px-6 py-3 border border-white/10 rounded-lg text-white/90 hover:bg-white/5 transition"
+              >
+                Learn How It Works
               </Link>
             </div>
           </motion.div>
