@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const backendFormData = new FormData();
     backendFormData.append('image', file);
 
-    const response = await fetch(`${API_BASE_URL}/convert-image/`, {
+    const response = await fetch(`${API_BASE_URL}/convert/upload`, {
       method: 'POST',
       body: backendFormData,
     });
@@ -27,16 +27,18 @@ export async function POST(request: NextRequest) {
     
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, error: data.message || 'Conversion failed' },
+        { success: false, error: data.error || 'Conversion failed' },
         { status: response.status }
       );
     }
 
     return NextResponse.json({
-      success: data.success,
+      success: true,
       data: {
-        latex: data.latex_code,
-        message: data.message,
+        latex: data.latex || data.convertedOutput,
+        message: 'Conversion successful',
+        workflow: data.workflow,
+        converter_type: data.converter_type,
       },
     });
   } catch (error) {

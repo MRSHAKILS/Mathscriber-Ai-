@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from .converter import GeminiConverter
+from .converter2 import AgenticGeminiConverter
 from .models import ConversionHistory
 import google.generativeai as genai
 from django.conf import settings
@@ -37,15 +38,44 @@ def convert_upload(request):
         print(f"[DEBUG] Image saved to: {full_path}")
         
         try:
-            # Convert to LaTeX
-            print("[DEBUG] Initializing GeminiConverter...")
-            converter = GeminiConverter()
+            # Check if agentic workflow is requested (default to agentic)
+            use_agentic = request.POST.get('use_agentic', 'true').lower() == 'true'
             
-            print("[DEBUG] Converting image to LaTeX...")
-            with open(full_path, 'rb') as f:
-                latex_code = converter.convert_image_to_latex(f)
-            
-            print(f"[DEBUG] Conversion successful, LaTeX length: {len(latex_code)}")
+            if use_agentic:
+                # Use multi-agent workflow (converter2)
+                print("[DEBUG] Initializing AgenticGeminiConverter (Multi-Agent Workflow)...")
+                converter = AgenticGeminiConverter()
+                
+                print("[DEBUG] Converting image to LaTeX with 3-agent workflow...")
+                with open(full_path, 'rb') as f:
+                    results = converter.convert_image_to_latex(f)
+                
+                latex_code = results['latex_code']
+                content_analysis = results['content_analysis']
+                validation = results['validation']
+                
+                print(f"[DEBUG] Multi-agent conversion successful")
+                print(f"[DEBUG] Content Type: {content_analysis.get('content_type')}")
+                print(f"[DEBUG] Validation Status: {validation.get('validation_status')}")
+                print(f"[DEBUG] LaTeX length: {len(latex_code)}")
+                
+            else:
+                # Use simple converter (converter)
+                print("[DEBUG] Initializing GeminiConverter (Simple)...")
+                converter = GeminiConverter()
+                
+                print("[DEBUG] Converting image to LaTeX...")
+                with open(full_path, 'rb') as f:
+                    latex_code = converter.convert_image_to_latex(f)
+                
+                print(f"[DEBUG] Simple conversion successful, LaTeX length: {len(latex_code)}")
+                
+                # Set default values for consistency
+                results = {
+                    'latex_code': latex_code,
+                    'content_analysis': None,
+                    'validation': None
+                }
             
             # Read image as base64 for response
             with open(full_path, 'rb') as f:
@@ -60,13 +90,34 @@ def convert_upload(request):
             )
             print(f"[DEBUG] History saved with ID: {history.id}")
             
-            return JsonResponse({
+            # Build response
+            response_data = {
                 'input': input_preview,
                 'latex': latex_code,
                 'convertedOutput': latex_code,
                 'timestamp': history.created_at.isoformat(),
-                'id': history.id
-            })
+                'id': history.id,
+                'converter_type': 'agentic' if use_agentic else 'simple'
+            }
+            
+            # Add agent workflow details if using agentic converter
+            if use_agentic:
+                response_data['workflow'] = {
+                    'content_analysis': {
+                        'type': content_analysis.get('content_type'),
+                        'complexity': content_analysis.get('complexity'),
+                        'elements': content_analysis.get('elements')
+                    },
+                    'validation': {
+                        'status': validation.get('validation_status'),
+                        'bracket_check': validation.get('bracket_check'),
+                        'syntax_check': validation.get('syntax_check'),
+                        'content_check': validation.get('content_check'),
+                        'was_corrected': validation.get('was_corrected')
+                    }
+                }
+            
+            return JsonResponse(response_data)
             
         finally:
             # Cleanup temp file
@@ -283,3 +334,113 @@ def delete_history(request, history_id):
         return JsonResponse({'error': 'History item not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def convert_agentic(request):
+    """
+    Dedicated endpoint for multi-agent conversion workflow
+    Uses three specialized agents: Identifier, Converter, and Validator
+    """
+    try:
+        print("[DEBUG] Agentic convert request received")
+        
+        if 'image' not in request.FILES:
+            print("[DEBUG] No image in request.FILES")
+            return JsonResponse({'error': 'No image provided'}, status=400)
+        
+        image_file = request.FILES['image']
+        print(f"[DEBUG] Image file: {image_file.name}, size: {image_file.size}")
+        
+        # Save image temporarily
+        image_path = default_storage.save(f'temp/{image_file.name}', image_file)
+        full_path = default_storage.path(image_path)
+        print(f"[DEBUG] Image saved to: {full_path}")
+        
+        try:
+            # Initialize multi-agent converter
+            print("[DEBUG] Initializing AgenticGeminiConverter...")
+            converter = AgenticGeminiConverter()
+            
+            # Run multi-agent workflow
+            print("[DEBUG] Starting 3-agent workflow...")
+            with open(full_path, 'rb') as f:
+                results = converter.convert_image_to_latex(f)
+            
+            # Extract results
+            latex_code = results['latex_code']
+            content_analysis = results['content_analysis']
+            validation = results['validation']
+            workflow_status = results['workflow']
+            
+            print(f"[DEBUG] Multi-agent conversion complete")
+            print(f"[DEBUG] Agent 1 (Identifier): {workflow_status['agent_1_identification']}")
+            print(f"[DEBUG] Agent 2 (Converter): {workflow_status['agent_2_conversion']}")
+            print(f"[DEBUG] Agent 3 (Validator): {workflow_status['agent_3_validation']}")
+            print(f"[DEBUG] Content Type: {content_analysis.get('content_type')}")
+            print(f"[DEBUG] Validation Status: {validation.get('validation_status')}")
+            print(f"[DEBUG] Final LaTeX length: {len(latex_code)}")
+            
+            # Read image as base64 for response
+            with open(full_path, 'rb') as f:
+                image_data = base64.b64encode(f.read()).decode()
+                input_preview = f"data:image/{image_file.name.split('.')[-1]};base64,{image_data}"
+            
+            # Store in history
+            history = ConversionHistory.objects.create(
+                input_image=image_path,
+                latex_output=latex_code,
+                converted_output=latex_code
+            )
+            print(f"[DEBUG] History saved with ID: {history.id}")
+            
+            # Build comprehensive response
+            response_data = {
+                'success': True,
+                'input': input_preview,
+                'latex': latex_code,
+                'convertedOutput': latex_code,
+                'timestamp': history.created_at.isoformat(),
+                'id': history.id,
+                'converter_type': 'agentic_workflow',
+                'workflow': {
+                    'agents_used': ['identifier', 'converter', 'validator'],
+                    'agent_status': workflow_status,
+                    'content_analysis': {
+                        'type': content_analysis.get('content_type', 'unknown'),
+                        'complexity': content_analysis.get('complexity', 'unknown'),
+                        'elements': content_analysis.get('elements', ''),
+                        'special_notation': content_analysis.get('special_notation', ''),
+                        'structure': content_analysis.get('structure', '')
+                    },
+                    'validation': {
+                        'status': validation.get('validation_status', 'unknown'),
+                        'bracket_check': validation.get('bracket_check', 'not performed'),
+                        'syntax_check': validation.get('syntax_check', 'not performed'),
+                        'content_check': validation.get('content_check', 'not performed'),
+                        'cleanliness_check': validation.get('cleanliness_check', 'not performed'),
+                        'was_corrected': validation.get('was_corrected', False),
+                        'issues': validation.get('issues', 'None'),
+                        'programmatic_checks': validation.get('programmatic_checks', {})
+                    }
+                }
+            }
+            
+            return JsonResponse(response_data)
+            
+        finally:
+            # Cleanup temp file
+            if default_storage.exists(image_path):
+                default_storage.delete(image_path)
+                print("[DEBUG] Temp file cleaned up")
+                
+    except Exception as e:
+        print(f"[ERROR] Agentic conversion failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'message': 'Multi-agent conversion workflow failed'
+        }, status=500)

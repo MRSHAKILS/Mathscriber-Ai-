@@ -55,7 +55,7 @@ export async function convertImageToLatex(
       headers['Authorization'] = `Bearer ${token}`
     }
 
-    const response = await fetch(`${API_BASE_URL}/convert-image/`, {
+    const response = await fetch(`${API_BASE_URL}/convert/${conversionType}`, {
       method: 'POST',
       headers,
       body: formData,
@@ -66,7 +66,15 @@ export async function convertImageToLatex(
     }
 
     const data = await response.json()
-    return data
+    
+    // Transform response to match expected format
+    return {
+      success: true,
+      latex_code: data.latex || data.convertedOutput || '',
+      image_url: data.input || '',
+      message: 'Conversion successful',
+      ...data
+    }
   } catch (error) {
     console.error('API Error:', error)
     return {

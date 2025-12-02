@@ -6,6 +6,7 @@ urlpatterns = [
     path('convert/upload', api_views.convert_upload, name='api_convert_upload'),
     path('convert/capture', api_views.convert_capture, name='api_convert_capture'),
     path('convert/canvas', api_views.convert_canvas, name='api_convert_canvas'),
+    path('convert/agentic', api_views.convert_agentic, name='api_convert_agentic'),  # New multi-agent endpoint
     
     # Download endpoints
     path('download/tex', api_views.download_tex, name='api_download_tex'),
