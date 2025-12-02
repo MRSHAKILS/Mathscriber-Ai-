@@ -55,8 +55,8 @@ export default function Navbar() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled 
-            ? 'bg-gradient-to-r from-black/90 via-red-950/80 to-black/90 backdrop-blur-xl shadow-lg shadow-red-900/20 border-b border-red-800/30' 
-            : 'bg-gradient-to-r from-black/60 via-red-950/40 to-black/60 backdrop-blur-md'
+            ? 'bg-gradient-to-r from-black/95 via-red-950/90 to-black/95 backdrop-blur-xl shadow-lg shadow-red-900/20 border-b border-red-800/30' 
+            : 'bg-gradient-to-r from-black/80 via-red-950/70 to-black/80 backdrop-blur-lg'
         }`}
       >
         <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -156,7 +156,7 @@ export default function Navbar() {
               </Link>
 
               {/* Auth Buttons */}
-              <div className="flex items-center ml-4 pl-4 border-l border-red-800/30">
+              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-red-800/30">
                 <Link href="/login">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -168,9 +168,9 @@ export default function Navbar() {
                 </Link>
                 <Link href="/register">
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.05, y: -1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-4 py-2 bg-white text-black text-sm font-semibold rounded-lg hover:bg-gray-100 transition-all shadow-md"
+                    className="px-5 py-2 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white text-sm font-semibold rounded-lg hover:from-red-500 hover:via-orange-400 hover:to-red-500 transition-all shadow-lg shadow-red-600/30 hover:shadow-red-500/50"
                   >
                     Get Started
                   </motion.button>
@@ -238,7 +238,7 @@ export default function Navbar() {
                       </button>
                     </Link>
                     <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="flex-1">
-                      <button className="w-full py-2.5 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                      <button className="w-full py-2.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-red-500 hover:via-orange-400 hover:to-red-500 transition-all shadow-lg">
                         Get Started
                       </button>
                     </Link>
