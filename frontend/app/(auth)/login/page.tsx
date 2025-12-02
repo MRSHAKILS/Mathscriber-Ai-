@@ -103,11 +103,12 @@ export default function LoginPage() {
 
   const handleSocialLogin = async (provider: 'google' | 'facebook' | 'github') => {
     setIsLoading(true);
+    setErrors({});
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider as any,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
         options: {
-          redirectTo: `${window.location.origin}/upload`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 

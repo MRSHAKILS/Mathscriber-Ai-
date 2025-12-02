@@ -15,10 +15,12 @@ import {
   Shield,
   Clock
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/home/NavbarNew';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/home/Footer';
 import { convertImageToLatex } from '@/lib/api';
+import { useAuth } from '@/lib/auth/auth-context';
 
 type FileWithPreview = {
   file: File;
@@ -33,14 +35,16 @@ export default function UploadPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [latexResult, setLatexResult] = useState('');
   const [error, setError] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
+    // Redirect to login if not authenticated
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -124,9 +128,18 @@ export default function UploadPage() {
     navigator.clipboard.writeText(latexResult);
   };
 
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-black items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-black">
-      {isLoggedIn && <Sidebar />}
+      {user && <Sidebar />}
       <div className="flex-1 flex flex-col">
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-black via-red-950/10 to-black pt-8">

@@ -19,8 +19,11 @@ import {
   Info,
   Brain,
   Play,
-  Crown
+  Crown,
+  LogOut,
+  User
 } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
 
 const featureItems = [
   { name: 'Upload', href: '/upload', icon: Upload, description: 'Convert images to LaTeX', color: 'from-red-500 to-orange-500' },
@@ -49,9 +52,12 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFeatureOpen, setIsFeatureOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user, signOut, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,10 +72,18 @@ export default function Navbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsFeatureOpen(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
 
   // Handle smooth scroll for anchor links
   const handleScrollLink = (href: string) => {
@@ -208,27 +222,86 @@ export default function Navbar() {
 
               <NavLink href="/about" icon={Info}>About</NavLink>
 
-              {/* CTA Buttons */}
+              {/* CTA Buttons / User Menu */}
               <div className="flex items-center gap-3 ml-4 pl-4 border-l border-white/10">
-                <Link href="/login">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
-                  >
-                    Sign In
-                  </motion.button>
-                </Link>
-                <Link href="/pricing">
-                  <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(239,68,68,0.5)' }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:via-orange-400 hover:to-red-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/30 transition-all duration-300 flex items-center gap-2"
-                  >
-                    <Crown className="w-4 h-4" />
-                    Pro Plan
-                  </motion.button>
-                </Link>
+                {!loading && user ? (
+                  // User is logged in - show user menu
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                        {user.user_metadata?.avatar_url ? (
+                          <img 
+                            src={user.user_metadata.avatar_url} 
+                            alt="Avatar" 
+                            className="w-8 h-8 rounded-full"
+                          />
+                        ) : (
+                          <User className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <span className="max-w-[100px] truncate">
+                        {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                      </span>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    <AnimatePresence>
+                      {isUserMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                          className="absolute top-full right-0 mt-3 w-48 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-red-500/10 overflow-hidden"
+                        >
+                          <div className="p-2">
+                            <div className="px-3 py-2 text-xs text-gray-500 border-b border-white/10 mb-2">
+                              {user.email}
+                            </div>
+                            <Link href="/upload" onClick={() => setIsUserMenuOpen(false)}>
+                              <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-all duration-200 cursor-pointer">
+                                <Upload className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm text-gray-300">Upload</span>
+                              </div>
+                            </Link>
+                            <button
+                              onClick={handleSignOut}
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 transition-all duration-200 cursor-pointer"
+                            >
+                              <LogOut className="w-4 h-4 text-red-400" />
+                              <span className="text-sm text-red-400">Sign Out</span>
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  // User is not logged in - show sign in/up buttons
+                  <>
+                    <Link href="/login">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                      >
+                        Sign In
+                      </motion.button>
+                    </Link>
+                    <Link href="/register">
+                      <motion.button
+                        whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(239,68,68,0.5)' }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-500/30 transition-all duration-300"
+                      >
+                        Get Started
+                      </motion.button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 
@@ -339,17 +412,60 @@ export default function Navbar() {
 
                 {/* CTA Buttons */}
                 <div className="space-y-3 pt-6 border-t border-white/10">
-                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block">
-                    <button className="w-full py-3 text-white border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
-                      Sign In
-                    </button>
-                  </Link>
-                  <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="block">
-                    <button className="w-full py-3.5 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2">
-                      <Crown className="w-4 h-4" />
-                      Pro Plan
-                    </button>
-                  </Link>
+                  {!loading && user ? (
+                    // User is logged in
+                    <>
+                      <div className="flex items-center gap-3 px-3 py-2 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                          {user.user_metadata?.avatar_url ? (
+                            <img 
+                              src={user.user_metadata.avatar_url} 
+                              alt="Avatar" 
+                              className="w-10 h-10 rounded-full"
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-white" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white">
+                            {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                          </p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
+                      </div>
+                      <Link href="/upload" onClick={() => setIsMobileMenuOpen(false)} className="block">
+                        <button className="w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 flex items-center justify-center gap-2">
+                          <Upload className="w-4 h-4" />
+                          Go to Upload
+                        </button>
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          handleSignOut();
+                        }} 
+                        className="w-full py-3 text-red-400 border border-red-500/20 rounded-xl font-semibold hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    // User is not logged in
+                    <>
+                      <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block">
+                        <button className="w-full py-3 text-white border border-white/20 rounded-xl font-semibold hover:bg-white/5 transition-all">
+                          Sign In
+                        </button>
+                      </Link>
+                      <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="block">
+                        <button className="w-full py-3.5 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-red-500/30">
+                          Get Started
+                        </button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
