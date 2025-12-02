@@ -162,7 +162,7 @@ export default function Navbar() {
               <NavLink href="/#pricing">Pricing</NavLink>
 
               {/* Convert Now - Highlighted */}
-              <Link href="http://localhost:8000/editor/projects/">
+              <Link href="/upload">
                 <motion.button
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -188,7 +188,7 @@ export default function Navbar() {
                     <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-red-600/0 to-orange-600/0 group-hover:from-red-600/10 group-hover:to-orange-600/10 transition-all duration-300" />
                   </motion.button>
                 </Link>
-                <Link href="http://localhost:8000/editor/projects/">
+                <Link href="/register">
                   <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
@@ -260,7 +260,7 @@ export default function Navbar() {
                         Sign In
                       </button>
                     </Link>
-                    <Link href="http://localhost:8000/editor/projects/" onClick={() => setIsMobileMenuOpen(false)} className="flex-1">
+                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="flex-1">
                       <button className="w-full py-2.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-red-500 hover:via-orange-400 hover:to-red-500 transition-all shadow-lg">
                         Get Started
                       </button>

@@ -6,13 +6,17 @@ import CTASection from '@/components/home/CTASection'
 import SeeItAction from '@/components/home/SeeItAction'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import Footer from '@/components/home/Footer'
+import AIModelsSection from '@/components/home/AIModelsSection'
+import WorkflowSection from '@/components/home/WorkflowSection'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
       <HeroSection />
+      <AIModelsSection />
       <FeaturesSection />
+      <WorkflowSection />
       <HowItWorksSection />
       <SeeItAction />
       <TestimonialsSection />

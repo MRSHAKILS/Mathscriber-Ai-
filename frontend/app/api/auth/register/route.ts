@@ -1,32 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, displayName } = body;
 
-    // Call Django backend
-    const response = await fetch(`${BACKEND_URL}/api/register/`, {
+    // Forward to Django backend
+    const response = await fetch(`${API_BASE_URL}/register/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({
+        email,
+        password,
+        username: displayName || email.split('@')[0],
+      }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+      return NextResponse.json(
+        { success: false, error: data.message || 'Registration failed' },
+        { status: response.status }
+      );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json({
+      success: true,
+      user: data.user,
+      tokens: data.tokens,
+      message: data.message,
+    });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { success: false, message: 'Registration failed. Please try again.' },
+      { success: false, error: 'Failed to connect to backend server' },
       { status: 500 }
     );
   }

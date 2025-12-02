@@ -62,7 +62,7 @@ const CTASection = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Link href="/upload">
+            <Link href="/converter">
               <button className="group px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 flex items-center gap-2">
                 <Zap className="w-5 h-5" />
                 Start Converting Free

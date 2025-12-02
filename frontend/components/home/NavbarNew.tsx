@@ -3,21 +3,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { 
+import { usePathname, useRouter } from 'next/navigation';
+import {
   Home,
-  Upload, 
-  History, 
+  Upload,
+  History,
   FileText,
   BarChart3,
   Menu,
   X,
-  Zap,
   Rocket,
   Pencil,
   ChevronDown,
   Sparkles,
-  Info
+  Info,
+  Brain,
+  Play,
+  Crown
 } from 'lucide-react';
 
 const featureItems = [
@@ -28,11 +30,27 @@ const featureItems = [
   { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Usage statistics', color: 'from-orange-600 to-red-500' },
 ];
 
+const scrollLinks = [
+  { name: 'How It Works', href: '/#how-it-works', icon: Play, description: 'See the workflow' },
+];
+
+// Smooth scroll function
+const smoothScrollTo = (elementId: string) => {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+};
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFeatureOpen, setIsFeatureOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +71,21 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Handle smooth scroll for anchor links
+  const handleScrollLink = (href: string) => {
+    const hash = href.split('#')[1];
+    if (hash) {
+      if (pathname === '/') {
+        // Already on home page, just scroll
+        smoothScrollTo(hash);
+      } else {
+        // Navigate to home first, then scroll
+        router.push('/');
+        setTimeout(() => smoothScrollTo(hash), 100);
+      }
+    }
+  };
+
   return (
     <>
       {/* Main Navbar */}
@@ -60,11 +93,10 @@ export default function Navbar() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled 
-            ? 'bg-black/95 backdrop-blur-2xl shadow-[0_8px_32px_rgba(239,68,68,0.12)] border-b border-red-500/10' 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
+            ? 'bg-black/95 backdrop-blur-2xl shadow-[0_8px_32px_rgba(239,68,68,0.12)] border-b border-red-500/10'
             : 'bg-black/60 backdrop-blur-xl border-b border-white/5'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
@@ -96,14 +128,13 @@ export default function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
               <NavLink href="/" icon={Home}>Home</NavLink>
-              
+
               {/* Features Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsFeatureOpen(!isFeatureOpen)}
-                  className={`group relative px-4 py-2 flex items-center gap-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                    isFeatureOpen ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'
-                  }`}
+                  className={`group relative px-4 py-2 flex items-center gap-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${isFeatureOpen ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    }`}
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Features</span>
@@ -133,9 +164,8 @@ export default function Navbar() {
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
-                                  isActive ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20' : 'hover:bg-white/5'
-                                }`}
+                                className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer ${isActive ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20' : 'hover:bg-white/5'
+                                  }`}
                               >
                                 <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}>
                                   <Icon className="w-5 h-5 text-white" />
@@ -161,7 +191,21 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
 
-              <NavLink href="/#pricing" icon={Zap}>Pricing</NavLink>
+              {/* Scroll Links - AI Models & How It Works */}
+              {scrollLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <ScrollNavLink
+                    key={link.name}
+                    href={link.href}
+                    icon={Icon}
+                    onClick={() => handleScrollLink(link.href)}
+                  >
+                    {link.name}
+                  </ScrollNavLink>
+                );
+              })}
+
               <NavLink href="/about" icon={Info}>About</NavLink>
 
               {/* CTA Buttons */}
@@ -175,14 +219,14 @@ export default function Navbar() {
                     Sign In
                   </motion.button>
                 </Link>
-                <Link href="http://localhost:8000/editor/projects/">
+                <Link href="/pricing">
                   <motion.button
                     whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(239,68,68,0.5)' }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-5 py-2.5 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-500 hover:via-orange-500 hover:to-orange-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-600/30 transition-all duration-300 flex items-center gap-2"
+                    className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-400 hover:via-orange-400 hover:to-red-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-500/30 transition-all duration-300 flex items-center gap-2"
                   >
-                    <Rocket className="w-4 h-4" />
-                    Get Started
+                    <Crown className="w-4 h-4" />
+                    Pro Plan
                   </motion.button>
                 </Link>
               </div>
@@ -211,7 +255,7 @@ export default function Navbar() {
               className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            
+
             {/* Menu Panel */}
             <motion.div
               initial={{ opacity: 0, x: '100%' }}
@@ -251,10 +295,10 @@ export default function Navbar() {
                     {featureItems.map((feature) => {
                       const Icon = feature.icon;
                       return (
-                        <MobileNavLink 
+                        <MobileNavLink
                           key={feature.name}
-                          href={feature.href} 
-                          icon={Icon} 
+                          href={feature.href}
+                          icon={Icon}
                           onClick={() => setIsMobileMenuOpen(false)}
                           gradient={feature.color}
                         >
@@ -265,9 +309,31 @@ export default function Navbar() {
                   </div>
                 </div>
 
+                {/* Scroll Links */}
+                <div className="mb-6">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Explore</p>
+                  <div className="space-y-1">
+                    {scrollLinks.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <MobileScrollNavLink
+                          key={link.name}
+                          href={link.href}
+                          icon={Icon}
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            handleScrollLink(link.href);
+                          }}
+                        >
+                          {link.name}
+                        </MobileScrollNavLink>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Other Links */}
                 <div className="space-y-2 mb-8">
-                  <MobileNavLink href="/#pricing" icon={Zap} onClick={() => setIsMobileMenuOpen(false)}>Pricing</MobileNavLink>
                   <MobileNavLink href="/about" icon={Info} onClick={() => setIsMobileMenuOpen(false)}>About</MobileNavLink>
                 </div>
 
@@ -278,10 +344,10 @@ export default function Navbar() {
                       Sign In
                     </button>
                   </Link>
-                  <Link href="http://localhost:8000/editor/projects/" onClick={() => setIsMobileMenuOpen(false)} className="block">
-                    <button className="w-full py-3.5 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 flex items-center justify-center gap-2">
-                      <Rocket className="w-4 h-4" />
-                      Get Started Free
+                  <Link href="/pricing" onClick={() => setIsMobileMenuOpen(false)} className="block">
+                    <button className="w-full py-3.5 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2">
+                      <Crown className="w-4 h-4" />
+                      Pro Plan
                     </button>
                   </Link>
                 </div>
@@ -330,5 +396,33 @@ function MobileNavLink({ href, icon: Icon, children, onClick, gradient }: { href
       <span className={`font-medium ${isActive ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400' : 'text-white'}`}>{children}</span>
       {isActive && <div className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-red-400 to-orange-400 shadow-lg shadow-red-500/50" />}
     </Link>
+  );
+}
+
+// ScrollNavLink Component for smooth scroll links
+function ScrollNavLink({ href, icon: Icon, children, onClick }: { href: string; icon: any; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="group relative px-4 py-2 flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200"
+    >
+      <Icon className="w-4 h-4" />
+      <span>{children}</span>
+    </button>
+  );
+}
+
+// Mobile ScrollNavLink Component for smooth scroll links on mobile
+function MobileScrollNavLink({ href, icon: Icon, children, onClick }: { href: string; icon: any; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/5"
+    >
+      <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+        <Icon className="w-4 h-4 text-gray-400" />
+      </div>
+      <span className="font-medium text-white">{children}</span>
+    </button>
   );
 }
