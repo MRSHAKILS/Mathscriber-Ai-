@@ -20,13 +20,15 @@
                         <span class="font-bold text-2xl text-teal-600 dark:text-teal-400">{{ visuals|length }}</span> visual{{ visuals|length|pluralize }} in your collection
                     </p>
                     <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                        <button id="exportPdfBtn" onclick="exportSelectedToPdf()" class="group bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-semibold">
-                            <i class="bi bi-file-pdf group-hover:scale-110 transition-transform"></i>
-                            <span>Export PDF</span>
+                        <button id="exportPdfBtn" onclick="exportSelectedToPdf()" class="group relative bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-500 hover:via-pink-500 hover:to-rose-500 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-2xl hover:scale-105 font-semibold overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+                            <i class="bi bi-file-pdf text-lg group-hover:scale-110 transition-transform relative z-10"></i>
+                            <span class="relative z-10">Export PDF</span>
                         </button>
-                        <a href="{% url 'visuals:generator' %}" class="group bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-semibold">
-                            <i class="bi bi-plus-lg group-hover:rotate-90 transition-transform duration-300"></i>
-                            <span>Create New Visual</span>
+                        <a href="{% url 'visuals:generator' %}" class="group relative bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 hover:from-teal-500 hover:via-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-2xl hover:scale-105 font-semibold overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+                            <i class="bi bi-plus-lg text-lg group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+                            <span class="relative z-10">Create New Visual</span>
                         </a>
                     </div>
                 </div>
@@ -103,17 +105,17 @@
                         </label>
                         <a href="{{ MEDIA_URL }}{{ visual.file_path }}" 
                            download 
-                           class="flex-1 text-center px-2 sm:px-3 py-1.5 sm:py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm rounded-lg transition-colors">
-                            <i class="bi bi-download"></i>
+                           class="group flex-1 text-center px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white text-xs sm:text-sm rounded-lg transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                            <i class="bi bi-download group-hover:scale-110 transition-transform inline-block"></i>
                         </a>
                         {% endif %}
                         <a href="{% url 'visuals:detail' pk=visual.id %}" 
-                           class="flex-1 text-center px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm rounded-lg transition-colors">
-                            <i class="bi bi-eye"></i>
+                           class="group flex-1 text-center px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs sm:text-sm rounded-lg transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                            <i class="bi bi-eye group-hover:scale-110 transition-transform inline-block"></i>
                         </a>
                         <button onclick="deleteVisual('{{ visual.id }}')" 
-                                class="px-2 sm:px-3 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm rounded-lg transition-colors">
-                            <i class="bi bi-trash"></i>
+                                class="group px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white text-xs sm:text-sm rounded-lg transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105">
+                            <i class="bi bi-trash group-hover:scale-110 transition-transform inline-block"></i>
                         </button>
                     </div>
                 </div>
@@ -121,16 +123,20 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-16">
-            <div class="inline-flex items-center justify-center w-24 h-24 bg-stone-100 dark:bg-stone-800 rounded-full mb-6">
-                <i class="bi bi-images text-5xl text-stone-400"></i>
+        <div class="bg-gradient-to-br from-stone-50 via-blue-50 to-purple-50 dark:from-stone-900 dark:via-blue-900/20 dark:to-purple-900/20 rounded-2xl shadow-xl border border-stone-200 dark:border-stone-700 p-12 text-center animate-fade-in">
+            <div class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-teal-100 to-blue-100 dark:from-teal-900/30 dark:to-blue-900/30 rounded-full mb-6 shadow-lg">
+                <i class="bi bi-images text-6xl text-teal-600 dark:text-teal-400 animate-pulse-slow"></i>
             </div>
-            <h3 class="text-2xl font-bold text-stone-900 dark:text-white mb-2">No Visuals Yet</h3>
-            <p class="text-stone-600 dark:text-stone-400 mb-6">
-                Start creating beautiful visuals with AI
+            <h3 class="text-3xl font-extrabold mb-3">
+                <span class="bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">No Visuals Yet</span>
+            </h3>
+            <p class="text-lg text-stone-600 dark:text-stone-400 mb-8 max-w-md mx-auto">
+                Start your creative journey and transform your ideas into stunning visuals with AI
             </p>
-            <a href="{% url 'visuals:generator' %}" class="btn-primary text-lg">
-                <i class="bi bi-plus-lg"></i> Create Your First Visual
+            <a href="{% url 'visuals:generator' %}" class="group inline-flex items-center gap-2 relative bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 hover:from-teal-500 hover:via-blue-500 hover:to-purple-500 text-white px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 font-semibold text-lg overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></div>
+                <i class="bi bi-plus-lg text-xl group-hover:rotate-90 transition-transform duration-300 relative z-10"></i>
+                <span class="relative z-10">Create Your First Visual</span>
             </a>
         </div>
         {% endif %}

@@ -47,22 +47,22 @@
 </head>
 <body class="bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 transition-colors duration-300">
   <!-- Navigation -->
-  <nav class="bg-gradient-to-r from-teal-700 via-teal-600 to-blue-600 shadow-xl sticky top-0 z-50 backdrop-blur-md border-b border-white/10">
+  <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-14">
         <!-- Logo -->
         <a href="{% url 'editor:project_list' %}" class="flex items-center space-x-2.5 group">
           <div class="relative">
-            <div class="absolute inset-0 bg-white rounded-lg blur-sm opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
-            <div class="relative bg-white dark:bg-stone-800 p-2 rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+            <div class="absolute inset-0 bg-teal-600 rounded-lg blur-sm opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
+            <div class="relative bg-teal-600 p-2 rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path class="text-teal-600" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3.5 14H9l3-5-3-5h6.5l-3 5 3 5z"/>
+                <path class="text-white" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3.5 14H9l3-5-3-5h6.5l-3 5 3 5z"/>
               </svg>
             </div>
           </div>
           <div class="flex flex-col leading-tight">
-            <span class="text-xl font-bold text-white tracking-tight">MathScriber</span>
-            <span class="text-[10px] text-white/70 font-medium tracking-wide">LaTeX Editor</span>
+            <span class="text-xl font-bold text-teal-700 tracking-tight">MathScriber</span>
+            <span class="text-[10px] text-stone-600 font-medium tracking-wide">LaTeX Editor</span>
           </div>
         </a>
         
@@ -78,11 +78,11 @@
           </a>
           
           <!-- Divider -->
-          <div class="w-px h-6 bg-white/20 mx-2"></div>
+          <div class="w-px h-6 bg-stone-300 mx-2"></div>
           
           <!-- Theme Toggle -->
           <button id="theme-toggle-editor" 
-                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/30 group" 
+                  class="p-2 rounded-lg bg-stone-100 hover:bg-teal-50 text-stone-600 hover:text-teal-600 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500/50 group" 
                   type="button" 
                   title="Toggle theme">
             <i class="bi bi-moon-stars-fill text-base group-hover:rotate-12 transition-transform"></i>
@@ -90,9 +90,9 @@
           
           <!-- User Info -->
           {% if user.is_authenticated %}
-            <div class="flex items-center space-x-2 ml-2 px-3 py-2 rounded-lg bg-white/10">
-              <i class="bi bi-person-circle text-white text-lg"></i>
-              <span class="text-white/90 text-sm font-medium">{{ user.username }}</span>
+            <div class="flex items-center space-x-2 ml-2 px-3 py-2 rounded-lg bg-stone-100 text-stone-700">
+              <i class="bi bi-person-circle text-teal-600 text-lg"></i>
+              <span class="text-stone-700 text-sm font-medium">{{ user.username }}</span>
             </div>
           {% else %}
             <a href="{% url 'admin:login' %}" class="editor-nav-link group ml-2">
@@ -105,11 +105,11 @@
         <!-- Mobile menu button -->
         <div class="flex items-center gap-2 md:hidden">
           <button id="theme-toggle-mobile-editor" 
-                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-300">
+                  class="p-2 rounded-lg bg-stone-100 hover:bg-teal-50 text-stone-600 hover:text-teal-600 transition-all duration-300">
             <i class="bi bi-moon-stars-fill text-sm"></i>
           </button>
           
-          <button id="mobile-menu-btn-editor" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-300">
+          <button id="mobile-menu-btn-editor" class="p-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white transition-all duration-300 shadow-lg">
             <i class="bi bi-list text-xl"></i>
           </button>
         </div>
@@ -161,7 +161,7 @@
       gap: 0.4rem;
       padding: 0.5rem 0.875rem;
       border-radius: 0.5rem;
-      color: rgba(255, 255, 255, 0.9);
+      color: rgb(87, 83, 78);
       font-weight: 500;
       font-size: 0.875rem;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -172,13 +172,13 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(20, 184, 166, 0.1);
       border-radius: 0.5rem;
       opacity: 0;
       transition: opacity 0.3s;
     }
     .editor-nav-link:hover {
-      color: white;
+      color: rgb(15, 118, 110);
       transform: translateY(-1px);
     }
     .editor-nav-link:hover::before {
