@@ -14,6 +14,12 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="px-4 py-2 text-neutral-700 hover:text-primary-600 transition-colors font-medium"
+            >
+              Dashboard
+            </Link>
             <Link 
               href="/upload" 
               className="px-4 py-2 text-neutral-700 hover:text-primary-600 transition-colors font-medium"

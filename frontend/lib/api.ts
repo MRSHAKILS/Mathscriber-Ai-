@@ -2,7 +2,10 @@
  * API utility for communicating with Django backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+// Root of the backend (without the `/api` prefix) — used for auth endpoints
+const ROOT_BACKEND_URL = process.env.NEXT_PUBLIC_API_URL_ROOT || 'http://localhost:8000'
+// API prefix for non-auth endpoints (e.g. converter API)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || `${ROOT_BACKEND_URL}/api`
 
 export interface ConversionResponse {
   success: boolean
@@ -66,27 +69,107 @@ export async function checkHealth(): Promise<{ status: string; message: string }
   }
 }
 
+/**
+ * Register a new user using the backend's registration endpoint
+ */
+export async function registerUser(
+  username: string,
+  email: string,
+  password1: string,
+  password2: string
+): Promise<any> {
+  try {
+    const response = await fetch(`${ROOT_BACKEND_URL}/auth/registration/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password1, password2 }),
+    });
 
-//Login Authentication API
-
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // Django backend URL
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Automatically attach token from localStorage
-api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Token ${token}`;
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw err;
     }
-  }
-  return config;
-});
 
-export default api;
+    return await response.json();
+  } catch (error) {
+    console.error("Registration Error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Login user using the backend's login endpoint
+ */
+export async function loginUser(email: string, password: string): Promise<any> {
+  try {
+    const response = await fetch(`${ROOT_BACKEND_URL}/auth/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw err;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Login Error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Logout current user (server-side) and optionally clear client token
+ */
+export async function logoutUser(token?: string): Promise<any> {
+  try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Token ${token}`;
+    }
+
+    const response = await fetch(`${ROOT_BACKEND_URL}/auth/logout/`, {
+      method: "POST",
+      headers,
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw err;
+    }
+
+    return await response.json().catch(() => ({}));
+  } catch (error) {
+    console.error("Logout Error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get current authenticated user details
+ */
+export async function getCurrentUser(token?: string): Promise<any> {
+  try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Token ${token}`;
+
+    const response = await fetch(`${ROOT_BACKEND_URL}/auth/user/`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw err;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Get Current User Error:", error);
+    throw error;
+  }
+}
+
+
