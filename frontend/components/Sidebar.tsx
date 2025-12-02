@@ -43,7 +43,7 @@ export default function Sidebar() {
     { icon: Upload, label: 'Upload', href: '/upload', primary: true },
     { icon: Pencil, label: 'Canvas', href: '/canvas', primary: true },
     { icon: Camera, label: 'Capture', href: '/capture', primary: true },
-    { icon: History, label: 'History', href: '/results' },
+    { icon: History, label: 'History', href: '/history' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 
