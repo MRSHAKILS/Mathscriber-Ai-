@@ -1,61 +1,21 @@
-# Root .gitignore
-.DS_Store
-*.log
 .env
-.env.local
-.env*.local
-
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Dependencies
-node_modules/
-/.pnp
-.pnp.js
-
-# Next.js
-.next/
-out/
-build/
-
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-*.egg-info/
-dist/
-
-# Testing
-coverage/
-.coverage
-htmlcov/
-.pytest_cache/
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Database
-*.sqlite3
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.bak
+*.tmp
+.DS_Store
 db.sqlite3
-
-# Misc
-*.pem
-Thumbs.db
+*.sqlite3
+*.log
+media/
+staticfiles/
+.vscode/
+progress.md
+PROJECT_OVERVIEW.md
+test_outputs/
+myenv/
+node_modules/
+dist/

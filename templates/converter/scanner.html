@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block title %}Camera Scanner - MathScriber{% endblock %}
+
+{% block extra_css %}
+<style>
+    .camera-container {
+        position: relative;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    #camera, #snapshot {
+        width: 100%;
+        height: auto;
+        min-height: 480px;
+        max-height: 720px;
+        border-radius: 1rem;
+        object-fit: cover;
+        background: #1f2937;
+    }
+    
+    #snapshot {
+        display: none;
+    }
+    
+    .camera-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 60%;
+        border: 3px dashed rgba(34, 197, 94, 0.5);
+        border-radius: 1rem;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+    
+    .camera-overlay.capturing {
+        border-color: rgba(34, 197, 94, 1);
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+    }
+    
+    .camera-status {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .camera-status.active {
+        background: rgba(34, 197, 94, 0.8);
+    }
+    
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ef4444;
+        animation: pulse 2s infinite;
+    }
+    
+    .pulse-dot.active {
+        background: #22c55e;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8 animate-fade-in">
+        <h1 class="text-4xl font-bold mb-3 text-gray-900 dark:text-white">
+            <i class="bi bi-camera text-primary-600"></i>
+            <span class="bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">Camera Scanner</span>
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-400">
+            Capture equations and tables directly from your camera
+        </p>
+    </div>
+    
+    <!-- Main Camera Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-6 animate-scale-in">
+        <div class="camera-container">
+            <!-- Camera Status Indicator -->
+            <div id="camera-status" class="camera-status">
+                <div class="pulse-dot"></div>
+                <span>Initializing camera...</span>
+            </div>
+            
+            <!-- Camera Overlay Guide -->
+            <div class="camera-overlay" id="camera-overlay"></div>
+            
+            <!-- Video/Canvas Elements -->
+            <video id="camera" autoplay playsinline muted></video>
+            <canvas id="snapshot"></canvas>
+        </div>
+        
+        <!-- Camera Controls -->
+        <div class="mt-6 space-y-4">
+            <form method="POST" id="capture-form">
+                {% csrf_token %}
+                <input type="hidden" name="captured_image" id="captured_image">
+                
+                <!-- Task Selection -->
+                <div class="mb-4">
+                    <label for="task" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="bi bi-list-task text-primary-600 mr-2"></i>Select Conversion Type
+                    </label>
+                    <select name="task" id="task" 
+                            class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 transition-all duration-300">
+                        <option value="equation">📐 Equation (LaTeX OCR)</option>
+                        <option value="table_gemini">📊 Table (Gemini AI)</option>
+                        <option value="groq">🤖 Groq (LLaMA)</option>
+                        <option value="grok2">🚀 Grok 2</option>
+                        <option value="mistral">⚡ Mistral</option>
+                        <option value="diagram_gemini">📈 Diagram (Gemini)</option>
+                    </select>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="button" id="capture-btn" 
+                            class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg font-bold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="bi bi-camera-fill text-xl mr-2"></i>
+                        Capture Image
+                    </button>
+                    
+                    <button type="button" id="retake-btn" 
+                            style="display:none;"
+                            class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 transition-all duration-300 shadow-lg">
+                        <i class="bi bi-arrow-clockwise text-xl mr-2"></i>
+                        Retake
+                    </button>
+                    
+                    <button type="submit" id="save-btn" 
+                            style="display:none;"
+                            class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg font-bold hover:from-primary-700 hover:to-accent-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        <i class="bi bi-magic text-xl mr-2"></i>
+                        Process & Convert
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="grid md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300">
+            <div class="bg-primary-100 dark:bg-primary-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                <i class="bi bi-1-circle text-primary-600 dark:text-primary-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-white">Position Content</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">
+                Center your equation or table within the green guide frame
+            </p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300">
+            <div class="bg-accent-100 dark:bg-accent-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                <i class="bi bi-2-circle text-accent-600 dark:text-accent-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-white">Capture</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">
+                Click the capture button to take a high-quality snapshot
+            </p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300">
+            <div class="bg-green-100 dark:bg-green-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                <i class="bi bi-3-circle text-green-600 dark:text-green-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-white">Convert</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">
+                Process the image to get clean, editable LaTeX code
+            </p>
+        </div>
+    </div>
+    
+    <!-- Messages -->
+    {% if success %}
+    <div class="bg-green-50 border-l-4 border-green-500 dark:bg-green-900/20 dark:border-green-400 rounded-lg p-4 flex items-start space-x-3 mb-6 animate-slide-up">
+        <i class="bi bi-check-circle-fill text-green-600 text-xl"></i>
+        <span class="text-gray-900 dark:text-white">{{ success }}</span>
+    </div>
+    {% endif %}
+    
+    {% if error %}
+    <div class="bg-red-50 border-l-4 border-red-500 dark:bg-red-900/20 dark:border-red-400 rounded-lg p-4 flex items-start space-x-3 mb-6 animate-slide-up">
+        <i class="bi bi-exclamation-triangle-fill text-red-600 text-xl"></i>
+        <span class="text-gray-900 dark:text-white">{{ error }}</span>
+    </div>
+    {% endif %}
+    
+    <!-- Tips -->
+    <div class="bg-gradient-to-r from-primary-50 to-accent-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6">
+        <h3 class="text-lg font-bold mb-3 text-gray-900 dark:text-white">
+            <i class="bi bi-lightbulb text-yellow-500 mr-2"></i>Pro Tips
+        </h3>
+        <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+            <li class="flex items-start">
+                <i class="bi bi-check2 text-primary-600 mr-2 mt-1"></i>
+                <span>Ensure good lighting for best OCR accuracy</span>
+            </li>
+            <li class="flex items-start">
+                <i class="bi bi-check2 text-primary-600 mr-2 mt-1"></i>
+                <span>Hold the camera steady to avoid blurry images</span>
+            </li>
+            <li class="flex items-start">
+                <i class="bi bi-check2 text-primary-600 mr-2 mt-1"></i>
+                <span>Position content parallel to the camera for best results</span>
+            </li>
+            <li class="flex items-start">
+                <i class="bi bi-check2 text-primary-600 mr-2 mt-1"></i>
+                <span>Use the retake button if the capture isn't perfect</span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('snapshot');
+    const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const capturedInput = document.getElementById('captured_image');
+    const cameraStatus = document.getElementById('camera-status');
+    const cameraOverlay = document.getElementById('camera-overlay');
+    const pulseDot = cameraStatus.querySelector('.pulse-dot');
+    
+    let stream = null;
+    
+    // Start camera
+    async function initCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                } 
+            });
+            video.srcObject = stream;
+            
+            // Update status
+            cameraStatus.classList.add('active');
+            pulseDot.classList.add('active');
+            cameraStatus.querySelector('span').textContent = 'Camera Ready';
+            
+        } catch (err) {
+            console.error('Camera error:', err);
+            cameraStatus.querySelector('span').textContent = 'Camera access denied';
+            alert('Camera access denied. Please allow camera permissions.');
+        }
+    }
+    
+    initCamera();
+    
+    // Capture button
+    captureBtn.addEventListener('click', () => {
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            alert('Camera not ready yet, please wait a moment and try again.');
+            return;
+        }
+        
+        // Add capture animation
+        cameraOverlay.classList.add('capturing');
+        
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        if (dataUrl === 'data:,') {
+            alert('Failed to capture image!');
+            cameraOverlay.classList.remove('capturing');
+            return;
+        }
+        
+        capturedInput.value = dataUrl;
+        
+        // Show preview and buttons
+        setTimeout(() => {
+            canvas.style.display = 'block';
+            video.style.display = 'none';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-flex';
+            saveBtn.style.display = 'inline-flex';
+            cameraStatus.querySelector('span').textContent = 'Image Captured';
+            cameraOverlay.classList.remove('capturing');
+            
+            // Stop camera stream
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }, 300);
+    });
+    
+    // Retake button
+    retakeBtn.addEventListener('click', () => {
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        captureBtn.style.display = 'inline-flex';
+        retakeBtn.style.display = 'none';
+        saveBtn.style.display = 'none';
+        capturedInput.value = '';
+        
+        // Restart camera
+        initCamera();
+    });
+    
+    // Form submission
+    document.getElementById('capture-form').addEventListener('submit', function() {
+        saveBtn.innerHTML = '<i class="bi bi-hourglass-split animate-spin mr-2"></i>Processing...';
+        saveBtn.disabled = true;
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,299 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}LaTeX Editor - MathScriber{% endblock %}</title>
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1',
+              400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c',
+              800: '#292524', 900: '#1c1917',
+            },
+            accent: {
+              50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+              400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+              800: '#115e59', 900: '#134e4a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  
+  <!-- Ace Editor -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-latex.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-chrome.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/theme-monokai.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'editor/editor.css' %}">
+</head>
+<body class="bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 transition-colors duration-300">
+  <!-- Navigation -->
+  <nav class="bg-gradient-to-r from-teal-700 via-teal-600 to-blue-600 shadow-xl sticky top-0 z-50 backdrop-blur-md border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-14">
+        <!-- Logo -->
+        <a href="{% url 'editor:project_list' %}" class="flex items-center space-x-2.5 group">
+          <div class="relative">
+            <div class="absolute inset-0 bg-white rounded-lg blur-sm opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
+            <div class="relative bg-white dark:bg-stone-800 p-2 rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path class="text-teal-600" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3.5 14H9l3-5-3-5h6.5l-3 5 3 5z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="flex flex-col leading-tight">
+            <span class="text-xl font-bold text-white tracking-tight">MathScriber</span>
+            <span class="text-[10px] text-white/70 font-medium tracking-wide">LaTeX Editor</span>
+          </div>
+        </a>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-1">
+          <a href="{% url 'converter:dashboard' %}" class="editor-nav-link group">
+            <i class="bi bi-house-door-fill text-sm group-hover:scale-110 transition-transform"></i>
+            <span>Home</span>
+          </a>
+          <a href="{% url 'editor:project_list' %}" class="editor-nav-link group">
+            <i class="bi bi-folder-fill text-sm group-hover:scale-110 transition-transform"></i>
+            <span>Projects</span>
+          </a>
+          
+          <!-- Divider -->
+          <div class="w-px h-6 bg-white/20 mx-2"></div>
+          
+          <!-- Theme Toggle -->
+          <button id="theme-toggle-editor" 
+                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/30 group" 
+                  type="button" 
+                  title="Toggle theme">
+            <i class="bi bi-moon-stars-fill text-base group-hover:rotate-12 transition-transform"></i>
+          </button>
+          
+          <!-- User Info -->
+          {% if user.is_authenticated %}
+            <div class="flex items-center space-x-2 ml-2 px-3 py-2 rounded-lg bg-white/10">
+              <i class="bi bi-person-circle text-white text-lg"></i>
+              <span class="text-white/90 text-sm font-medium">{{ user.username }}</span>
+            </div>
+          {% else %}
+            <a href="{% url 'admin:login' %}" class="editor-nav-link group ml-2">
+              <i class="bi bi-box-arrow-in-right text-sm group-hover:scale-110 transition-transform"></i>
+              <span>Login</span>
+            </a>
+          {% endif %}
+        </div>
+        
+        <!-- Mobile menu button -->
+        <div class="flex items-center gap-2 md:hidden">
+          <button id="theme-toggle-mobile-editor" 
+                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-300">
+            <i class="bi bi-moon-stars-fill text-sm"></i>
+          </button>
+          
+          <button id="mobile-menu-btn-editor" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-300">
+            <i class="bi bi-list text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div id="mobile-menu-editor" class="hidden md:hidden bg-gradient-to-b from-primary-700/95 to-accent-700/95 backdrop-blur-lg border-t border-white/10 shadow-2xl">
+      <div class="px-4 py-4 space-y-2">
+        <a href="{% url 'converter:dashboard' %}" class="mobile-editor-nav-link">
+          <i class="bi bi-house-door-fill"></i>
+          <span>Home</span>
+          <i class="bi bi-chevron-right ml-auto"></i>
+        </a>
+        <a href="{% url 'editor:project_list' %}" class="mobile-editor-nav-link">
+          <i class="bi bi-folder-fill"></i>
+          <span>Projects</span>
+          <i class="bi bi-chevron-right ml-auto"></i>
+        </a>
+        {% if user.is_authenticated %}
+          <div class="border-t border-white/10 my-2"></div>
+          <div class="mobile-editor-nav-link pointer-events-none opacity-75">
+            <i class="bi bi-person-circle"></i>
+            <span>{{ user.username }}</span>
+          </div>
+        {% else %}
+          <div class="border-t border-white/10 my-2"></div>
+          <a href="{% url 'admin:login' %}" class="mobile-editor-nav-link">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>Login</span>
+            <i class="bi bi-chevron-right ml-auto"></i>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  {% block main_container %}
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen">
+    {% block content %}{% endblock %}
+  </main>
+  {% endblock main_container %}
+
+  <!-- Custom Styles -->
+  <style>
+    .editor-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.875rem;
+      border-radius: 0.5rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .editor-nav-link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 0.5rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .editor-nav-link:hover {
+      color: white;
+      transform: translateY(-1px);
+    }
+    .editor-nav-link:hover::before {
+      opacity: 1;
+    }
+    
+    .mobile-editor-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+      border-radius: 0.625rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+      font-size: 0.9375rem;
+      transition: all 0.3s;
+      background: rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.375rem;
+    }
+    .mobile-editor-nav-link:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(4px);
+    }
+  </style>
+  
+  {% block javascript %}{% endblock %}
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Theme and Mobile Menu Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Dark mode toggle
+      const themeToggle = document.getElementById('theme-toggle-editor');
+      const themeToggleMobile = document.getElementById('theme-toggle-mobile-editor');
+      const html = document.documentElement;
+      
+      // Check for saved theme preference
+      const currentTheme = localStorage.getItem('ms-theme') || 'light';
+      if (currentTheme === 'dark') {
+        html.classList.add('dark');
+      }
+      
+      function updateThemeIcons() {
+        const isDark = html.classList.contains('dark');
+        const iconClass = isDark ? 'bi-sun-fill' : 'bi-moon-stars-fill';
+        
+        if (themeToggle) {
+          const icon = themeToggle.querySelector('i');
+          icon.className = `bi ${iconClass} text-base group-hover:rotate-12 transition-transform`;
+        }
+        if (themeToggleMobile) {
+          const icon = themeToggleMobile.querySelector('i');
+          icon.className = `bi ${iconClass} text-sm`;
+        }
+      }
+      
+      updateThemeIcons();
+      
+      function toggleTheme() {
+        html.classList.toggle('dark');
+        localStorage.setItem('ms-theme', html.classList.contains('dark') ? 'dark' : 'light');
+        updateThemeIcons();
+        
+        // Update Ace Editor theme if it exists
+        if (window.aceEditor) {
+          const isDark = html.classList.contains('dark');
+          window.aceEditor.setTheme(isDark ? 'ace/theme/monokai' : 'ace/theme/chrome');
+        }
+      }
+      
+      if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+      }
+      if (themeToggleMobile) {
+        themeToggleMobile.addEventListener('click', toggleTheme);
+      }
+      
+      // Mobile menu toggle
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn-editor');
+      const mobileMenu = document.getElementById('mobile-menu-editor');
+      
+      if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          mobileMenu.classList.toggle('hidden');
+          const icon = mobileMenuBtn.querySelector('i');
+          if (mobileMenu.classList.contains('hidden')) {
+            icon.className = 'bi bi-list text-xl';
+          } else {
+            icon.className = 'bi bi-x-lg text-xl';
+          }
+        });
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+            mobileMenu.classList.add('hidden');
+            const icon = mobileMenuBtn.querySelector('i');
+            icon.className = 'bi bi-list text-xl';
+          }
+        });
+        
+        // Close mobile menu when window is resized to desktop
+        window.addEventListener('resize', function() {
+          if (window.innerWidth >= 768) {
+            mobileMenu.classList.add('hidden');
+            const icon = mobileMenuBtn.querySelector('i');
+            icon.className = 'bi bi-list text-xl';
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

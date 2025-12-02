@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center">Upload Your Files</h1>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- AI Model Selection -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Select AI Model</label>
+                    {{ form.task }}
+                    <p class="text-sm text-gray-500 mt-2">Choose the best model for your content type</p>
+                </div>
+                
+                <!-- File Upload -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Upload Images or PDFs</label>
+                    {{ form.images }}
+                    {% if form.images.errors %}
+                        <p class="text-red-500 text-sm mt-2">{{ form.images.errors }}</p>
+                    {% endif %}
+                    <p class="text-sm text-gray-500 mt-2">
+                        Supported formats: JPG, PNG, GIF, BMP, TIFF, PDF<br>
+                        Maximum size: 10MB per file
+                    </p>
+                </div>
+                
+                <!-- Drag and Drop Zone -->
+                <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center">
+                    <i class="bi bi-cloud-upload text-6xl text-gray-400 mb-4"></i>
+                    <p class="text-lg text-gray-600 dark:text-gray-400">
+                        Drag and drop files here, or click to select
+                    </p>
+                </div>
+                
+                <!-- Submit Button -->
+                <button type="submit" class="btn-primary w-full py-3 text-lg">
+                    <i class="bi bi-magic"></i> Convert to LaTeX
+                </button>
+            </form>
+        </div>
+        
+        <!-- Quick Access -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{% url 'converter:scanner' %}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+                <i class="bi bi-camera text-3xl text-primary mb-2"></i>
+                <p class="font-semibold">Camera Scanner</p>
+            </a>
+            
+            <a href="{% url 'converter:stylus' %}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+                <i class="bi bi-pencil text-3xl text-primary mb-2"></i>
+                <p class="font-semibold">Draw with Stylus</p>
+            </a>
+            
+            <a href="{% url 'converter:results' %}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg transition text-center">
+                <i class="bi bi-file-earmark-text text-3xl text-primary mb-2"></i>
+                <p class="font-semibold">View Results</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

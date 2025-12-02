@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}About - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center">About MathScriber</h1>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 space-y-6">
+            <p class="text-lg">
+                MathScriber is an AI-powered web application that transforms handwritten math, tables, 
+                and diagrams into perfect LaTeX code using multiple state-of-the-art AI models.
+            </p>
+            
+            <h2 class="text-2xl font-semibold mt-8">Features</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                <li>11 different AI models for optimal accuracy</li>
+                <li>Support for equations, tables, and diagrams</li>
+                <li>Real-time LaTeX preview with MathJax</li>
+                <li>Professional LaTeX editor with compilation</li>
+                <li>One-click export to Overleaf</li>
+                <li>Mobile-responsive design with dark mode</li>
+            </ul>
+            
+            <h2 class="text-2xl font-semibold mt-8">Technology Stack</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                <li>Backend: Django 5.2.6</li>
+                <li>Frontend: Tailwind CSS 3.x + DaisyUI</li>
+                <li>AI Models: Gemini, Groq, Mistral, OpenAI, and more</li>
+                <li>Rendering: MathJax 3</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

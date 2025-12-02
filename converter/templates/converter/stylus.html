@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Drawing Canvas - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold mb-8 text-center">Drawing Canvas</h1>
+    
+    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <canvas id="drawing-canvas" width="800" height="600" 
+                class="border-2 border-gray-300 dark:border-gray-600 rounded cursor-crosshair mx-auto block bg-white">
+        </canvas>
+        
+        <div class="flex gap-4 mt-6 justify-center">
+            <button id="clear-btn" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">
+                <i class="bi bi-trash"></i> Clear
+            </button>
+            <button id="process-btn" class="btn-primary px-6 py-2">
+                <i class="bi bi-magic"></i> Convert to LaTeX
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('drawing-canvas');
+const ctx = canvas.getContext('2d');
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 2;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+
+function startDrawing(e) {
+    isDrawing = true;
+    [lastX, lastY] = [e.offsetX || e.touches[0].clientX - canvas.offsetLeft, 
+                      e.offsetY || e.touches[0].clientY - canvas.offsetTop];
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    
+    const x = e.offsetX || e.touches[0].clientX - canvas.offsetLeft;
+    const y = e.offsetY || e.touches[0].clientY - canvas.offsetTop;
+    
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    
+    [lastX, lastY] = [x, y];
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+// Mouse events
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseout', stopDrawing);
+
+// Touch events for stylus/mobile
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startDrawing(e);
+});
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    draw(e);
+});
+canvas.addEventListener('touchend', stopDrawing);
+
+// Clear canvas
+document.getElementById('clear-btn').addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+// Process drawing
+document.getElementById('process-btn').addEventListener('click', () => {
+    canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append('image', blob, 'drawing.png');
+        
+        showNotification('Drawing captured! Redirecting to upload...', 'success');
+        setTimeout(() => {
+            window.location.href = '{% url "converter:upload" %}';
+        }, 1000);
+    });
+});
+</script>
+{% endblock %}
