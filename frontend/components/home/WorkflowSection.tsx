@@ -85,12 +85,12 @@ export default function WorkflowSection() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Auto-advance steps
+  // Auto-advance steps with slower transition
   useState(() => {
     if (isPlaying) {
       const interval = setInterval(() => {
         setActiveStep((prev) => (prev + 1) % workflowSteps.length);
-      }, 3000);
+      }, 5000); // Changed from 3000 to 5000 for slower transitions
       return () => clearInterval(interval);
     }
   });
@@ -282,6 +282,7 @@ export default function WorkflowSection() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.5 }}
                       className="space-y-6"
                     >
                       <h4 className="text-lg font-bold text-white mb-4">AI Processing Pipeline</h4>
@@ -296,9 +297,9 @@ export default function WorkflowSection() {
                                 backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#ef4444']
                               }}
                               transition={{ 
-                                duration: 1.5, 
+                                duration: 2.5, 
                                 repeat: Infinity, 
-                                delay: i * 0.2 
+                                delay: i * 0.3 
                               }}
                               className="w-3 h-3 rounded-full"
                             />
@@ -312,13 +313,13 @@ export default function WorkflowSection() {
                               key={model}
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: i * 0.1 }}
+                              transition={{ delay: i * 0.15 }}
                               className="p-3 bg-gradient-to-br from-white/10 to-white/5 rounded-xl text-center border border-white/10"
                             >
                               <p className="text-sm font-semibold text-white">{model}</p>
                               <motion.div
                                 animate={{ width: ['0%', '100%'] }}
-                                transition={{ duration: 2, repeat: Infinity }}
+                                transition={{ duration: 3, repeat: Infinity }}
                                 className="h-1 mt-2 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
                               />
                             </motion.div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   Home,
   Upload, 
@@ -12,7 +12,6 @@ import {
   BarChart3,
   Menu,
   X,
-  Zap,
   Rocket,
   Pencil,
   ChevronDown,
@@ -31,15 +30,27 @@ const featureItems = [
 ];
 
 const scrollLinks = [
-  { name: 'View Models', href: '/#models', icon: Brain, description: 'AI models we use' },
+  { name: 'AI Models', href: '/#models', icon: Brain, description: 'AI models we use' },
   { name: 'How It Works', href: '/#how-it-works', icon: Play, description: 'See the workflow' },
 ];
+
+// Smooth scroll function
+const smoothScrollTo = (elementId: string) => {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+};
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFeatureOpen, setIsFeatureOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,6 +70,21 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Handle smooth scroll for anchor links
+  const handleScrollLink = (href: string) => {
+    const hash = href.split('#')[1];
+    if (hash) {
+      if (pathname === '/') {
+        // Already on home page, just scroll
+        smoothScrollTo(hash);
+      } else {
+        // Navigate to home first, then scroll
+        router.push('/');
+        setTimeout(() => smoothScrollTo(hash), 100);
+      }
+    }
+  };
 
   return (
     <>
@@ -168,15 +194,21 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
 
-              {/* Scroll Links - View Models & How It Works */}
+              {/* Scroll Links - AI Models & How It Works */}
               {scrollLinks.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <NavLink key={link.name} href={link.href} icon={Icon}>{link.name}</NavLink>
+                  <ScrollNavLink 
+                    key={link.name} 
+                    href={link.href} 
+                    icon={Icon}
+                    onClick={() => handleScrollLink(link.href)}
+                  >
+                    {link.name}
+                  </ScrollNavLink>
                 );
               })}
 
-              <NavLink href="/#pricing" icon={Zap}>Pricing</NavLink>
               <NavLink href="/about" icon={Info}>About</NavLink>
 
               {/* CTA Buttons */}
@@ -287,14 +319,17 @@ export default function Navbar() {
                     {scrollLinks.map((link) => {
                       const Icon = link.icon;
                       return (
-                        <MobileNavLink 
+                        <MobileScrollNavLink 
                           key={link.name}
                           href={link.href} 
                           icon={Icon} 
-                          onClick={() => setIsMobileMenuOpen(false)}
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            handleScrollLink(link.href);
+                          }}
                         >
                           {link.name}
-                        </MobileNavLink>
+                        </MobileScrollNavLink>
                       );
                     })}
                   </div>
@@ -302,7 +337,6 @@ export default function Navbar() {
 
                 {/* Other Links */}
                 <div className="space-y-2 mb-8">
-                  <MobileNavLink href="/#pricing" icon={Zap} onClick={() => setIsMobileMenuOpen(false)}>Pricing</MobileNavLink>
                   <MobileNavLink href="/about" icon={Info} onClick={() => setIsMobileMenuOpen(false)}>About</MobileNavLink>
                 </div>
 
@@ -365,5 +399,33 @@ function MobileNavLink({ href, icon: Icon, children, onClick, gradient }: { href
       <span className={`font-medium ${isActive ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400' : 'text-white'}`}>{children}</span>
       {isActive && <div className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-red-400 to-orange-400 shadow-lg shadow-red-500/50" />}
     </Link>
+  );
+}
+
+// ScrollNavLink Component for smooth scroll links
+function ScrollNavLink({ href, icon: Icon, children, onClick }: { href: string; icon: any; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="group relative px-4 py-2 flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200"
+    >
+      <Icon className="w-4 h-4" />
+      <span>{children}</span>
+    </button>
+  );
+}
+
+// Mobile ScrollNavLink Component for smooth scroll links on mobile
+function MobileScrollNavLink({ href, icon: Icon, children, onClick }: { href: string; icon: any; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all hover:bg-white/5"
+    >
+      <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center">
+        <Icon className="w-4 h-4 text-gray-400" />
+      </div>
+      <span className="font-medium text-white">{children}</span>
+    </button>
   );
 }
