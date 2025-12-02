@@ -1,26 +1,35 @@
 """
-Gemini API integration for converting images to LaTeX
+LaTeX Converter using Google Gemini API
 Universal converter supporting equations, tables, and diagrams
 """
+import os
+import base64
+from io import BytesIO
+from PIL import Image
 import google.generativeai as genai
 from django.conf import settings
-from PIL import Image
-import io
 
 
 class GeminiConverter:
-    """Handles conversion of images to LaTeX using Gemini API"""
+    """Handles conversion of images to LaTeX using Google Gemini Vision API"""
     
     def __init__(self):
         """Initialize Gemini API with API key"""
-        api_key = settings.GEMINI_API_KEY
+        api_key = os.getenv('GOOGLE_API_KEY') or getattr(settings, 'GEMINI_API_KEY', None)
+        
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables. Please set it in backend/.env")
         
         genai.configure(api_key=api_key)
-        # Use gemini-2.0-flash for better performance
+        # Use gemini-2.0-flash for vision tasks
         self.model = genai.GenerativeModel('gemini-2.0-flash')
     
+    def _call_gemini_vision(self, prompt, image):
+        """Call Gemini Vision API with prompt and image"""
+        response = self.model.generate_content([prompt, image])
+        result = response.text.strip()
+        return self._clean_latex_output(result)
+
     def detect_content_type(self, image):
         """
         Analyze image to detect content types (equation, table, diagram, or mixed).
@@ -145,8 +154,7 @@ OUTPUT FORMAT:
 
 Convert the equation now:"""
 
-        response = self.model.generate_content([prompt, image])
-        return self._clean_latex_output(response.text)
+        return self._call_gemini_vision(prompt, image)
 
     def _convert_table(self, image):
         """Convert table image to LaTeX"""
@@ -180,8 +188,7 @@ data1 & data2 & data3 \\\\
 
 Convert the table now:"""
 
-        response = self.model.generate_content([prompt, image])
-        return self._clean_latex_output(response.text)
+        return self._call_gemini_vision(prompt, image)
 
     def _convert_diagram(self, image):
         """Convert diagram image to LaTeX TikZ"""
@@ -213,8 +220,8 @@ Example structure:
 
 Convert the diagram now:"""
 
-        response = self.model.generate_content([prompt, image])
-        return self._clean_latex_output(response.text)
+        response = self._call_gemini_vision(prompt, image)
+        return self._clean_latex_output(response)
 
     def _convert_universal(self, image, content_info):
         """Universal conversion for mixed or unknown content"""
@@ -250,8 +257,8 @@ OUTPUT FORMAT:
 
 Convert the content now:"""
 
-        response = self.model.generate_content([prompt, image])
-        return self._clean_latex_output(response.text)
+        response = self._call_gemini_vision(prompt, image)
+        return self._clean_latex_output(response)
 
     def _clean_latex_output(self, text):
         """Clean up the LaTeX output by removing markdown code blocks"""
