@@ -6,7 +6,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export interface ConversionResponse {
   success: boolean
+  id?: number
   latex_code: string
+  image_url?: string
   message: string
 }
 

@@ -5,7 +5,7 @@ import { Upload, Image as ImageIcon, X } from 'lucide-react'
 import { convertImageToLatex } from '@/lib/api'
 
 interface ImageUploaderProps {
-  onConversionComplete: (latexCode: string) => void
+  onConversionComplete: (result: any) => void
 }
 
 export default function ImageUploader({ onConversionComplete }: ImageUploaderProps) {
@@ -81,7 +81,7 @@ export default function ImageUploader({ onConversionComplete }: ImageUploaderPro
       const result = await convertImageToLatex(selectedImage)
 
       if (result.success) {
-        onConversionComplete(result.latex_code)
+        onConversionComplete(result)
       } else {
         setError(result.message || 'Failed to convert image')
       }

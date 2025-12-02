@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Mathscriber AI - Image to LaTeX Converter',
-  description: 'Convert mathematical equations, diagrams, and tables from images to LaTeX code using AI',
+  title: 'MathScriber AI - Transform Math to LaTeX',
+  description: 'Convert handwritten equations, diagrams, and tables to LaTeX with 97%+ accuracy using advanced AI',
 }
 
 export default function RootLayout({
@@ -14,13 +12,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col bg-neutral-100">
-        <Navbar />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
+    <html lang="en" className="dark">
+      <body className="min-h-screen bg-black antialiased">
+        {children}
       </body>
     </html>
   )
