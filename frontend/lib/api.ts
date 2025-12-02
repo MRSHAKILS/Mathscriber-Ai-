@@ -65,3 +65,88 @@ export async function checkHealth(): Promise<{ status: string; message: string }
     }
   }
 }
+
+// Auth API calls
+
+export interface AuthResponse {
+  success: boolean
+  user?: {
+    id: string
+    email: string
+    username?: string
+  }
+  token?: string
+  error?: string
+}
+
+/**
+ * Register a new user
+ */
+export async function registerUser(username: string, email: string, password: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password }),
+    })
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Registration Error:', error)
+    return {
+      success: false,
+      error: 'Failed to register user',
+    }
+  }
+}
+
+/**
+ * Login user
+ */
+export async function loginUser(email: string, password: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    })
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Login Error:', error)
+    return {
+      success: false,
+      error: 'Failed to login',
+    }
+  }
+}
+
+/**
+ * Logout user
+ */
+export async function logoutUser(token: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Token ${token}`,
+      },
+    })
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Logout Error:', error)
+    return {
+      success: false,
+      error: 'Failed to logout',
+    }
+  }
+}

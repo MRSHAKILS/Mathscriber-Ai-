@@ -37,9 +37,9 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -48,7 +48,7 @@ export default function Navbar() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, []); []);
 
   return (
     <>
@@ -166,6 +166,14 @@ export default function Navbar() {
                 </motion.button>
               </Link>
 
+              {/* Auth Section */}
+              <div className="flex items-center gap-2 ml-3 pl-3 border-l border-white/10">
+                {isAuthenticated ? (
+                  <div className="relative" ref={profileRef}>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsProfileOpen(!isProfileOpen)}
               {/* Auth Buttons */}
               <div className="flex items-center gap-2 ml-3 pl-3 border-l border-white/10">
                 <Link href="/login">
@@ -186,15 +194,7 @@ export default function Navbar() {
                     Get Started
                   </motion.button>
                 </Link>
-              </div>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-white hover:bg-white/10 transition-all"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </div>ileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -230,6 +230,60 @@ export default function Navbar() {
                     Try Now Free
                   </button>
                 </Link>
+                {isAuthenticated ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-white/5 rounded-xl">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium text-white truncate">{user?.email || user?.username}</span>
+                    </div>
+                    <Link href="/history" onClick={() => setIsMobileMenuOpen(false)}>
+                      <button className="w-full py-2.5 text-white border border-white/20 rounded-xl font-medium flex items-center justify-center gap-2">
+                        <History className="w-4 h-4" />
+                        History
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full py-2.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-medium flex items-center justify-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <button className="w-full py-2.5 text-white border border-white/20 rounded-xl font-medium">
+                        Sign In
+                      </button>
+                    </Link>
+                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                      <button className="w-full py-2.5 bg-white text-black font-bold rounded-xl">
+                        Get Started
+                      </button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Spacer */}
+      <div className="h-20" />
+    </>
+  );
+                <Link href="/upload" onClick={() => setIsMobileMenuOpen(false)}>
+                  <button className="w-full py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl">
+                    Try Now Free
+                  </button>
+                </Link>
                 <div className="grid grid-cols-2 gap-2">
                   <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                     <button className="w-full py-2.5 text-white border border-white/20 rounded-xl font-medium">
@@ -242,33 +296,3 @@ export default function Navbar() {
                     </button>
                   </Link>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Spacer */}
-      <div className="h-20" />
-    </>
-  );
-}
-
-// NavLink Component
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
-
-  return (
-    <Link
-      href={href}
-      className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-        isActive
-          ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400 bg-white/10'
-          : 'text-gray-300 hover:text-white hover:bg-white/5'
-      }`}
-    >
-      {children}
-    </Link>
-  );
-}

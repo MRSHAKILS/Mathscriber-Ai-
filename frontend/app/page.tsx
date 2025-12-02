@@ -1,4 +1,6 @@
-import Navbar from '@/components/home/NavbarNew'
+'use client';
+
+import NavbarNew from '@/components/home/NavbarNew'
 import HeroSection from '@/components/home/HeroSection'
 import FeaturesSection from '@/components/home/FeaturesSection'
 import HowItWorksSection from '@/components/home/HowItWorksSection'
@@ -10,7 +12,7 @@ import Footer from '@/components/ui/Footer'
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-black">
-      <Navbar />
+      <NavbarNew />
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
