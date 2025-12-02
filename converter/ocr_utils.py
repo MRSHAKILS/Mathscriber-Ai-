@@ -76,25 +76,17 @@ def process_image_to_latex(image_path, task_type):
     Process image to LaTeX using either the actual OCR modules or mock data.
     """
     
-    # Handle Gemini table processing separately
-    if task_type == 'table_gemini':
-        return process_table_with_gemini(image_path)
-    
     # Handle Gemini Universal processing (auto-detects equation/table/diagram)
     if task_type == 'gemini_universal':
         return process_with_gemini_universal(image_path)
     
-    # Handle Groq processing separately (handles both tables and equations)
-    if task_type == 'groq':
-        return process_with_groq(image_path)
+    # Handle Mistral Universal processing (auto-detects equation/table/diagram)
+    if task_type == 'mistral_universal':
+        return process_with_mistral_universal(image_path)
     
-    # Handle Mistral processing separately (handles both tables and equations)
-    if task_type == 'mistral':
-        return process_with_mistral(image_path)
-    
-    # Handle Gemini diagram processing separately
-    if task_type == 'gemini_diagram':
-        return process_with_gemini_diagram(image_path)
+    # Handle Groq Universal processing (auto-detects equation/table/diagram)
+    if task_type == 'groq_universal':
+        return process_with_groq_universal(image_path)
     
     # Try to use actual OCR modules first
     if load_ocr_modules():
@@ -237,52 +229,22 @@ def process_pdf_to_latex(pdf_path, task_type):
     Returns a list of LaTeX outputs for each page.
     """
     try:
-        # For Gemini table processing, use direct PDF processing if possible
-        if task_type == 'table_gemini':
-            # Process the entire PDF at once
-            latex_output = process_table_with_gemini(pdf_path)
-            return [latex_output]
-        
         # For Gemini Universal processing, use direct PDF processing if possible
         if task_type == 'gemini_universal':
             # Process the entire PDF at once
             latex_output = process_with_gemini_universal(pdf_path)
             return [latex_output]
         
-        # For Groq processing, use direct PDF processing if possible
-        if task_type == 'groq':
+        # For Mistral Universal processing, use direct PDF processing if possible
+        if task_type == 'mistral_universal':
             # Process the entire PDF at once
-            latex_output = process_with_groq(pdf_path)
+            latex_output = process_with_mistral_universal(pdf_path)
             return [latex_output]
         
-        # For Grok 2 processing, use direct PDF processing if possible
-        if task_type == 'grok2':
+        # For Groq Universal processing, use direct PDF processing if possible
+        if task_type == 'groq_universal':
             # Process the entire PDF at once
-            latex_output = process_with_grok2(pdf_path)
-            return [latex_output]
-        
-        # For Mistral processing, use direct PDF processing if possible
-        if task_type == 'mistral':
-            # Process the entire PDF at once
-            latex_output = process_with_mistral(pdf_path)
-            return [latex_output]
-        
-        # For DeepSeek diagram processing, use direct PDF processing if possible
-        if task_type == 'deepseek_diagram':
-            # Process the entire PDF at once
-            latex_output = process_with_deepseek_diagram(pdf_path)
-            return [latex_output]
-        
-        # For OpenAI diagram processing, use direct PDF processing if possible
-        if task_type == 'openai_diagram':
-            # Process the entire PDF at once
-            latex_output = process_with_openai_diagram(pdf_path)
-            return [latex_output]
-        
-        # For Gemini diagram processing, use direct PDF processing if possible
-        if task_type == 'gemini_diagram':
-            # Process the entire PDF at once
-            latex_output = process_with_gemini_diagram(pdf_path)
+            latex_output = process_with_groq_universal(pdf_path)
             return [latex_output]
         
         # Create temporary directory for images
@@ -731,20 +693,23 @@ def test_ocr_setup():
         
     return status
 
-def process_with_gemini_diagram(image_path):
+def process_with_mistral_universal(image_path):
     """
-    Process diagram image using Gemini Vision API via gemini_diagram.py script.
-    Returns LaTeX TikZ code as a string.
+    Process image (equation/table/diagram - auto-detect) using Mistral Universal via mistral_universal.py script.
+    Returns LaTeX output as a string.
     """
     try:
-        # Path to gemini_diagram.py in Notebooks directory
+        # Path to mistral_universal.py in Notebooks directory
         notebooks_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Notebooks')
-        convert_script = os.path.join(notebooks_dir, 'gemini_diagram.py')
+        convert_script = os.path.join(notebooks_dir, 'mistral_universal.py')
         
         if not os.path.exists(convert_script):
-            return f"% Error: gemini_diagram.py not found at {convert_script}"
+            return f"% Error: mistral_universal.py not found at {convert_script}"
         
-        print(f"[INFO] Processing diagram with Gemini API: {image_path}")
+        print("=" * 80)
+        print("MISTRAL UNIVERSAL CONVERTER")
+        print("=" * 80)
+        print(f"[INFO] Processing with Mistral Universal (auto-detect): {image_path}")
         
         # For PDF files, convert to image first
         temp_image_path = None
@@ -759,12 +724,12 @@ def process_with_gemini_diagram(image_path):
             else:
                 return "% Error: Could not convert PDF to image"
         
-        # Run gemini_diagram.py script
+        # Run mistral_universal.py script
         result = subprocess.run(
             [sys.executable, convert_script, image_path],
             capture_output=True,
             text=True,
-            timeout=120  # 2 minute timeout
+            timeout=180  # 3 minute timeout (needs more time for detection + conversion)
         )
         
         # Clean up temporary image if created
@@ -776,40 +741,159 @@ def process_with_gemini_diagram(image_path):
         
         if result.returncode != 0:
             error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
-            print(f"[ERROR] Error running gemini_diagram.py:")
+            print(f"[ERROR] Error running mistral_universal.py:")
             print(f"[ERROR] Return code: {result.returncode}")
             print(f"[ERROR] Stderr: {result.stderr}")
             print(f"[ERROR] Stdout: {result.stdout}")
-            return f"% Error running Gemini diagram conversion: {error_msg}"
+            return f"% Error running Mistral Universal conversion: {error_msg}"
         
-        # The script creates a .tex file with the same base name as the image
+        # The script creates a .tex file in test_outputs directory
         base_name = os.path.splitext(os.path.basename(image_path))[0]
-        tex_output_file = f"{base_name}_gemini_diagram.tex"
+        tex_output_file = f"{base_name}_mistral_universal.tex"
         
-        # Read the generated .tex file
-        if os.path.exists(tex_output_file):
-            with open(tex_output_file, 'r', encoding='utf-8') as f:
-                latex_content = f.read()
-            
+        # Check multiple possible locations for the output file
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        possible_paths = [
+            os.path.join(project_root, 'test_outputs', tex_output_file),
+            tex_output_file,  # Current directory
+            os.path.join(os.path.dirname(image_path), tex_output_file)
+        ]
+        
+        latex_content = None
+        found_path = None
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                found_path = path
+                with open(path, 'r', encoding='utf-8') as f:
+                    latex_content = f.read()
+                break
+        
+        if latex_content:
             # Clean up the .tex file
-            try:
-                os.remove(tex_output_file)
-            except:
-                pass
+            if found_path:
+                try:
+                    os.remove(found_path)
+                except:
+                    pass
             
-            print(f"[SUCCESS] Gemini diagram conversion successful")
+            print(f"[SUCCESS] Mistral Universal conversion successful")
+            print("=" * 80)
             return latex_content
         else:
             # Try to find the file in the current directory or with different naming
-            print(f"[WARNING] Expected output file {tex_output_file} not found")
+            print(f"[WARNING] Expected output file {tex_output_file} not found in any location")
             # Return what we got from stdout if available
             if result.stdout:
                 return result.stdout
             return "% Error: Could not find generated LaTeX file"
         
     except subprocess.TimeoutExpired:
-        print("[ERROR] Gemini API call timed out")
-        return "% Error: Gemini API call timed out (exceeded 2 minutes)"
+        print("[ERROR] Mistral Universal API call timed out")
+        return "% Error: Mistral Universal API call timed out (exceeded 3 minutes)"
     except Exception as e:
-        print(f"[ERROR] Error processing diagram with Gemini: {e}")
-        return f"% Error processing diagram with Gemini: {str(e)}"
+        print(f"[ERROR] Error processing with Mistral Universal: {e}")
+        return f"% Error processing with Mistral Universal: {str(e)}"
+
+
+def process_with_groq_universal(image_path):
+    """
+    Process image (equation/table/diagram - auto-detect) using Groq Universal via groq_universal.py script.
+    Returns LaTeX output as a string.
+    """
+    try:
+        # Path to groq_universal.py in Notebooks directory
+        notebooks_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Notebooks')
+        convert_script = os.path.join(notebooks_dir, 'groq_universal.py')
+        
+        if not os.path.exists(convert_script):
+            return f"% Error: groq_universal.py not found at {convert_script}"
+        
+        print("=" * 80)
+        print("GROQ UNIVERSAL CONVERTER")
+        print("=" * 80)
+        print(f"[INFO] Processing with Groq Universal (auto-detect): {image_path}")
+        
+        # For PDF files, convert to image first
+        temp_image_path = None
+        if image_path.lower().endswith('.pdf'):
+            # Convert first page of PDF to image
+            temp_dir = tempfile.mkdtemp()
+            images = convert_from_path(image_path, dpi=300, fmt='PNG', first_page=1, last_page=1)
+            if images:
+                temp_image_path = os.path.join(temp_dir, 'pdf_page.png')
+                images[0].save(temp_image_path, 'PNG')
+                image_path = temp_image_path
+            else:
+                return "% Error: Could not convert PDF to image"
+        
+        # Run groq_universal.py script
+        result = subprocess.run(
+            [sys.executable, convert_script, image_path],
+            capture_output=True,
+            text=True,
+            timeout=180  # 3 minute timeout (needs more time for detection + conversion)
+        )
+        
+        # Clean up temporary image if created
+        if temp_image_path:
+            try:
+                shutil.rmtree(os.path.dirname(temp_image_path), ignore_errors=True)
+            except:
+                pass
+        
+        if result.returncode != 0:
+            error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
+            print(f"[ERROR] Error running groq_universal.py:")
+            print(f"[ERROR] Return code: {result.returncode}")
+            print(f"[ERROR] Stderr: {result.stderr}")
+            print(f"[ERROR] Stdout: {result.stdout}")
+            return f"% Error running Groq Universal conversion: {error_msg}"
+        
+        # The script creates a .tex file in test_outputs directory
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        tex_output_file = f"{base_name}_groq_universal.tex"
+        
+        # Check multiple possible locations for the output file
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        possible_paths = [
+            os.path.join(project_root, 'test_outputs', tex_output_file),
+            tex_output_file,  # Current directory
+            os.path.join(os.path.dirname(image_path), tex_output_file)
+        ]
+        
+        latex_content = None
+        found_path = None
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                found_path = path
+                with open(path, 'r', encoding='utf-8') as f:
+                    latex_content = f.read()
+                break
+        
+        if latex_content:
+            # Clean up the .tex file
+            if found_path:
+                try:
+                    os.remove(found_path)
+                except:
+                    pass
+            
+            print(f"[SUCCESS] Groq Universal conversion successful")
+            print("=" * 80)
+            return latex_content
+        else:
+            # Try to find the file in the current directory or with different naming
+            print(f"[WARNING] Expected output file {tex_output_file} not found in any location")
+            # Return what we got from stdout if available
+            if result.stdout:
+                return result.stdout
+            return "% Error: Could not find generated LaTeX file"
+        
+    except subprocess.TimeoutExpired:
+        print("[ERROR] Groq Universal API call timed out")
+        return "% Error: Groq Universal API call timed out (exceeded 3 minutes)"
+    except Exception as e:
+        print(f"[ERROR] Error processing with Groq Universal: {e}")
+        return f"% Error processing with Groq Universal: {str(e)}"

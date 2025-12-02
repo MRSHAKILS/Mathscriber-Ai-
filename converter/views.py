@@ -73,7 +73,51 @@ def upload_view(request):
                     # Process the file to get LaTeX output
                     file_path = uploaded_image.image.path
                     
-                    if is_pdf:
+                    # Handle Agent Workflow
+                    if task == 'agent':
+                        # Import agent workflow
+                        from agents import process_scribble
+                        
+                        if is_pdf:
+                            messages.error(request, f"Agent workflow does not support PDF files yet: {image.name}")
+                            uploaded_image.delete()
+                            continue
+                        
+                        if validate_image(file_path):
+                            print(f"🤖 Processing with Agent Workflow: {image.name}")
+                            
+                            # Run the multi-agent workflow
+                            result = process_scribble(file_path, max_retries=3)
+                            
+                            # Extract results
+                            uploaded_image.latex_output = result.get('converted_output', '')
+                            uploaded_image.scribble_type = result.get('scribble_type', 'unknown')
+                            uploaded_image.type_confidence = result.get('type_confidence', 0.0)
+                            uploaded_image.validation_score = result.get('validation_score', 0.0)
+                            uploaded_image.feedback = result.get('feedback', '')
+                            uploaded_image.retry_count = result.get('retry_count', 0)
+                            uploaded_image.model_used = result.get('model_used', 'Multi-Agent Workflow (Gemini)')
+                            uploaded_image.save()
+                            
+                            processed_images.append({
+                                'id': uploaded_image.id,
+                                'image_url': uploaded_image.image.url,
+                                'latex_output': uploaded_image.latex_output,
+                                'filename': uploaded_image.image.name,
+                                'task': task,
+                                'model_used': uploaded_image.model_used,
+                                'file_type': 'Image',
+                                'scribble_type': uploaded_image.scribble_type,
+                                'type_confidence': uploaded_image.type_confidence,
+                                'validation_score': uploaded_image.validation_score,
+                                'feedback': uploaded_image.feedback,
+                                'retry_count': uploaded_image.retry_count
+                            })
+                        else:
+                            messages.error(request, f"Invalid image file: {image.name}")
+                            uploaded_image.delete()
+                    
+                    elif is_pdf:
                         # Handle PDF processing
                         if validate_pdf(file_path):
                             print(f"📄 Processing PDF: {image.name}")
@@ -84,13 +128,10 @@ def upload_view(request):
                             uploaded_image.latex_output = combined_latex
                             # Set model name used based on task
                             uploaded_image.model_used = (
-                                'gemini-2.5-pro' if task == 'table_gemini' else
-                                'gemini-2.0-flash-exp (Universal Auto-Detect)' if task == 'gemini_universal' else
-                                'meta-llama/llama-4-scout-17b-16e-instruct (Groq)' if task == 'groq' else
-                                'meta-llama/llama-4-scout-17b-16e-instruct (Grok 2)' if task == 'grok2' else
-                                'pixtral-12b (Mistral)' if task == 'mistral' else
-                                'llava-1.5-7b-hf (HuggingFace)' if task == 'deepseek_diagram' else
-                                'gpt-4o (OpenAI)' if task == 'openai_diagram' else
+                                'Multi-Agent Workflow (Gemini)' if task == 'agent' else
+                                'gemini-2.5-flash (Universal Auto-Detect)' if task == 'gemini_universal' else
+                                'pixtral-12b-2409 (Mistral Universal Auto-Detect)' if task == 'mistral_universal' else
+                                'llama-4-scout-17b (Groq Universal Auto-Detect)' if task == 'groq_universal' else
                                 'pix2tex (LatexOCR)' if task == 'equation' else
                                 'pytesseract + table_to_latex'
                             )
@@ -116,16 +157,10 @@ def upload_view(request):
                             uploaded_image.latex_output = latex_output
                             # Set model name used based on task
                             uploaded_image.model_used = (
-                                'gemini-2.5-pro' if task == 'table_gemini' else
-                                'gemini-2.0-flash-exp (Universal Auto-Detect)' if task == 'gemini_universal' else
-                                'meta-llama/llama-4-scout-17b-16e-instruct (Groq)' if task == 'groq' else
-                                'meta-llama/llama-4-scout-17b-16e-instruct (Grok 2)' if task == 'grok2' else
-                                'pixtral-12b (Mistral)' if task == 'mistral' else
-                                'TikZ Template Generator' if task == 'deepseek_diagram' else
-                                'deepseek-reasoner (DeepSeek) - AI with Fallback' if task == 'deepseek_diagram_ai' else
-                                'Image Analysis + Smart Templates (HuggingFace)' if task == 'huggingface_diagram' else
-                                'gpt-4o (OpenAI) - AI-Powered' if task == 'openai_diagram' else
-                                'gemini-2.0-flash-exp (Gemini) - AI-Powered' if task == 'gemini_diagram' else
+                                'Multi-Agent Workflow (Gemini)' if task == 'agent' else
+                                'gemini-2.5-flash (Universal Auto-Detect)' if task == 'gemini_universal' else
+                                'pixtral-12b-2409 (Mistral Universal Auto-Detect)' if task == 'mistral_universal' else
+                                'llama-4-scout-17b (Groq Universal Auto-Detect)' if task == 'groq_universal' else
                                 'pix2tex (LatexOCR)' if task == 'equation' else
                                 'pytesseract + table_to_latex'
                             )
@@ -234,29 +269,44 @@ def camera_capture(request):
                 os.remove(abs_path)
                 return render(request, 'converter/Scanner.html', {'error': 'Invalid image format!'})
 
-            # Process image to LaTeX
-            latex_output = process_image_to_latex(abs_path, task)
-
-            # Create DB entry
-            uploaded_image = UploadedImage.objects.create(
-                image=file_path,
-                task=task,
-                latex_output=latex_output,
-                model_used=(
-                    'gemini-2.5-pro' if task == 'table_gemini' else
-                    'gemini-2.0-flash-exp (Universal Auto-Detect)' if task == 'gemini_universal' else
-                    'meta-llama/llama-4-scout-17b-16e-instruct (Groq)' if task == 'groq' else
-                    'meta-llama/llama-4-scout-17b-16e-instruct (Grok 2)' if task == 'grok2' else
-                    'pixtral-12b (Mistral)' if task == 'mistral' else
-                    'TikZ Template Generator' if task == 'deepseek_diagram' else
-                    'deepseek-reasoner (DeepSeek) - AI with Fallback' if task == 'deepseek_diagram_ai' else
-                    'Image Analysis + Smart Templates (HuggingFace)' if task == 'huggingface_diagram' else
-                    'gpt-4o (OpenAI) - AI-Powered' if task == 'openai_diagram' else
-                    'gemini-2.0-flash-exp (Gemini) - AI-Powered' if task == 'gemini_diagram' else
-                    'pix2tex (LatexOCR)' if task == 'equation' else
-                    'pytesseract + table_to_latex'
+            # Handle Agent Workflow
+            if task == 'agent':
+                from agents import process_scribble
+                
+                print(f"🤖 Processing captured image with Agent Workflow")
+                result = process_scribble(abs_path, max_retries=3)
+                
+                # Create DB entry with agent results
+                uploaded_image = UploadedImage.objects.create(
+                    image=file_path,
+                    task=task,
+                    latex_output=result.get('converted_output', ''),
+                    scribble_type=result.get('scribble_type', 'unknown'),
+                    type_confidence=result.get('type_confidence', 0.0),
+                    validation_score=result.get('validation_score', 0.0),
+                    feedback=result.get('feedback', ''),
+                    retry_count=result.get('retry_count', 0),
+                    model_used=result.get('model_used', 'Multi-Agent Workflow (Gemini)')
                 )
-            )
+                latex_output = uploaded_image.latex_output
+            else:
+                # Process image to LaTeX (standard workflow)
+                latex_output = process_image_to_latex(abs_path, task)
+
+                # Create DB entry
+                uploaded_image = UploadedImage.objects.create(
+                    image=file_path,
+                    task=task,
+                    latex_output=latex_output,
+                    model_used=(
+                        'Multi-Agent Workflow (Gemini)' if task == 'agent' else
+                        'gemini-2.5-flash (Universal Auto-Detect)' if task == 'gemini_universal' else
+                        'pixtral-12b-2409 (Mistral Universal Auto-Detect)' if task == 'mistral_universal' else
+                        'llama-4-scout-17b (Groq Universal Auto-Detect)' if task == 'groq_universal' else
+                        'pix2tex (LatexOCR)' if task == 'equation' else
+                        'pytesseract + table_to_latex'
+                    )
+                )
 
             # Show result page just like upload_view
             processed_images = [{

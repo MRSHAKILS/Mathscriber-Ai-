@@ -8,7 +8,7 @@ class MultipleImageUploadForm(forms.Form):
             'class': 'form-select',
             'id': 'task-select'
         }),
-        initial='equation',
+        initial='gemini_universal',
         help_text='Choose the type of content to extract'
     )
 

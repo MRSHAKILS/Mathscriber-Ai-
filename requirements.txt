@@ -23,7 +23,7 @@ pdf2image==1.17.0
 langchain==1.0.5
 langchain-core==1.0.4
 google-generativeai==0.8.5
-langchain-google-genai==3.0.1
+langchain-google-genai==3.2.0
 langchain-huggingface==1.0.1
 python-dotenv==1.1.1
 groq==0.33.0
@@ -50,6 +50,10 @@ langgraph==1.0.2
 langgraph-checkpoint==3.0.0
 langgraph-prebuilt==1.0.2
 langsmith==0.4.37
+
+# Additional AI integrations for agent workflow
+langchain-anthropic==0.3.5
+typing-extensions==4.12.2
 
 # Development tools (optional - uncomment for dev)
 # django-debug-toolbar>=4.0.0
