@@ -65,3 +65,28 @@ export async function checkHealth(): Promise<{ status: string; message: string }
     }
   }
 }
+
+
+//Login Authentication API
+
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://127.0.0.1:8000', // Django backend URL
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Automatically attach token from localStorage
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+  }
+  return config;
+});
+
+export default api;

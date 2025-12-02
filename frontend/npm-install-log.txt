@@ -1,0 +1,70 @@
+﻿node.exe : npm verbose cli C:\nvm4w\nodejs\node.exe C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js
+At line:1 char:1
++ & "C:\nvm4w\nodejs/node.exe" "C:\nvm4w\nodejs/node_modules/npm/bin/np ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm verbose cli...\bin\npm-cli.js:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm info using npm@11.6.2
+npm info using node@v24.11.1
+npm verbose title npm install
+npm verbose argv "install" "--loglevel" "verbose"
+npm verbose logfile logs-max:10 dir:C:\Users\Sowrov\AppData\Local\npm-cache\_logs\2025-12-02T06_21_03_659Z-
+npm verbose logfile C:\Users\Sowrov\AppData\Local\npm-cache\_logs\2025-12-02T06_21_03_659Z-debug-0.log
+npm http cache https://registry.npmjs.org/react 27ms (cache hit)
+npm verbose stack Error: could not resolve
+npm verbose stack     at PlaceDep.failPeerConflict 
+(C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\node_modules\@npmcli\arborist\lib\place-dep.js:503:25)
+npm verbose stack     at new PlaceDep 
+(C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\node_modules\@npmcli\arborist\lib\place-dep.js:157:21)
+npm verbose stack     at #buildDepStep (C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\node_modules\@npm
+cli\arborist\lib\arborist\build-ideal-tree.js:945:18)
+npm verbose stack     at async Arborist.buildIdealTree (C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\n
+ode_modules\@npmcli\arborist\lib\arborist\build-ideal-tree.js:182:7)
+npm verbose stack     at async Promise.all (index 1)
+npm verbose stack     at async Arborist.reify (C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\node_modul
+es\@npmcli\arborist\lib\arborist\reify.js:114:5)
+npm verbose stack     at async Install.exec 
+(C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\lib\commands\install.js:150:5)
+npm verbose stack     at async Npm.exec 
+(C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\lib\npm.js:208:9)
+npm verbose stack     at async module.exports 
+(C:\Users\Sowrov\AppData\Local\nvm\v24.11.1\node_modules\npm\lib\cli\entry.js:67:5)
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: lucide-react@0.344.0
+npm error Found: react@19.2.0
+npm error node_modules/react
+npm error   react@"^19.2.0" from the root project
+npm error   peer react@"^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0" from next@16.0.6
+npm error   node_modules/next
+npm error     next@"^16.0.6" from the root project
+npm error   3 more (react-dom, react-katex, styled-jsx)
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"^16.5.1 || ^17.0.0 || ^18.0.0" from lucide-react@0.344.0
+npm error node_modules/lucide-react
+npm error   lucide-react@"^0.344.0" from the root project
+npm error
+npm error Conflicting peer dependency: react@18.3.1
+npm error node_modules/react
+npm error   peer react@"^16.5.1 || ^17.0.0 || ^18.0.0" from lucide-react@0.344.0
+npm error   node_modules/lucide-react
+npm error     lucide-react@"^0.344.0" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error C:\Users\Sowrov\AppData\Local\npm-cache\_logs\2025-12-02T06_21_03_659Z-eresolve-report.txt
+npm verbose cwd C:\Users\Sowrov\OneDrive\Desktop\Mathscriber-Ai-\frontend
+npm verbose os Windows_NT 10.0.26200
+npm verbose node v24.11.1
+npm verbose npm  v11.6.2
+npm verbose exit 1
+npm verbose code 1
+npm error A complete log of this run can be found in: 
+C:\Users\Sowrov\AppData\Local\npm-cache\_logs\2025-12-02T06_21_03_659Z-debug-0.log
