@@ -21,7 +21,7 @@ import {
   BarChart3,
   Cpu,
   Globe,
-  CursorClick,
+  MousePointerClick,
   ChevronRight
 } from 'lucide-react';
 import type { Container, Engine } from '@tsparticles/engine';
@@ -407,13 +407,13 @@ export default function UploadPage() {
                       </p>
                       
                       <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-xl text-white font-semibold"
-                      >
-                        <CursorClick className="w-5 h-5" />
-                        Browse Files
-                      </motion.div>
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-700 rounded-xl text-white font-semibold"
+                    >
+                      <MousePointerClick className="w-5 h-5" />
+                      Browse Files
+                    </motion.div>
                     </div>
                     
                     <input

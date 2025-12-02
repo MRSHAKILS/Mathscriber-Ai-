@@ -19,6 +19,32 @@ class LatexCompiler:
         self.temp_dir = None
         self.compilation_errors = []
         self.compilation_warnings = []
+        self._refresh_path()
+    
+    def _refresh_path(self):
+        """Refresh PATH environment variable on Windows to include user PATH changes"""
+        if os.name == 'nt':  # Windows only
+            try:
+                import winreg
+                
+                # Get Machine PATH
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment') as key:
+                    machine_path = winreg.QueryValueEx(key, 'Path')[0]
+                
+                # Get User PATH
+                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Environment') as key:
+                    try:
+                        user_path = winreg.QueryValueEx(key, 'Path')[0]
+                    except FileNotFoundError:
+                        user_path = ''
+                
+                # Combine and update current process PATH
+                combined_path = machine_path + ';' + user_path if user_path else machine_path
+                os.environ['PATH'] = combined_path
+                
+            except Exception as e:
+                # If registry read fails, just continue with existing PATH
+                pass
     
     def compile(self, latex_content, file_name='document'):
         """
@@ -84,14 +110,25 @@ class LatexCompiler:
     def _compile_with_pdflatex(self, file_name):
         """Compile using pdflatex"""
         try:
+            # Find pdflatex executable
+            pdflatex_path = shutil.which("pdflatex")
+            if pdflatex_path is None:
+                self.compilation_errors.append("pdflatex not found. Please install TeX Live or MiKTeX.")
+                return False
+            
             # First pass
             result = subprocess.run(
-                ['pdflatex', '-interaction=nonstopmode', '-halt-on-error',
-                 '-output-directory', self.temp_dir, f'{file_name}.tex'],
+                [
+                    pdflatex_path,
+                    '-interaction=nonstopmode',
+                    '-halt-on-error',
+                    '-output-directory', self.temp_dir,
+                    f'{file_name}.tex'
+                ],
                 cwd=self.temp_dir,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=120  # Increased to 120 seconds (2 minutes)
             )
             
             self._parse_latex_output(result.stdout, result.stderr)
@@ -101,12 +138,17 @@ class LatexCompiler:
             
             # Second pass (for references, table of contents, etc.)
             result = subprocess.run(
-                ['pdflatex', '-interaction=nonstopmode', '-halt-on-error',
-                 '-output-directory', self.temp_dir, f'{file_name}.tex'],
+                [
+                    pdflatex_path,
+                    '-interaction=nonstopmode',
+                    '-halt-on-error',
+                    '-output-directory', self.temp_dir,
+                    f'{file_name}.tex'
+                ],
                 cwd=self.temp_dir,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=120  # Increased to 120 seconds (2 minutes)
             )
             
             self._parse_latex_output(result.stdout, result.stderr)
@@ -117,7 +159,11 @@ class LatexCompiler:
             self.compilation_errors.append("pdflatex not found. Please install TeX Live or MiKTeX.")
             return False
         except subprocess.TimeoutExpired:
-            self.compilation_errors.append("Compilation timeout (30 seconds exceeded)")
+            self.compilation_errors.append("Compilation timeout (120 seconds exceeded)")
+            self.compilation_errors.append("This may be due to:")
+            self.compilation_errors.append("- MiKTeX installing packages for the first time (try compiling again)")
+            self.compilation_errors.append("- Very complex document")
+            self.compilation_errors.append("- Infinite loop in LaTeX code")
             return False
         except Exception as e:
             self.compilation_errors.append(f"pdflatex error: {str(e)}")
@@ -126,13 +172,24 @@ class LatexCompiler:
     def _compile_with_xelatex(self, file_name):
         """Compile using xelatex (fallback)"""
         try:
+            # Find xelatex executable
+            xelatex_path = shutil.which("xelatex")
+            if xelatex_path is None:
+                self.compilation_errors.append("xelatex not found")
+                return False
+            
             result = subprocess.run(
-                ['xelatex', '-interaction=nonstopmode', '-halt-on-error',
-                 '-output-directory', self.temp_dir, f'{file_name}.tex'],
+                [
+                    xelatex_path,
+                    '-interaction=nonstopmode',
+                    '-halt-on-error',
+                    '-output-directory', self.temp_dir,
+                    f'{file_name}.tex'
+                ],
                 cwd=self.temp_dir,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=120  # Increased to 120 seconds (2 minutes)
             )
             
             self._parse_latex_output(result.stdout, result.stderr)
@@ -141,6 +198,10 @@ class LatexCompiler:
         
         except FileNotFoundError:
             self.compilation_errors.append("xelatex not found")
+            return False
+        except subprocess.TimeoutExpired:
+            self.compilation_errors.append("XeLaTeX compilation timeout (120 seconds exceeded)")
+            self.compilation_errors.append("This may be due to MiKTeX installing packages - try compiling again")
             return False
         except Exception as e:
             self.compilation_errors.append(f"xelatex error: {str(e)}")

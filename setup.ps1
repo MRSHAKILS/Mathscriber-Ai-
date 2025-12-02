@@ -6,6 +6,11 @@ Write-Host "  Mathscriber AI - Automated Setup" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Refresh PATH environment variables (important for MiKTeX and other tools)
+Write-Host "[0/6] Refreshing PATH environment variables..." -ForegroundColor Yellow
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+Write-Host "✓ PATH refreshed" -ForegroundColor Green
+
 # Check if Python is installed
 Write-Host "[1/6] Checking Python installation..." -ForegroundColor Yellow
 try {
@@ -91,14 +96,19 @@ Write-Host ""
 Write-Host "2. Edit backend/.env and add your API key:" -ForegroundColor White
 Write-Host "   GEMINI_API_KEY=your_api_key_here" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "3. Open TWO terminals and run:" -ForegroundColor White
+Write-Host "3. Start the development servers:" -ForegroundColor White
 Write-Host ""
-Write-Host "   Terminal 1 (Backend):" -ForegroundColor Yellow
+Write-Host "   Quick Start (Recommended):" -ForegroundColor Yellow
+Write-Host "   .\start-dev.ps1" -ForegroundColor Gray
+Write-Host ""
+Write-Host "   OR manually in TWO terminals:" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "   Terminal 1 (Backend):" -ForegroundColor Cyan
 Write-Host "   cd backend" -ForegroundColor Gray
 Write-Host "   .\venv\Scripts\activate" -ForegroundColor Gray
 Write-Host "   python manage.py runserver" -ForegroundColor Gray
 Write-Host ""
-Write-Host "   Terminal 2 (Frontend):" -ForegroundColor Yellow
+Write-Host "   Terminal 2 (Frontend):" -ForegroundColor Cyan
 Write-Host "   cd frontend" -ForegroundColor Gray
 Write-Host "   npm run dev" -ForegroundColor Gray
 Write-Host ""

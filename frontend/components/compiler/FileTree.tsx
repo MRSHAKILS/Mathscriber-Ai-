@@ -70,17 +70,17 @@ export default function FileTree({
     return (
       <div key={folder.id}>
         <div
-          className={`flex items-center space-x-2 px-2 py-1.5 hover:bg-neutral-100 rounded cursor-pointer`}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          className={`flex items-center space-x-2 px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer transition-all group`}
+          style={{ paddingLeft: `${depth * 16 + 12}px` }}
         >
-          <button onClick={() => toggleFolder(folder.id)} className="hover:text-primary-500">
+          <button onClick={() => toggleFolder(folder.id)} className="hover:text-red-400 text-gray-400">
             {hasChildren && (isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />)}
             {!hasChildren && <div className="w-4" />}
           </button>
           
-          {isExpanded ? <FolderOpen className="w-4 h-4 text-primary-500" /> : <FolderIcon className="w-4 h-4 text-primary-500" />}
+          {isExpanded ? <FolderOpen className="w-4 h-4 text-red-400" /> : <FolderIcon className="w-4 h-4 text-red-400" />}
           
-          <span className="flex-1 text-sm text-neutral-700">{folder.name}</span>
+          <span className="flex-1 text-sm text-gray-300">{folder.name}</span>
           
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
             <button
@@ -88,10 +88,10 @@ export default function FileTree({
                 e.stopPropagation();
                 setCreatingFile({ folderId: folder.id });
               }}
-              className="p-1 hover:bg-neutral-200 rounded"
+              className="p-1 hover:bg-white/10 rounded"
               title="New file"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3 h-3 text-gray-400" />
             </button>
             <button
               onClick={(e) => {
@@ -100,7 +100,7 @@ export default function FileTree({
                   onDeleteFolder(folder.id);
                 }
               }}
-              className="p-1 hover:bg-red-100 rounded text-red-500"
+              className="p-1 hover:bg-red-500/20 rounded text-red-400"
               title="Delete folder"
             >
               <Trash2 className="w-3 h-3" />
@@ -126,16 +126,16 @@ export default function FileTree({
     return (
       <div
         key={file.id}
-        className={`flex items-center space-x-2 px-2 py-1.5 rounded cursor-pointer group ${
-          isSelected ? 'bg-primary-100 text-primary-700' : 'hover:bg-neutral-100'
+        className={`flex items-center space-x-2 px-3 py-2 rounded-lg cursor-pointer group transition-all ${
+          isSelected ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border-l-2 border-red-400' : 'hover:bg-white/5 text-gray-300'
         }`}
-        style={{ paddingLeft: `${depth * 16 + 24}px` }}
+        style={{ paddingLeft: `${depth * 16 + 32}px` }}
         onClick={() => onFileSelect(file.id)}
       >
         <FileText className="w-4 h-4" />
-        <span className="flex-1 text-sm">{file.full_name}</span>
+        <span className="flex-1 text-sm font-mono">{file.full_name}</span>
         {file.is_main && (
-          <span className="text-xs bg-primary-200 text-primary-700 px-1.5 py-0.5 rounded">Main</span>
+          <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold">Main</span>
         )}
         <button
           onClick={(e) => {
@@ -144,7 +144,7 @@ export default function FileTree({
               onDeleteFile(file.id);
             }
           }}
-          className="p-1 hover:bg-red-100 rounded text-red-500 opacity-0 group-hover:opacity-100"
+          className="p-1 hover:bg-red-500/20 rounded text-red-400 opacity-0 group-hover:opacity-100"
           title="Delete file"
         >
           <Trash2 className="w-3 h-3" />
@@ -154,24 +154,24 @@ export default function FileTree({
   };
 
   return (
-    <div className="w-64 bg-white border-r border-neutral-200 overflow-y-auto">
+    <div className="w-72 bg-black/95 backdrop-blur-xl border-r border-white/10 overflow-y-auto">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-neutral-200 flex items-center justify-between">
-        <h3 className="font-semibold text-neutral-800">Files</h3>
+      <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between">
+        <h3 className="font-bold text-white">Project Files</h3>
         <div className="flex items-center space-x-1">
           <button
             onClick={() => setCreatingFile({})}
-            className="p-1.5 hover:bg-neutral-100 rounded"
+            className="p-2 hover:bg-white/10 rounded-lg transition-all"
             title="New file"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-gray-400" />
           </button>
           <button
             onClick={() => setCreatingFolder({})}
-            className="p-1.5 hover:bg-neutral-100 rounded"
+            className="p-2 hover:bg-white/10 rounded-lg transition-all"
             title="New folder"
           >
-            <FolderIcon className="w-4 h-4" />
+            <FolderIcon className="w-4 h-4 text-gray-400" />
           </button>
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function FileTree({
       <div className="p-2">
         {/* Creating new file */}
         {creatingFile && (
-          <div className="mb-2 px-2">
+          <div className="mb-3 px-2">
             <input
               type="text"
               value={newItemName}
@@ -190,19 +190,19 @@ export default function FileTree({
                 if (e.key === 'Escape') setCreatingFile(null);
               }}
               placeholder="File name..."
-              className="w-full px-2 py-1 text-sm border border-primary-500 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-red-500/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               autoFocus
             />
-            <div className="flex space-x-2 mt-1">
+            <div className="flex space-x-2 mt-2">
               <button
                 onClick={handleCreateFile}
-                className="text-xs bg-primary-500 text-white px-2 py-1 rounded hover:bg-primary-600"
+                className="text-xs bg-gradient-to-r from-red-600 to-orange-600 text-white px-3 py-1.5 rounded-lg hover:shadow-lg hover:shadow-red-500/30 font-semibold"
               >
                 Create
               </button>
               <button
                 onClick={() => setCreatingFile(null)}
-                className="text-xs bg-neutral-200 text-neutral-700 px-2 py-1 rounded hover:bg-neutral-300"
+                className="text-xs bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg hover:bg-white/20"
               >
                 Cancel
               </button>
@@ -212,7 +212,7 @@ export default function FileTree({
 
         {/* Creating new folder */}
         {creatingFolder && (
-          <div className="mb-2 px-2">
+          <div className="mb-3 px-2">
             <input
               type="text"
               value={newItemName}
@@ -222,19 +222,19 @@ export default function FileTree({
                 if (e.key === 'Escape') setCreatingFolder(null);
               }}
               placeholder="Folder name..."
-              className="w-full px-2 py-1 text-sm border border-primary-500 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-red-500/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               autoFocus
             />
-            <div className="flex space-x-2 mt-1">
+            <div className="flex space-x-2 mt-2">
               <button
                 onClick={handleCreateFolder}
-                className="text-xs bg-primary-500 text-white px-2 py-1 rounded hover:bg-primary-600"
+                className="text-xs bg-gradient-to-r from-red-600 to-orange-600 text-white px-3 py-1.5 rounded-lg hover:shadow-lg hover:shadow-red-500/30 font-semibold"
               >
                 Create
               </button>
               <button
                 onClick={() => setCreatingFolder(null)}
-                className="text-xs bg-neutral-200 text-neutral-700 px-2 py-1 rounded hover:bg-neutral-300"
+                className="text-xs bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg hover:bg-white/20"
               >
                 Cancel
               </button>
@@ -250,10 +250,10 @@ export default function FileTree({
 
         {/* Empty state */}
         {projectTree.folders.length === 0 && projectTree.root_files.length === 0 && (
-          <div className="text-center py-8 text-neutral-500 text-sm">
-            <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>No files yet</p>
-            <p className="text-xs">Click + to create a file</p>
+          <div className="text-center py-12 text-gray-500 text-sm">
+            <FileText className="w-12 h-12 mx-auto mb-3 opacity-30 text-gray-600" />
+            <p className="text-gray-400 font-semibold mb-1">No files yet</p>
+            <p className="text-xs text-gray-600">Click + to create your first file</p>
           </div>
         )}
       </div>

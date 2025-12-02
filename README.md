@@ -4,6 +4,23 @@ AI-powered tool to convert handwritten mathematical equations, diagrams, and tab
 
 ## 🚀 Quick Start
 
+### Automated Setup (Windows - Recommended)
+
+```powershell
+# Run the setup script
+.\setup.ps1
+
+# Start development servers
+.\start-dev.ps1
+```
+
+The `start-dev.ps1` script will:
+- Refresh PATH environment variables (for MiKTeX and other tools)
+- Verify pdflatex installation
+- Start both backend and frontend servers in separate windows
+
+### Manual Setup
+
 ```bash
 # Clone repository
 git clone https://github.com/MRSHAKILS/Mathscriber-Ai-.git

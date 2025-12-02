@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { type LatexFile } from '@/lib/compiler-api';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, FileText } from 'lucide-react';
 
 interface CodeEditorProps {
   file: LatexFile | null;
@@ -10,8 +10,33 @@ interface CodeEditorProps {
   compilationError?: string | null;
 }
 
-export default function CodeEditor({ file, onChange, compilationError }: CodeEditorProps) {
+export interface CodeEditorRef {
+  insertAtCursor: (text: string, cursorOffset?: number) => void;
+}
+
+const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({ file, onChange, compilationError }, ref) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    insertAtCursor: (text: string, cursorOffset: number = 0) => {
+      if (!textareaRef.current || !file) return;
+      
+      const textarea = textareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const currentValue = file.content;
+      
+      const newValue = currentValue.substring(0, start) + text + currentValue.substring(end);
+      onChange(newValue);
+      
+      // Set cursor position after insertion
+      setTimeout(() => {
+        const newCursorPos = start + text.length + cursorOffset;
+        textarea.focus();
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+    },
+  }));
 
   useEffect(() => {
     // Load MathJax for LaTeX preview
@@ -43,35 +68,36 @@ export default function CodeEditor({ file, onChange, compilationError }: CodeEdi
 
   if (!file) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-neutral-50">
-        <div className="text-center text-neutral-500">
-          <p className="text-lg mb-2">No file selected</p>
-          <p className="text-sm">Select a file from the tree to start editing</p>
+      <div className="flex-1 flex items-center justify-center bg-black">
+        <div className="text-center text-gray-500">
+          <FileText className="w-16 h-16 mx-auto mb-4 opacity-30" />
+          <p className="text-lg mb-2 text-gray-400 font-semibold">No file selected</p>
+          <p className="text-sm text-gray-600">Select a file from the tree to start editing</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white border-r border-neutral-200">
+    <div className="flex-1 flex flex-col bg-black/95 backdrop-blur-xl border-r border-white/10">
       {/* Editor Header */}
-      <div className="px-4 py-2 border-b border-neutral-200 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
         <div>
-          <h3 className="font-medium text-neutral-800">{file.full_name}</h3>
-          <p className="text-xs text-neutral-500">{file.path}</p>
+          <h3 className="font-semibold text-white font-mono">{file.full_name}</h3>
+          <p className="text-xs text-gray-500 font-mono">{file.path}</p>
         </div>
-        <div className="text-xs text-neutral-500">
+        <div className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full">
           {file.content.length} characters
         </div>
       </div>
 
       {/* Compilation Error */}
       {compilationError && (
-        <div className="px-4 py-3 bg-red-50 border-b border-red-200 flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="px-4 py-3 bg-red-500/10 border-b border-red-500/30 flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h4 className="font-medium text-red-800 mb-1">Compilation Error</h4>
-            <pre className="text-xs text-red-700 whitespace-pre-wrap font-mono">
+            <h4 className="font-semibold text-red-400 mb-1">Compilation Error</h4>
+            <pre className="text-xs text-red-300 whitespace-pre-wrap font-mono bg-black/30 p-2 rounded">
               {compilationError}
             </pre>
           </div>
@@ -85,9 +111,9 @@ export default function CodeEditor({ file, onChange, compilationError }: CodeEdi
           value={file.content}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="w-full h-full p-4 font-mono text-sm resize-none focus:outline-none"
+          className="w-full h-full p-4 font-mono text-sm resize-none focus:outline-none bg-black text-gray-300 caret-red-400"
           style={{
-            lineHeight: '1.5',
+            lineHeight: '1.6',
             tabSize: 4,
           }}
           spellCheck={false}
@@ -96,20 +122,24 @@ export default function CodeEditor({ file, onChange, compilationError }: CodeEdi
       </div>
 
       {/* Status Bar */}
-      <div className="px-4 py-2 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between text-xs text-neutral-600">
+      <div className="px-4 py-2 bg-black/50 border-t border-white/10 flex items-center justify-between text-xs text-gray-500">
         <div className="flex items-center space-x-4">
-          <span>Lines: {file.content.split('\n').length}</span>
-          <span>Type: {file.file_type.toUpperCase()}</span>
+          <span className="font-mono">Lines: {file.content.split('\n').length}</span>
+          <span className="font-mono">Type: {file.file_type.toUpperCase()}</span>
           {file.is_main && (
-            <span className="bg-primary-200 text-primary-700 px-2 py-0.5 rounded">
+            <span className="bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold">
               Main Document
             </span>
           )}
         </div>
-        <div>
+        <div className="font-mono">
           Last updated: {new Date(file.updated_at).toLocaleString()}
         </div>
       </div>
     </div>
   );
-}
+});
+
+CodeEditor.displayName = 'CodeEditor';
+
+export default CodeEditor;

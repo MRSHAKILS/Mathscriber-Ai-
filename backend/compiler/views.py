@@ -19,7 +19,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing LaTeX projects
     """
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -27,16 +27,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return ProjectSerializer
     
     def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated:
-            # Show user's projects and public projects
-            return Project.objects.filter(
-                Q(owner=user) | Q(is_public=True)
-            ).distinct()
-        return Project.objects.filter(is_public=True)
+        # For development: return all projects
+        return Project.objects.all()
     
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        # Save with owner if authenticated, otherwise allow null
+        if self.request.user.is_authenticated:
+            serializer.save(owner=self.request.user)
+        else:
+            serializer.save(owner=None)
     
     @action(detail=True, methods=['get'])
     def tree(self, request, pk=None):
@@ -120,7 +119,7 @@ class FolderViewSet(viewsets.ModelViewSet):
     ViewSet for managing folders
     """
     serializer_class = FolderSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     
     def get_queryset(self):
         project_id = self.request.query_params.get('project')
@@ -129,11 +128,8 @@ class FolderViewSet(viewsets.ModelViewSet):
         if project_id:
             queryset = queryset.filter(project_id=project_id)
         
-        if self.request.user.is_authenticated:
-            return queryset.filter(
-                Q(project__owner=self.request.user) | Q(project__is_public=True)
-            )
-        return queryset.filter(project__is_public=True)
+        # For development: return all folders
+        return queryset
     
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
@@ -167,7 +163,7 @@ class LatexFileViewSet(viewsets.ModelViewSet):
     ViewSet for managing LaTeX files
     """
     serializer_class = LatexFileSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     
     def get_queryset(self):
         project_id = self.request.query_params.get('project')
@@ -180,11 +176,8 @@ class LatexFileViewSet(viewsets.ModelViewSet):
         if folder_id:
             queryset = queryset.filter(folder_id=folder_id)
         
-        if self.request.user.is_authenticated:
-            return queryset.filter(
-                Q(project__owner=self.request.user) | Q(project__is_public=True)
-            )
-        return queryset.filter(project__is_public=True)
+        # For development: return all files
+        return queryset
     
     def perform_update(self, serializer):
         """Save version when updating file"""
@@ -345,7 +338,7 @@ class CompilationResultViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for viewing compilation results
     """
     serializer_class = CompilationResultSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     
     def get_queryset(self):
         project_id = self.request.query_params.get('project')
@@ -354,11 +347,8 @@ class CompilationResultViewSet(viewsets.ReadOnlyModelViewSet):
         if project_id:
             queryset = queryset.filter(project_id=project_id)
         
-        if self.request.user.is_authenticated:
-            return queryset.filter(
-                Q(project__owner=self.request.user) | Q(project__is_public=True)
-            )
-        return queryset.filter(project__is_public=True)
+        # For development: return all compilation results
+        return queryset
     
     @action(detail=True, methods=['get'])
     def download(self, request, pk=None):

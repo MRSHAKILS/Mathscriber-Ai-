@@ -19,12 +19,14 @@ import {
   Sparkles,
   Info,
   Brain,
-  Play
+  Play,
+  Code2
 } from 'lucide-react';
 
 const featureItems = [
   { name: 'Upload', href: '/upload', icon: Upload, description: 'Convert images to LaTeX', color: 'from-red-500 to-orange-500' },
   { name: 'Draw', href: '/playground', icon: Pencil, description: 'Handwrite & convert', color: 'from-orange-500 to-yellow-500' },
+  { name: 'Compiler', href: '/editor', icon: Code2, description: 'LaTeX compiler & editor', color: 'from-blue-500 to-cyan-500' },
   { name: 'Results', href: '/results', icon: History, description: 'View conversion history', color: 'from-pink-500 to-red-500' },
   { name: 'Templates', href: '/templates', icon: FileText, description: 'LaTeX templates', color: 'from-red-600 to-pink-500' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Usage statistics', color: 'from-orange-600 to-red-500' },
