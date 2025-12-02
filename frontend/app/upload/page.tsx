@@ -16,7 +16,7 @@ import {
   Clock
 } from 'lucide-react';
 import Navbar from '@/components/home/NavbarNew';
-import Footer from '@/components/ui/Footer';
+import Footer from '@/components/home/Footer';
 
 type FileWithPreview = {
   file: File;

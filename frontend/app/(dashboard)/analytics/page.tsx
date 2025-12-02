@@ -1,13 +1,18 @@
 'use client';
 
+import Navbar from '@/components/home/NavbarNew';
+import Footer from '@/components/home/Footer';
+
 export default function AnalyticsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-600 mt-2">Track your usage and performance metrics</p>
-        </div>
+    <div className="min-h-screen bg-black flex flex-col">
+      <Navbar />
+      <div className="flex-1 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white">Analytics</h1>
+            <p className="text-gray-400 mt-2">Track your usage and performance metrics</p>
+          </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -69,7 +74,9 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

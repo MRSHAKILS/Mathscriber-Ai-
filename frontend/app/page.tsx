@@ -5,7 +5,7 @@ import HowItWorksSection from '@/components/home/HowItWorksSection'
 import CTASection from '@/components/home/CTASection'
 import SeeItAction from '@/components/home/SeeItAction'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
-import Footer from '@/components/ui/Footer'
+import Footer from '@/components/home/Footer'
 
 export default function HomePage() {
   return (

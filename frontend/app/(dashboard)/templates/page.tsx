@@ -1,5 +1,8 @@
 'use client';
 
+import Navbar from '@/components/home/NavbarNew';
+import Footer from '@/components/home/Footer';
+
 export default function TemplatesPage() {
   const templates = [
     {
@@ -93,7 +96,9 @@ export default function TemplatesPage() {
             </div>
           ))}
         </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

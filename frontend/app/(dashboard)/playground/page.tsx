@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import Navbar from '@/components/home/NavbarNew';
+import Footer from '@/components/home/Footer';
 
 export default function PlaygroundPage() {
   const [latex, setLatex] = useState('\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}');
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Playground</h1>
+    <div className="min-h-screen bg-black flex flex-col">
+      <Navbar />
+      <div className="flex-1 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <h1 className="text-3xl font-bold text-white mb-8">Playground</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Editor */}
@@ -67,7 +71,9 @@ export default function PlaygroundPage() {
             </div>
           </div>
         </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
