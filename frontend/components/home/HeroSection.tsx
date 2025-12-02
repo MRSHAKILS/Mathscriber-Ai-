@@ -6,6 +6,20 @@ import { Zap, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+// Fixed particle positions to avoid hydration mismatch
+const particles = [
+  { width: 120, height: 100, top: 10, left: 5, delay: 0, duration: 4 },
+  { width: 80, height: 80, top: 25, left: 85, delay: 0.5, duration: 3.5 },
+  { width: 100, height: 90, top: 60, left: 15, delay: 1, duration: 5 },
+  { width: 70, height: 70, top: 80, left: 70, delay: 1.5, duration: 4.5 },
+  { width: 90, height: 85, top: 40, left: 50, delay: 0.3, duration: 3.8 },
+  { width: 110, height: 95, top: 15, left: 35, delay: 0.8, duration: 4.2 },
+  { width: 85, height: 75, top: 70, left: 90, delay: 1.2, duration: 3.6 },
+  { width: 95, height: 105, top: 50, left: 25, delay: 0.6, duration: 4.8 },
+  { width: 75, height: 65, top: 35, left: 75, delay: 1.8, duration: 3.2 },
+  { width: 105, height: 88, top: 85, left: 45, delay: 0.2, duration: 5.2 },
+];
+
 const HeroSection = () => {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -40,26 +54,26 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-red-950 to-black">
-      {/* Animated Background Pattern */}
+      {/* Animated Background Pattern - Using fixed positions */}
       <div className="absolute inset-0 opacity-10">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full bg-red-500"
             style={{
-              width: Math.random() * 100 + 50,
-              height: Math.random() * 100 + 50,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
+              width: particle.width,
+              height: particle.height,
+              top: `${particle.top}%`,
+              left: `${particle.left}%`,
             }}
             animate={{
               y: [0, -30, 0],
               opacity: [0.3, 0.6, 0.3],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: particle.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: particle.delay,
             }}
           />
         ))}
