@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Navbar from '@/components/home/NavbarNew';
+import Footer from '@/components/home/Footer';
 import { 
   Mail, 
   Lock, 
@@ -104,7 +106,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-black flex pt-20">
       {/* Left Panel - Branding & Features */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         {/* Animated Background */}
@@ -268,18 +272,18 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-base font-medium text-gray-200 mb-2">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-4 py-3 bg-white/5 border ${errors.email ? 'border-red-500' : 'border-white/10'} rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all`}
+                  className={`w-full pl-12 pr-4 py-3.5 bg-white/10 border ${errors.email ? 'border-red-500' : 'border-white/20'} rounded-xl text-white text-base placeholder-gray-400 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/30 transition-all`}
                   placeholder="you@example.com"
                 />
               </div>
@@ -290,18 +294,18 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-base font-medium text-gray-200 mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-12 py-3 bg-white/5 border ${errors.password ? 'border-red-500' : 'border-white/10'} rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all`}
+                  className={`w-full pl-12 pr-12 py-3.5 bg-white/10 border ${errors.password ? 'border-red-500' : 'border-white/20'} rounded-xl text-white text-base placeholder-gray-400 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/30 transition-all`}
                   placeholder="••••••••"
                 />
                 <button
@@ -374,5 +378,7 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }

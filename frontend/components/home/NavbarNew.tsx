@@ -30,7 +30,6 @@ const featureItems = [
 ];
 
 const scrollLinks = [
-  { name: 'AI Models', href: '/#models', icon: Brain, description: 'AI models we use' },
   { name: 'How It Works', href: '/#how-it-works', icon: Play, description: 'See the workflow' },
 ];
 

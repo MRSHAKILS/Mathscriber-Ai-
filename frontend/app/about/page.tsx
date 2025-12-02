@@ -575,7 +575,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex justify-center"
           >
             <motion.a
               href="/upload"
@@ -585,15 +585,6 @@ export default function AboutPage() {
             >
               <Sparkles className="w-5 h-5" />
               Try Converter Now
-            </motion.a>
-            <motion.a
-              href="/#models"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/10 transition-all"
-            >
-              <Brain className="w-5 h-5" />
-              View AI Models
             </motion.a>
           </motion.div>
         </div>
