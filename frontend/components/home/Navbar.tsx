@@ -53,10 +53,10 @@ export default function Navbar() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-gradient-to-r from-black via-red-950/50 to-black backdrop-blur-xl ${
           isScrolled 
-            ? 'bg-gradient-to-r from-black/95 via-red-950/90 to-black/95 backdrop-blur-xl shadow-lg shadow-red-900/20 border-b border-red-800/30' 
-            : 'bg-gradient-to-r from-black/80 via-red-950/70 to-black/80 backdrop-blur-lg'
+            ? 'shadow-lg shadow-red-900/20 border-b border-red-800/30' 
+            : ''
         }`}
       >
         <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,7 +79,7 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden sm:flex items-center space-x-1">
+            <div className="hidden md:flex items-center space-x-1">
               {/* Overview */}
               <NavLink href="/#overview">Overview</NavLink>
               
@@ -106,7 +106,7 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-black/95 backdrop-blur-xl rounded-xl border border-red-800/40 shadow-2xl shadow-red-900/30 py-2 overflow-hidden"
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gradient-to-b from-gray-900 via-red-950/30 to-black backdrop-blur-2xl rounded-xl border border-red-700/50 shadow-2xl shadow-red-900/40 py-2 overflow-hidden"
                     >
                       {features.map((feature, index) => {
                         const Icon = feature.icon;
@@ -120,14 +120,14 @@ export default function Navbar() {
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              className="flex items-center gap-3 px-4 py-3 hover:bg-gradient-to-r hover:from-red-900/40 hover:to-transparent transition-all duration-200 group/item"
+                              className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg hover:bg-gradient-to-r hover:from-red-600/30 hover:via-orange-600/20 hover:to-transparent transition-all duration-200 group/item border border-transparent hover:border-red-700/40"
                             >
-                              <div className="w-9 h-9 rounded-lg bg-red-900/40 flex items-center justify-center group-hover/item:bg-red-600/50 transition-colors">
-                                <Icon className="w-4 h-4 text-red-400 group-hover/item:text-white transition-colors" />
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600/40 to-orange-600/40 flex items-center justify-center group-hover/item:from-red-500 group-hover/item:to-orange-500 transition-all duration-200 shadow-lg group-hover/item:shadow-red-500/50">
+                                <Icon className="w-5 h-5 text-orange-300 group-hover/item:text-white transition-colors" />
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-white">{feature.name}</p>
-                                <p className="text-xs text-gray-500 group-hover/item:text-gray-400 transition-colors">{feature.description}</p>
+                                <p className="text-sm font-semibold text-white group-hover/item:text-orange-100 transition-colors">{feature.name}</p>
+                                <p className="text-xs text-gray-400 group-hover/item:text-gray-300 transition-colors">{feature.description}</p>
                               </div>
                             </motion.div>
                           </Link>
@@ -156,7 +156,7 @@ export default function Navbar() {
               </Link>
 
               {/* Auth Buttons */}
-              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-red-800/30">
+              <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l border-red-800/30">
                 <Link href="/login">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -181,7 +181,7 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="sm:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+              className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -196,7 +196,7 @@ export default function Navbar() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="sm:hidden bg-black/95 backdrop-blur-xl border-t border-red-800/30"
+              className="md:hidden bg-gradient-to-b from-black via-red-950/30 to-black backdrop-blur-xl border-t border-red-800/30"
             >
               <div className="px-4 py-4 space-y-1">
                 <MobileNavLink href="/#overview" onClick={() => setIsMobileMenuOpen(false)}>Overview</MobileNavLink>
