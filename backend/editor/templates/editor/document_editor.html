@@ -332,28 +332,20 @@
 
         // Conversion Sidebar Button Handlers
         document.getElementById('upload-btn').addEventListener('click', () => {
-            window.open('http://localhost:3000/converter/upload?mode=popup', 'ImageUpload', 'width=800,height=600');
+            document.getElementById('upload-modal').showModal();
         });
 
         document.getElementById('capture-btn').addEventListener('click', () => {
-            window.open('http://localhost:3000/converter/capture?mode=popup', 'ImageCapture', 'width=800,height=600');
+            document.getElementById('capture-modal').showModal();
         });
 
         document.getElementById('canvas-btn').addEventListener('click', () => {
-            window.open('http://localhost:3000/converter/canvas?mode=popup', 'ImageCanvas', 'width=800,height=600');
+            document.getElementById('canvas-modal').showModal();
         });
 
         document.getElementById('history-btn').addEventListener('click', () => {
-            window.open('http://localhost:3000/converter/history?mode=popup', 'ConversionHistory', 'width=1000,height=700');
-        });
-
-        // Listen for messages from popup windows
-        window.addEventListener('message', (event) => {
-            if (event.origin !== 'http://localhost:3000') return;
-            
-            if (event.data.type === 'INSERT_LATEX') {
-                insertLatexAtCursor(event.data.latex);
-            }
+            document.getElementById('history-modal').showModal();
+            loadHistory();
         });
 
         // Function to insert LaTeX at cursor with Gemini intelligence
@@ -404,6 +396,520 @@
                 notification.remove();
             }, 3000);
         }
+
+        // Upload Modal Functions
+        function setupUploadModal() {
+            const dropArea = document.getElementById('upload-drop-area');
+            const fileInput = document.getElementById('upload-file-input');
+            const preview = document.getElementById('upload-preview');
+            const convertBtn = document.getElementById('upload-convert-btn');
+            const resultDiv = document.getElementById('upload-result');
+            
+            let currentFile = null;
+
+            // Prevent defaults
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            // Highlight on drag
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.add('border-blue-500', 'bg-blue-50');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => {
+                    dropArea.classList.remove('border-blue-500', 'bg-blue-50');
+                });
+            });
+
+            // Handle drop
+            dropArea.addEventListener('drop', e => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) handleFile(files[0]);
+            });
+
+            // Handle click
+            dropArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => {
+                if (e.target.files.length > 0) handleFile(e.target.files[0]);
+            });
+
+            function handleFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    return;
+                }
+                
+                currentFile = file;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.innerHTML = `<img src="${e.target.result}" class="max-w-full max-h-64 mx-auto rounded-lg shadow-lg">`;
+                    convertBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            convertBtn.addEventListener('click', async () => {
+                if (!currentFile) return;
+                
+                convertBtn.disabled = true;
+                convertBtn.innerHTML = '<span class="loading loading-spinner"></span> Converting...';
+                resultDiv.innerHTML = '';
+
+                const formData = new FormData();
+                formData.append('image', currentFile);
+
+                try {
+                    const response = await fetch('/api/convert/upload/', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.latex) {
+                        resultDiv.innerHTML = `
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h3 class="font-bold mb-2">LaTeX Result:</h3>
+                                <pre class="bg-white p-3 rounded border overflow-x-auto text-sm">${data.latex}</pre>
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="copyToClipboard('${data.latex.replace(/'/g, "\\'")}', this)" class="btn btn-sm btn-primary">
+                                        Copy
+                                    </button>
+                                    <button onclick="insertLatexFromModal('${data.latex.replace(/'/g, "\\'")}'); document.getElementById('upload-modal').close();" class="btn btn-sm btn-success">
+                                        Insert at Cursor
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Conversion failed'}</div>`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+                } finally {
+                    convertBtn.disabled = false;
+                    convertBtn.innerHTML = 'Convert to LaTeX';
+                }
+            });
+        }
+
+        // Capture Modal Functions
+        function setupCaptureModal() {
+            const video = document.getElementById('capture-video');
+            const canvas = document.getElementById('capture-canvas');
+            const startBtn = document.getElementById('capture-start-btn');
+            const captureBtn = document.getElementById('capture-capture-btn');
+            const convertBtn = document.getElementById('capture-convert-btn');
+            const resultDiv = document.getElementById('capture-result');
+            
+            let stream = null;
+            let capturedImage = null;
+
+            startBtn.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    startBtn.style.display = 'none';
+                    captureBtn.disabled = false;
+                } catch (error) {
+                    alert('Camera access denied: ' + error.message);
+                }
+            });
+
+            captureBtn.addEventListener('click', () => {
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                
+                canvas.style.display = 'block';
+                video.style.display = 'none';
+                captureBtn.disabled = true;
+                convertBtn.disabled = false;
+                
+                canvas.toBlob(blob => {
+                    capturedImage = blob;
+                });
+            });
+
+            convertBtn.addEventListener('click', async () => {
+                if (!capturedImage) return;
+                
+                convertBtn.disabled = true;
+                convertBtn.innerHTML = '<span class="loading loading-spinner"></span> Converting...';
+                resultDiv.innerHTML = '';
+
+                const formData = new FormData();
+                formData.append('image', capturedImage, 'capture.png');
+
+                try {
+                    const response = await fetch('/api/convert/capture/', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.latex) {
+                        resultDiv.innerHTML = `
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h3 class="font-bold mb-2">LaTeX Result:</h3>
+                                <pre class="bg-white p-3 rounded border overflow-x-auto text-sm">${data.latex}</pre>
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="copyToClipboard('${data.latex.replace(/'/g, "\\'")}', this)" class="btn btn-sm btn-primary">
+                                        Copy
+                                    </button>
+                                    <button onclick="insertLatexFromModal('${data.latex.replace(/'/g, "\\'")}'); document.getElementById('capture-modal').close();" class="btn btn-sm btn-success">
+                                        Insert at Cursor
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Conversion failed'}</div>`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+                } finally {
+                    convertBtn.disabled = false;
+                    convertBtn.innerHTML = 'Convert to LaTeX';
+                }
+            });
+
+            // Cleanup on modal close
+            document.getElementById('capture-modal').addEventListener('close', () => {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                video.style.display = 'none';
+                canvas.style.display = 'none';
+                startBtn.style.display = 'block';
+                captureBtn.disabled = true;
+                convertBtn.disabled = true;
+                resultDiv.innerHTML = '';
+            });
+        }
+
+        // Canvas Modal Functions
+        function setupCanvasModal() {
+            const canvas = document.getElementById('drawing-canvas');
+            const ctx = canvas.getContext('2d');
+            const clearBtn = document.getElementById('canvas-clear-btn');
+            const convertBtn = document.getElementById('canvas-convert-btn');
+            const resultDiv = document.getElementById('canvas-result');
+            
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            // Set canvas size
+            canvas.width = 600;
+            canvas.height = 400;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+
+            canvas.addEventListener('mousedown', e => {
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            });
+
+            canvas.addEventListener('mousemove', e => {
+                if (!isDrawing) return;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            });
+
+            canvas.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mouseout', () => isDrawing = false);
+
+            // Touch support
+            canvas.addEventListener('touchstart', e => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                isDrawing = true;
+                [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            });
+
+            canvas.addEventListener('touchmove', e => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                [lastX, lastY] = [x, y];
+            });
+
+            canvas.addEventListener('touchend', () => isDrawing = false);
+
+            clearBtn.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                resultDiv.innerHTML = '';
+            });
+
+            convertBtn.addEventListener('click', async () => {
+                convertBtn.disabled = true;
+                convertBtn.innerHTML = '<span class="loading loading-spinner"></span> Converting...';
+                resultDiv.innerHTML = '';
+
+                canvas.toBlob(async blob => {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'canvas.png');
+
+                    try {
+                        const response = await fetch('/api/convert/canvas/', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.latex) {
+                            resultDiv.innerHTML = `
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <h3 class="font-bold mb-2">LaTeX Result:</h3>
+                                    <pre class="bg-white p-3 rounded border overflow-x-auto text-sm">${data.latex}</pre>
+                                    <div class="flex gap-2 mt-3">
+                                        <button onclick="copyToClipboard('${data.latex.replace(/'/g, "\\'")}', this)" class="btn btn-sm btn-primary">
+                                            Copy
+                                        </button>
+                                        <button onclick="insertLatexFromModal('${data.latex.replace(/'/g, "\\'")}'); document.getElementById('canvas-modal').close();" class="btn btn-sm btn-success">
+                                            Insert at Cursor
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            resultDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Conversion failed'}</div>`;
+                        }
+                    } catch (error) {
+                        resultDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
+                    } finally {
+                        convertBtn.disabled = false;
+                        convertBtn.innerHTML = 'Convert to LaTeX';
+                    }
+                });
+            });
+        }
+
+        // History Modal Functions
+        async function loadHistory() {
+            const historyGrid = document.getElementById('history-grid');
+            historyGrid.innerHTML = '<div class="col-span-full text-center"><span class="loading loading-spinner loading-lg"></span></div>';
+
+            try {
+                const response = await fetch('/api/history/');
+                const data = await response.json();
+                
+                if (data.conversions && data.conversions.length > 0) {
+                    historyGrid.innerHTML = data.conversions.map(item => `
+                        <div class="card bg-base-100 shadow-lg">
+                            <figure class="px-4 pt-4">
+                                <img src="${item.image_url}" alt="Math" class="rounded-lg max-h-32 object-contain">
+                            </figure>
+                            <div class="card-body p-4">
+                                <pre class="text-xs bg-gray-100 p-2 rounded overflow-x-auto max-h-20">${item.latex}</pre>
+                                <div class="card-actions justify-end mt-2">
+                                    <button onclick="copyToClipboard('${item.latex.replace(/'/g, "\\'")}', this)" class="btn btn-xs btn-primary">
+                                        Copy
+                                    </button>
+                                    <button onclick="insertLatexFromModal('${item.latex.replace(/'/g, "\\'")}'); document.getElementById('history-modal').close();" class="btn btn-xs btn-success">
+                                        Insert
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    historyGrid.innerHTML = '<div class="col-span-full text-center text-gray-500">No conversion history yet</div>';
+                }
+            } catch (error) {
+                historyGrid.innerHTML = `<div class="col-span-full alert alert-error">Error loading history: ${error.message}</div>`;
+            }
+        }
+
+        // Helper functions
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = 'Copied!';
+                button.classList.add('btn-success');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('btn-success');
+                }, 2000);
+            });
+        }
+
+        async function insertLatexFromModal(latex) {
+            const position = window.aceEditor.getCursorPosition();
+            const existingCode = window.aceEditor.getValue();
+
+            try {
+                const response = await fetch('/api/editor/insert-at-cursor/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        existing_code: existingCode,
+                        new_latex: latex,
+                        cursor_position: {
+                            row: position.row,
+                            column: position.column
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.merged_code) {
+                    window.aceEditor.setValue(data.merged_code);
+                    window.aceEditor.clearSelection();
+                    showNotification('LaTeX inserted successfully!', 'success');
+                } else {
+                    showNotification(data.error || 'Failed to insert LaTeX', 'error');
+                }
+            } catch (error) {
+                console.error('Insert error:', error);
+                showNotification('Error inserting LaTeX: ' + error.message, 'error');
+            }
+        }
+
+        // Initialize modals when document loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setupUploadModal();
+            setupCaptureModal();
+            setupCanvasModal();
+        });
     </script>
+
+    <!-- Upload Modal -->
+    <dialog id="upload-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl">
+            <h3 class="font-bold text-lg mb-4">Upload Image</h3>
+            
+            <div id="upload-drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <p class="text-lg mb-2">Drop image here or click to browse</p>
+                <p class="text-sm text-gray-500">Supports JPG, PNG, GIF</p>
+                <input type="file" id="upload-file-input" accept="image/*" class="hidden">
+            </div>
+
+            <div id="upload-preview" class="mt-4"></div>
+
+            <div class="mt-4">
+                <button id="upload-convert-btn" disabled class="btn btn-primary w-full">Convert to LaTeX</button>
+            </div>
+
+            <div id="upload-result" class="mt-4"></div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Capture Modal -->
+    <dialog id="capture-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl">
+            <h3 class="font-bold text-lg mb-4">Capture Image</h3>
+            
+            <div class="bg-gray-100 rounded-lg p-4 text-center">
+                <button id="capture-start-btn" class="btn btn-primary mb-4">Start Camera</button>
+                <video id="capture-video" autoplay playsinline class="w-full rounded-lg hidden"></video>
+                <canvas id="capture-canvas" class="w-full rounded-lg hidden"></canvas>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+                <button id="capture-capture-btn" disabled class="btn btn-secondary flex-1">Capture</button>
+                <button id="capture-convert-btn" disabled class="btn btn-primary flex-1">Convert to LaTeX</button>
+            </div>
+
+            <div id="capture-result" class="mt-4"></div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Canvas Modal -->
+    <dialog id="canvas-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl">
+            <h3 class="font-bold text-lg mb-4">Draw Equation</h3>
+            
+            <div class="bg-white rounded-lg border-2 border-gray-300">
+                <canvas id="drawing-canvas" class="cursor-crosshair"></canvas>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+                <button id="canvas-clear-btn" class="btn btn-secondary flex-1">Clear</button>
+                <button id="canvas-convert-btn" class="btn btn-primary flex-1">Convert to LaTeX</button>
+            </div>
+
+            <div id="canvas-result" class="mt-4"></div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- History Modal -->
+    <dialog id="history-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-5xl">
+            <h3 class="font-bold text-lg mb-4">Conversion History</h3>
+            
+            <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                <!-- History items will be loaded here -->
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 </body>
 </html>
