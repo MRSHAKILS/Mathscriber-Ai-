@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/home/NavbarNew';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/home/Footer';
-import { convertImageToLatex } from '@/lib/api';
+import { convertImageToLatex, TaskType } from '@/lib/api';
 import { useAuth } from '@/lib/auth/auth-context';
 
 type FileWithPreview = {
@@ -31,7 +31,7 @@ type FileWithPreview = {
 export default function UploadPage() {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [task, setTask] = useState('equation');
+  const [task, setTask] = useState<TaskType>('equation');
   const [isProcessing, setIsProcessing] = useState(false);
   const [latexResult, setLatexResult] = useState('');
   const [error, setError] = useState('');
@@ -109,8 +109,8 @@ export default function UploadPage() {
     setLatexResult('');
 
     try {
-      // For now, convert only the first file
-      const result = await convertImageToLatex(files[0].file);
+      // Convert the first file with the selected task type
+      const result = await convertImageToLatex(files[0].file, 'upload', task);
 
       if (result.success) {
         setLatexResult(result.latex_code);
@@ -229,13 +229,13 @@ export default function UploadPage() {
               </label>
               <select
                 value={task}
-                onChange={(e) => setTask(e.target.value)}
+                onChange={(e) => setTask(e.target.value as TaskType)}
                 className="w-full px-4 py-4 bg-black/50 border-2 border-red-700/30 rounded-xl text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/50 outline-none transition-all"
               >
                 <option value="equation">Equation Recognition</option>
                 <option value="table">Table Recognition</option>
                 <option value="diagram">Diagram to TikZ</option>
-                <option value="mixed">Mixed Content</option>
+                <option value="auto">Auto Detect (Mixed Content)</option>
               </select>
               <p className="mt-3 text-sm text-gray-400 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />

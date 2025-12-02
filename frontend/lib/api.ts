@@ -4,11 +4,14 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
+export type TaskType = 'equation' | 'table' | 'diagram' | 'auto'
+
 export interface ConversionResponse {
   success: boolean
   id?: number
   latex_code: string
   image_url?: string
+  task_type?: TaskType
   message: string
 }
 
@@ -36,16 +39,19 @@ export interface HistoryResponse {
  * Convert an image to LaTeX code
  * @param imageFile - The image file to convert
  * @param conversionType - Type of conversion (upload, canvas, or capture)
+ * @param taskType - Type of task (equation, table, diagram, or auto for automatic detection)
  * @returns Promise with LaTeX code
  */
 export async function convertImageToLatex(
   imageFile: File,
-  conversionType: 'upload' | 'canvas' | 'capture' = 'upload'
+  conversionType: 'upload' | 'canvas' | 'capture' = 'upload',
+  taskType: TaskType = 'auto'
 ): Promise<ConversionResponse> {
   try {
     const formData = new FormData()
     formData.append('image', imageFile)
     formData.append('conversion_type', conversionType)
+    formData.append('task', taskType)
 
     // Don't set Content-Type header for FormData - browser will set it with boundary
     const response = await fetch(`${API_BASE_URL}/convert-image/`, {

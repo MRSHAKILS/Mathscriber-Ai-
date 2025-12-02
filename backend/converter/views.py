@@ -39,9 +39,12 @@ class ConvertImageView(APIView):
             image_file = serializer.validated_data['image']
             conversion_type = request.data.get('conversion_type', 'upload')
             
-            # Convert image to LaTeX using Gemini
+            # Get task type for specialized conversion (equation, table, diagram, auto)
+            task_type = request.data.get('task', 'auto')
+            
+            # Convert image to LaTeX using Gemini with task-specific prompts
             converter = GeminiConverter()
-            latex_code = converter.convert_image_to_latex(image_file)
+            latex_code = converter.convert_image_to_latex(image_file, task_type=task_type)
             
             # Save to history if user is authenticated
             if request.user and request.user.is_authenticated:
@@ -58,6 +61,7 @@ class ConvertImageView(APIView):
             response_data = {
                 'success': True,
                 'latex_code': latex_code,
+                'task_type': task_type,
                 'message': 'Image converted successfully'
             }
             
