@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   ChevronDown, 
   Upload, 
@@ -12,7 +13,8 @@ import {
   BarChart3,
   Calculator,
   Menu,
-  X
+  X,
+  Zap
 } from 'lucide-react';
 
 const features = [
@@ -28,6 +30,7 @@ export default function Navbar() {
   const [isFeatureOpen, setIsFeatureOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,34 +50,48 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
+
   return (
     <>
       <motion.header
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-gradient-to-r from-black via-red-950/50 to-black backdrop-blur-xl ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled 
-            ? 'shadow-lg shadow-red-900/20 border-b border-red-800/30' 
-            : ''
+            ? 'bg-gradient-to-r from-black/95 via-red-950/80 to-black/95 backdrop-blur-2xl shadow-2xl shadow-red-900/30 border-b border-red-700/40' 
+            : 'bg-gradient-to-r from-black/80 via-red-950/50 to-black/80 backdrop-blur-xl'
         }`}
       >
-        <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Animated gradient line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-50" />
+        
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center group">
+            <Link href="/" className="flex items-center group relative">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center"
+                className="flex items-center gap-2"
               >
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-600 to-orange-500 flex items-center justify-center mr-2 shadow-lg shadow-red-600/30 group-hover:shadow-red-500/50 transition-all duration-300">
-                  <Calculator className="w-5 h-5 text-white" />
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-orange-500 rounded-lg blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 via-orange-500 to-red-600 flex items-center justify-center shadow-lg">
+                    <Calculator className="w-5 h-5 text-white" />
+                  </div>
                 </div>
-                <span className="text-xl font-bold">
-                  <span className="text-white">Math</span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">Scriber</span>
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold leading-tight">
+                    <span className="text-white">Math</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-red-400 animate-gradient">Scriber</span>
+                  </span>
+                  <span className="text-[10px] text-gray-500 -mt-0.5">AI LaTeX Converter</span>
+                </div>
               </motion.div>
             </Link>
 
@@ -147,32 +164,38 @@ export default function Navbar() {
               {/* Convert Now - Highlighted */}
               <Link href="/upload">
                 <motion.button
-                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="ml-2 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white text-sm font-medium rounded-lg shadow-lg shadow-red-600/30 hover:shadow-red-500/50 transition-all duration-300"
+                  className="ml-2 px-5 py-2.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white text-sm font-bold rounded-lg shadow-lg shadow-red-600/40 hover:shadow-red-500/60 hover:from-red-500 hover:via-orange-400 hover:to-red-500 transition-all duration-300 relative overflow-hidden group"
                 >
-                  Convert Now
+                  <span className="relative z-10 flex items-center gap-2">
+                    <Zap className="w-4 h-4" />
+                    Convert Now
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 </motion.button>
               </Link>
 
               {/* Auth Buttons */}
-              <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l border-red-800/30">
+              <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l border-gradient-to-b from-red-800/50 to-orange-800/50">
                 <Link href="/login">
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all relative group"
                   >
-                    Sign In
+                    <span className="relative z-10">Sign In</span>
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-red-600/0 to-orange-600/0 group-hover:from-red-600/10 group-hover:to-orange-600/10 transition-all duration-300" />
                   </motion.button>
                 </Link>
                 <Link href="/register">
                   <motion.button
-                    whileHover={{ scale: 1.05, y: -1 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-5 py-2 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white text-sm font-semibold rounded-lg hover:from-red-500 hover:via-orange-400 hover:to-red-500 transition-all shadow-lg shadow-red-600/30 hover:shadow-red-500/50"
+                    className="px-6 py-2.5 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white text-sm font-bold rounded-lg hover:from-orange-500 hover:via-red-500 hover:to-orange-500 transition-all shadow-lg shadow-orange-600/30 hover:shadow-orange-500/50 relative overflow-hidden group"
                   >
-                    Get Started
+                    <span className="relative z-10">Get Started</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                   </motion.button>
                 </Link>
               </div>
@@ -258,22 +281,43 @@ export default function Navbar() {
 
 // Desktop Nav Link Component
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+  
   return (
-    <Link href={href} className="relative px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 group">
+    <Link href={href} className={`relative px-4 py-2 text-sm font-semibold transition-all duration-200 group ${
+      isActive ? 'text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400' : 'text-gray-300 hover:text-white'
+    }`}>
       <span className="relative z-10">{children}</span>
+      {/* Active indicator */}
+      {isActive && (
+        <motion.span 
+          layoutId="activeNav"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-0.5 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 rounded-full" 
+        />
+      )}
       {/* Hover underline effect */}
-      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 group-hover:w-3/4 transition-all duration-300" />
+      {!isActive && (
+        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-red-500 to-orange-500 group-hover:w-3/4 transition-all duration-300 rounded-full" />
+      )}
     </Link>
   );
 }
 
 // Mobile Nav Link Component
 function MobileNavLink({ href, onClick, children }: { href: string; onClick: () => void; children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+  
   return (
     <Link 
       href={href} 
       onClick={onClick}
-      className="block px-3 py-2.5 text-gray-300 hover:text-white hover:bg-red-900/30 rounded-lg text-sm font-medium transition-all"
+      className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+        isActive 
+          ? 'bg-gradient-to-r from-red-900/40 to-orange-900/40 text-white border border-red-700/40' 
+          : 'text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-red-900/20 hover:to-orange-900/20'
+      }`}
     >
       {children}
     </Link>
