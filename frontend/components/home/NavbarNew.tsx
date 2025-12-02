@@ -17,7 +17,9 @@ import {
   Pencil,
   ChevronDown,
   Sparkles,
-  Info
+  Info,
+  Brain,
+  Play
 } from 'lucide-react';
 
 const featureItems = [
@@ -26,6 +28,11 @@ const featureItems = [
   { name: 'Results', href: '/results', icon: History, description: 'View conversion history', color: 'from-pink-500 to-red-500' },
   { name: 'Templates', href: '/templates', icon: FileText, description: 'LaTeX templates', color: 'from-red-600 to-pink-500' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Usage statistics', color: 'from-orange-600 to-red-500' },
+];
+
+const scrollLinks = [
+  { name: 'View Models', href: '/#models', icon: Brain, description: 'AI models we use' },
+  { name: 'How It Works', href: '/#how-it-works', icon: Play, description: 'See the workflow' },
 ];
 
 export default function Navbar() {
@@ -161,6 +168,14 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
 
+              {/* Scroll Links - View Models & How It Works */}
+              {scrollLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <NavLink key={link.name} href={link.href} icon={Icon}>{link.name}</NavLink>
+                );
+              })}
+
               <NavLink href="/#pricing" icon={Zap}>Pricing</NavLink>
               <NavLink href="/about" icon={Info}>About</NavLink>
 
@@ -259,6 +274,26 @@ export default function Navbar() {
                           gradient={feature.color}
                         >
                           {feature.name}
+                        </MobileNavLink>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Scroll Links */}
+                <div className="mb-6">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Explore</p>
+                  <div className="space-y-1">
+                    {scrollLinks.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <MobileNavLink 
+                          key={link.name}
+                          href={link.href} 
+                          icon={Icon} 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {link.name}
                         </MobileNavLink>
                       );
                     })}
