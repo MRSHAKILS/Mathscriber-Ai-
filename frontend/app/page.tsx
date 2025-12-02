@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Upload, Scan } from 'lucide-react'
+import { Upload, Scan, FileText } from 'lucide-react'
 
 export default function HomePage() {
   return (
@@ -14,7 +14,7 @@ export default function HomePage() {
         </p>
 
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
           {/* Upload Card */}
           <Link href="/upload">
             <div className="bg-neutral-100 rounded-3xl p-8 shadow-neu hover:shadow-neu-lg transition-all duration-300 cursor-pointer group">
@@ -44,6 +44,21 @@ export default function HomePage() {
               </p>
             </div>
           </Link>
+
+          {/* LaTeX Editor Card */}
+          <Link href="/projects">
+            <div className="bg-neutral-100 rounded-3xl p-8 shadow-neu hover:shadow-neu-lg transition-all duration-300 cursor-pointer group">
+              <div className="w-20 h-20 mx-auto mb-6 bg-green-500 rounded-2xl flex items-center justify-center shadow-neu-sm group-hover:scale-110 transition-transform">
+                <FileText className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-2xl font-semibold text-neutral-800 mb-3">
+                LaTeX Editor
+              </h2>
+              <p className="text-neutral-600">
+                Write, compile, and preview your LaTeX documents with live PDF generation
+              </p>
+            </div>
+          </Link>
         </div>
 
         {/* Features List */}
@@ -51,7 +66,7 @@ export default function HomePage() {
           <h3 className="text-2xl font-semibold text-neutral-800 mb-6">
             Key Features
           </h3>
-          <div className="grid md:grid-cols-3 gap-6 text-left">
+          <div className="grid md:grid-cols-4 gap-6 text-left">
             <div>
               <div className="text-primary-600 font-semibold mb-2">⚡ Fast Conversion</div>
               <p className="text-neutral-600 text-sm">
@@ -68,6 +83,12 @@ export default function HomePage() {
               <div className="text-primary-600 font-semibold mb-2">📋 Easy Copy</div>
               <p className="text-neutral-600 text-sm">
                 Copy LaTeX code with a single click
+              </p>
+            </div>
+            <div>
+              <div className="text-green-600 font-semibold mb-2">📝 Live Editor</div>
+              <p className="text-neutral-600 text-sm">
+                Write and compile LaTeX with instant PDF preview
               </p>
             </div>
           </div>

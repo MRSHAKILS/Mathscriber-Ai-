@@ -26,6 +26,18 @@ export default function Navbar() {
             >
               Scan
             </Link>
+            <Link 
+              href="/projects" 
+              className="px-4 py-2 text-neutral-700 hover:text-primary-600 transition-colors font-medium"
+            >
+              Projects
+            </Link>
+            <Link 
+              href="/editor" 
+              className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+            >
+              Editor
+            </Link>
           </div>
         </div>
       </div>
