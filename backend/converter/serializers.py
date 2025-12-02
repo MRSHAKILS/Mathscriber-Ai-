@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import ConversionHistory
 
 
 class ImageUploadSerializer(serializers.Serializer):
@@ -24,3 +25,22 @@ class LaTeXResponseSerializer(serializers.Serializer):
     latex_code = serializers.CharField()
     success = serializers.BooleanField(default=True)
     message = serializers.CharField(required=False)
+
+
+class ConversionHistorySerializer(serializers.ModelSerializer):
+    """Serializer for conversion history"""
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ConversionHistory
+        fields = ['id', 'image', 'image_url', 'latex_code', 'created_at']
+        read_only_fields = ['id', 'created_at']
+    
+    def get_image_url(self, obj):
+        """Get the full URL for the image"""
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
