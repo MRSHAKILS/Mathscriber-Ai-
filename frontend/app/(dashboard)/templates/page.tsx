@@ -129,6 +129,7 @@ const templates = [
   },
 ];
 
+export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<number | null>(null);
