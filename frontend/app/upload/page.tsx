@@ -137,6 +137,37 @@ export default function UploadPage() {
         setConversionId(result.conversion_id || '');
         setDetectedContent(result.detected_content);
         setShowResult(true);
+        
+        // Save to localStorage cache for history
+        try {
+          const cachedHistory = localStorage.getItem('conversion_history');
+          let historyData = cachedHistory ? JSON.parse(cachedHistory) : [];
+          
+          // Get the first file
+          const firstFile = files[0];
+          
+          // Add new conversion to cache
+          const newConversion = {
+            id: result.conversion_id || result.id || Date.now().toString(),
+            original_filename: firstFile?.file?.name || 'conversion.png',
+            image_url: firstFile?.preview || '',
+            latex_code: result.latex_code,
+            task_type: task,
+            detected_content: result.detected_content,
+            created_at: new Date().toISOString()
+          };
+          
+          historyData.unshift(newConversion);
+          
+          // Keep only last 50 conversions
+          if (historyData.length > 50) {
+            historyData = historyData.slice(0, 50);
+          }
+          
+          localStorage.setItem('conversion_history', JSON.stringify(historyData));
+        } catch (e) {
+          console.error('Failed to cache conversion:', e);
+        }
       } else {
         setError(result.message || 'Conversion failed');
       }

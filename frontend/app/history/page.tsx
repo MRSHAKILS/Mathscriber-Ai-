@@ -44,64 +44,82 @@ export default function HistoryPage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
     setIsLoggedIn(true);
     
-    // Load history
+    // Load history from cache immediately
     loadHistory();
-  }, [router, selectedType, sortBy]);
+  }, [selectedType, sortBy]);
 
   const loadHistory = async () => {
     setLoading(true);
     setError(null);
     
     try {
+      // Load from localStorage cache
+      const cachedHistory = localStorage.getItem('conversion_history');
+      let historyData: ConversionHistoryItem[] = [];
+      
+      if (cachedHistory) {
+        try {
+          historyData = JSON.parse(cachedHistory);
+        } catch (e) {
+          console.error('Failed to parse cached history:', e);
+        }
+      }
+      
+      // Try API in background (non-blocking)
       const token = localStorage.getItem('token');
-      if (!token) throw new Error('Not authenticated');
+      if (token) {
+        try {
+          const params = new URLSearchParams({
+            limit: '50',
+            offset: '0',
+          });
+          
+          if (selectedType !== 'all') {
+            params.append('type', selectedType);
+          }
 
-      // Build query params
-      const params = new URLSearchParams({
-        limit: '50',
-        offset: '0',
-      });
+          const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+          const response = await fetch(`${API_BASE_URL}/history/?${params.toString()}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const result: HistoryResponse = await response.json();
+            
+            if (result.success && result.data.length > 0) {
+              historyData = result.data;
+              localStorage.setItem('conversion_history', JSON.stringify(historyData));
+            }
+          }
+        } catch (apiError) {
+          console.log('API not available, using cache');
+        }
+      }
       
+      // Filter by type
+      let filteredData = historyData;
       if (selectedType !== 'all') {
-        params.append('type', selectedType);
+        filteredData = historyData.filter(item => item.task_type === selectedType);
       }
-
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      const response = await fetch(`${API_BASE_URL}/history/?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result: HistoryResponse = await response.json();
       
-      if (result.success) {
-        // Apply sorting
-        const sortedData = [...result.data].sort((a, b) => {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
-          return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
-        });
-        setHistory(sortedData);
-      } else {
-        setError(result.message || 'Failed to load history');
-      }
+      // Apply sorting
+      const sortedData = [...filteredData].sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+      });
+      
+      setHistory(sortedData);
+      setError(null);
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      console.error('Error loading history:', err);
+      setError('Failed to load history');
     } finally {
       setLoading(false);
     }

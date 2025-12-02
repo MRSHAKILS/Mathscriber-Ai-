@@ -257,8 +257,7 @@ class ConversionHistoryView(APIView):
     API endpoint to retrieve user's conversion history
     GET /api/history/
     """
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow public access for now
     
     def get(self, request):
         """Get user's conversion history"""
@@ -268,11 +267,12 @@ class ConversionHistoryView(APIView):
             offset = int(request.query_params.get('offset', 0))
             conversion_type = request.query_params.get('type', None)
             
-            # Build query
-            queryset = ConversionHistory.objects.filter(user=request.user)
+            # Build query - get all conversions (not filtered by user for now)
+            queryset = ConversionHistory.objects.all()
             
+            # Filter by task_type (equation, table, diagram, auto)
             if conversion_type:
-                queryset = queryset.filter(conversion_type=conversion_type)
+                queryset = queryset.filter(task_type=conversion_type)
             
             # Order by most recent first
             queryset = queryset.order_by('-created_at')

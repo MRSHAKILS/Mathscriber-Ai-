@@ -29,18 +29,20 @@ class LaTeXResponseSerializer(serializers.Serializer):
 
 class ConversionHistorySerializer(serializers.ModelSerializer):
     """Serializer for conversion history"""
-    username = serializers.CharField(source='user.username', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True, allow_null=True)
     image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = ConversionHistory
         fields = ['id', 'username', 'original_filename', 'image_url', 'latex_code', 
-                  'conversion_type', 'accuracy', 'created_at']
-        read_only_fields = ['id', 'created_at']
+                  'conversion_type', 'task_type', 'detected_content', 'accuracy', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
     
     def get_image_url(self, obj):
-        if obj.image:
+        # Try both image fields for compatibility
+        image_field = obj.image or obj.input_image
+        if image_field:
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.image.url)
+                return request.build_absolute_uri(image_field.url)
         return None

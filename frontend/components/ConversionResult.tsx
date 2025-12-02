@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import 'katex/dist/katex.min.css';
+import { BlockMath } from 'react-katex';
 
 interface ConversionResultProps {
   latexCode: string;
@@ -206,11 +208,9 @@ export default function ConversionResult({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="bg-gray-950 p-6 rounded-lg border border-gray-800"
+                className="bg-white p-8 rounded-lg border border-gray-300 overflow-auto"
               >
-                <div className="text-gray-300 whitespace-pre-wrap font-mono text-sm">
-                  {editedCode}
-                </div>
+                <LaTeXPreview code={editedCode} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -294,5 +294,118 @@ export default function ConversionResult({
         </AnimatePresence>
       </motion.div>
     </motion.div>
+  );
+}
+
+// LaTeX Preview Component
+function LaTeXPreview({ code }: { code: string }) {
+  const [renderError, setRenderError] = useState<string | null>(null);
+
+  // Extract math content from LaTeX document
+  const extractMathContent = (latexCode: string) => {
+    try {
+      // Remove document class and preamble
+      let content = latexCode;
+      
+      // Extract content between \begin{document} and \end{document}
+      const docMatch = content.match(/\\begin{document}([\s\S]*?)\\end{document}/);
+      if (docMatch) {
+        content = docMatch[1];
+      }
+      
+      // Extract equations
+      const equations: string[] = [];
+      
+      // Match \begin{equation} ... \end{equation}
+      const eqMatches = content.matchAll(/\\begin{equation\*?}([\s\S]*?)\\end{equation\*?}/g);
+      for (const match of eqMatches) {
+        equations.push(match[1].trim());
+      }
+      
+      // Match \begin{align} ... \end{align}
+      const alignMatches = content.matchAll(/\\begin{align\*?}([\s\S]*?)\\end{align\*?}/g);
+      for (const match of alignMatches) {
+        equations.push(match[1].trim());
+      }
+      
+      // Match inline $ ... $
+      const inlineMatches = content.matchAll(/\$([^$]+)\$/g);
+      for (const match of inlineMatches) {
+        equations.push(match[1].trim());
+      }
+      
+      // Match display $$ ... $$
+      const displayMatches = content.matchAll(/\$\$([\s\S]*?)\$\$/g);
+      for (const match of displayMatches) {
+        equations.push(match[1].trim());
+      }
+      
+      // If no structured equations found, try to render the whole content
+      if (equations.length === 0) {
+        // Remove common LaTeX commands that might cause issues
+        content = content
+          .replace(/\\documentclass.*?\n/g, '')
+          .replace(/\\usepackage.*?\n/g, '')
+          .replace(/\\begin{document}/g, '')
+          .replace(/\\end{document}/g, '')
+          .trim();
+        
+        if (content) {
+          equations.push(content);
+        }
+      }
+      
+      return equations;
+    } catch (error) {
+      console.error('Error extracting math:', error);
+      return [];
+    }
+  };
+
+  const mathExpressions = extractMathContent(code);
+
+  if (mathExpressions.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <Eye className="mx-auto mb-4" size={48} />
+        <p className="text-lg">No mathematical content to preview</p>
+        <p className="text-sm mt-2">Make sure your LaTeX contains equations or math expressions</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {mathExpressions.map((expr, index) => (
+        <div key={index} className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+          <div className="text-xs text-gray-500 mb-3 font-mono">Expression {index + 1}</div>
+          <div className="overflow-x-auto">
+            {renderError ? (
+              <div className="text-red-600 p-4 bg-red-50 rounded">
+                <p className="font-semibold">Render Error:</p>
+                <p className="text-sm mt-1">{renderError}</p>
+              </div>
+            ) : (
+              <BlockMath 
+                math={expr} 
+                errorColor="#dc2626"
+                renderError={(error) => {
+                  setRenderError(error.message);
+                  return (
+                    <span className="text-red-600">
+                      Failed to render: {error.message}
+                    </span>
+                  );
+                }}
+              />
+            )}
+          </div>
+        </div>
+      ))}
+      
+      <div className="text-center text-sm text-gray-500 pt-4 border-t border-gray-300">
+        <p>✓ Rendered with KaTeX - High-quality mathematical typesetting</p>
+      </div>
+    </div>
   );
 }

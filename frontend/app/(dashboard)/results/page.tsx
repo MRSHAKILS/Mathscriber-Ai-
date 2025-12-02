@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/home/NavbarNew';
 import Footer from '@/components/home/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/lib/auth/auth-context';
 import 'katex/dist/katex.min.css';
 
 interface DetectedContent {
@@ -36,7 +37,7 @@ interface HistoryResponse {
 
 export default function ResultsPage() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, session, loading: authLoading } = useAuth();
   const [history, setHistory] = useState<ConversionHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,64 +45,85 @@ export default function ResultsPage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    setIsLoggedIn(true);
-    
-    // Load history
+    // Load from cache immediately
     loadHistory();
-  }, [router, selectedType, sortBy]);
+  }, [selectedType, sortBy]);
 
   const loadHistory = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Not authenticated');
-
-      // Build query params
-      const params = new URLSearchParams({
-        limit: '50',
-        offset: '0',
-      });
+      // First, try to load from localStorage cache
+      const cachedHistory = localStorage.getItem('conversion_history');
+      let historyData: ConversionHistoryItem[] = [];
       
-      if (selectedType !== 'all') {
-        params.append('type', selectedType);
+      if (cachedHistory) {
+        try {
+          historyData = JSON.parse(cachedHistory);
+        } catch (e) {
+          console.error('Failed to parse cached history:', e);
+        }
       }
-
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      const response = await fetch(`${API_BASE_URL}/history/?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result: HistoryResponse = await response.json();
       
-      if (result.success) {
-        // Apply sorting
-        const sortedData = [...result.data].sort((a, b) => {
-          const dateA = new Date(a.created_at).getTime();
-          const dateB = new Date(b.created_at).getTime();
-          return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+      // Try to fetch from API in background
+      try {
+        const params = new URLSearchParams({
+          limit: '50',
+          offset: '0',
         });
-        setHistory(sortedData);
-      } else {
-        setError(result.message || 'Failed to load history');
+        
+        if (selectedType !== 'all') {
+          params.append('type', selectedType);
+        }
+
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+        
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+        
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/history/?${params.toString()}`, {
+          method: 'GET',
+          headers,
+        });
+
+        if (response.ok) {
+          const result: HistoryResponse = await response.json();
+          
+          if (result.success && result.data.length > 0) {
+            historyData = result.data;
+            // Update cache
+            localStorage.setItem('conversion_history', JSON.stringify(historyData));
+          }
+        }
+      } catch (apiError) {
+        console.log('API not available, using cache:', apiError);
+        // Continue with cached data
       }
+      
+      // Filter by type
+      let filteredData = historyData;
+      if (selectedType !== 'all') {
+        filteredData = historyData.filter(item => item.task_type === selectedType);
+      }
+      
+      // Apply sorting
+      const sortedData = [...filteredData].sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+      });
+      
+      setHistory(sortedData);
+      setError(null);
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      console.error('Error loading history:', err);
+      setError('Failed to load history');
     } finally {
       setLoading(false);
     }
@@ -191,10 +213,6 @@ export default function ResultsPage() {
       </div>
     );
   };
-
-  if (!isLoggedIn) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950/10 to-gray-950 flex flex-col">
