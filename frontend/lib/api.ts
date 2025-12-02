@@ -8,10 +8,18 @@ export type TaskType = 'equation' | 'table' | 'diagram' | 'auto'
 
 export interface ConversionResponse {
   success: boolean
+  conversion_id?: string
   id?: number
   latex_code: string
   image_url?: string
   task_type?: TaskType
+  detected_content?: {
+    primary: string
+    has_equations: boolean
+    has_tables: boolean
+    has_diagrams: boolean
+    raw_response?: string
+  }
   message: string
 }
 

@@ -42,26 +42,44 @@ class ConvertImageView(APIView):
             # Get task type for specialized conversion (equation, table, diagram, auto)
             task_type = request.data.get('task', 'auto')
             
-            # Convert image to LaTeX using Gemini with task-specific prompts
+            # Convert image to LaTeX using Gemini Universal Converter
             converter = GeminiConverter()
+            
+            # Open image to detect content
+            from PIL import Image
+            img = Image.open(image_file)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Detect content type
+            content_info = converter.detect_content_type(img)
+            
+            # Reset file pointer after reading
+            image_file.seek(0)
+            
+            # Convert to LaTeX
             latex_code = converter.convert_image_to_latex(image_file, task_type=task_type)
             
-            # Save to history if user is authenticated
-            if request.user and request.user.is_authenticated:
-                ConversionHistory.objects.create(
-                    user=request.user,
-                    original_filename=image_file.name,
-                    image=image_file,
-                    latex_code=latex_code,
-                    conversion_type=conversion_type,
-                    accuracy=0.95  # Default accuracy
-                )
+            # Save to history (always save, even for anonymous users)
+            conversion = ConversionHistory.objects.create(
+                user=request.user if request.user and request.user.is_authenticated else None,
+                original_filename=image_file.name,
+                image=image_file,
+                latex_code=latex_code,
+                latex_output=latex_code,  # Store in both fields for compatibility
+                conversion_type=conversion_type,
+                task_type=task_type,
+                detected_content=content_info,  # Store detection results
+                accuracy=0.95  # Default accuracy
+            )
             
-            # Return LaTeX code
+            # Return LaTeX code with conversion ID
             response_data = {
                 'success': True,
+                'conversion_id': str(conversion.id),
                 'latex_code': latex_code,
                 'task_type': task_type,
+                'detected_content': content_info,
                 'message': 'Image converted successfully'
             }
             
@@ -284,6 +302,47 @@ class ConversionHistoryView(APIView):
                 {
                     'success': False,
                     'message': f'Error fetching history: {str(e)}'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ConversionDetailView(APIView):
+    """
+    API endpoint to retrieve a single conversion result
+    GET /api/result/<conversion_id>/
+    """
+    permission_classes = [AllowAny]  # Allow public access to share results
+    
+    def get(self, request, conversion_id):
+        """Get a single conversion by ID"""
+        try:
+            conversion = ConversionHistory.objects.get(id=conversion_id)
+            
+            # Serialize data
+            serializer = ConversionHistorySerializer(conversion, context={'request': request})
+            
+            return Response(
+                {
+                    'success': True,
+                    'data': serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+            
+        except ConversionHistory.DoesNotExist:
+            return Response(
+                {
+                    'success': False,
+                    'message': 'Conversion not found'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {
+                    'success': False,
+                    'message': f'Error fetching conversion: {str(e)}'
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

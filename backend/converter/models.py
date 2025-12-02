@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 
 
 class ConversionHistory(models.Model):
-    """Model to store conversion history"""
+    """Model to store conversion history with complete LaTeX documents"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversions', null=True, blank=True)
     original_filename = models.CharField(max_length=255, blank=True)
     image = models.ImageField(upload_to='conversions/%Y/%m/%d/', null=True, blank=True)
@@ -20,8 +22,20 @@ class ConversionHistory(models.Model):
         ],
         default='upload'
     )
+    task_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('equation', 'Equation'),
+            ('table', 'Table'),
+            ('diagram', 'Diagram'),
+            ('auto', 'Auto-Detect'),
+        ],
+        default='auto'
+    )
+    detected_content = models.JSONField(null=True, blank=True)  # Store detection results
     accuracy = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['-created_at']

@@ -19,6 +19,8 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/home/NavbarNew';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/home/Footer';
+import ProcessingLoader from '@/components/ProcessingLoader';
+import ConversionResult from '@/components/ConversionResult';
 import { convertImageToLatex, TaskType } from '@/lib/api';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -33,7 +35,11 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [task, setTask] = useState<TaskType>('equation');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStage, setProcessingStage] = useState<'uploading' | 'detecting' | 'converting' | 'finalizing'>('uploading');
   const [latexResult, setLatexResult] = useState('');
+  const [conversionId, setConversionId] = useState('');
+  const [detectedContent, setDetectedContent] = useState<any>(null);
+  const [showResult, setShowResult] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, loading } = useAuth();
@@ -107,13 +113,30 @@ export default function UploadPage() {
     setIsProcessing(true);
     setError('');
     setLatexResult('');
+    setShowResult(false);
 
     try {
-      // Convert the first file with the selected task type
+      // Stage 1: Uploading
+      setProcessingStage('uploading');
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Stage 2: Detecting
+      setProcessingStage('detecting');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Stage 3: Converting
+      setProcessingStage('converting');
       const result = await convertImageToLatex(files[0].file, 'upload', task);
+
+      // Stage 4: Finalizing
+      setProcessingStage('finalizing');
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       if (result.success) {
         setLatexResult(result.latex_code);
+        setConversionId(result.conversion_id || '');
+        setDetectedContent(result.detected_content);
+        setShowResult(true);
       } else {
         setError(result.message || 'Conversion failed');
       }
@@ -440,6 +463,29 @@ export default function UploadPage() {
       </div>
       <Footer />
       </div>
+
+      {/* Processing Loader */}
+      <AnimatePresence>
+        {isProcessing && (
+          <ProcessingLoader stage={processingStage} />
+        )}
+      </AnimatePresence>
+
+      {/* Conversion Result Modal */}
+      <AnimatePresence>
+        {showResult && latexResult && (
+          <ConversionResult
+            latexCode={latexResult}
+            conversionId={conversionId}
+            detectedContent={detectedContent}
+            onClose={() => setShowResult(false)}
+            onSave={(newCode) => {
+              setLatexResult(newCode);
+              // TODO: Call API to update the conversion in database
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

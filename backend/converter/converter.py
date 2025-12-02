@@ -1,9 +1,9 @@
 """
-LaTeX Converter using Google Gemini API
-Universal converter supporting equations, tables, and diagrams
+LaTeX Converter using Google Gemini API - Universal Approach
+Automatically detects content type and converts equations, tables, diagrams, or mixed content
+Based on gemini_universal.py from notebooks
 """
 import os
-import base64
 from io import BytesIO
 from PIL import Image
 import google.generativeai as genai
@@ -11,7 +11,7 @@ from django.conf import settings
 
 
 class GeminiConverter:
-    """Handles conversion of images to LaTeX using Google Gemini Vision API"""
+    """Handles conversion of images to LaTeX using Google Gemini Vision API with universal detection"""
     
     def __init__(self):
         """Initialize Gemini API with API key"""
@@ -21,18 +21,13 @@ class GeminiConverter:
             raise ValueError("GOOGLE_API_KEY not found in environment variables. Please set it in backend/.env")
         
         genai.configure(api_key=api_key)
-        # Use gemini-2.0-flash for vision tasks
+        # Use gemini-2.0-flash for vision tasks (stable with good quota)
         self.model = genai.GenerativeModel('gemini-2.0-flash')
-    
-    def _call_gemini_vision(self, prompt, image):
-        """Call Gemini Vision API with prompt and image"""
-        response = self.model.generate_content([prompt, image])
-        result = response.text.strip()
-        return self._clean_latex_output(result)
 
     def detect_content_type(self, image):
         """
         Analyze image to detect content types (equation, table, diagram, or mixed).
+        Uses universal detection approach from gemini_universal.py
         
         Args:
             image: PIL Image object
@@ -90,14 +85,15 @@ Be precise and identify all content types present in the image."""
 
     def convert_image_to_latex(self, image_file, task_type='auto'):
         """
-        Convert an uploaded image to LaTeX code
+        Universal converter that detects content and generates complete LaTeX.
+        Based on gemini_universal.py - works for ALL content types.
         
         Args:
             image_file: Django UploadedFile object
             task_type: Type of conversion - 'equation', 'table', 'diagram', or 'auto'
             
         Returns:
-            str: LaTeX code extracted from the image
+            str: Complete LaTeX code ready to compile
         """
         try:
             # Open image using PIL
@@ -107,158 +103,121 @@ Be precise and identify all content types present in the image."""
             if image.mode != 'RGB':
                 image = image.convert('RGB')
             
-            # If auto, detect content type first
-            if task_type == 'auto' or task_type == 'equation':
-                content_info = self.detect_content_type(image)
-            else:
-                # Set content info based on task type
-                content_info = {
-                    'primary': task_type,
-                    'has_equations': task_type == 'equation',
-                    'has_tables': task_type == 'table',
-                    'has_diagrams': task_type == 'diagram',
-                }
+            # Detect content type (always detect for best results)
+            content_info = self.detect_content_type(image)
             
-            # Generate LaTeX based on task type
-            if task_type == 'equation' or (task_type == 'auto' and content_info['primary'] == 'equation'):
-                return self._convert_equation(image)
-            elif task_type == 'table' or (task_type == 'auto' and content_info['primary'] == 'table'):
-                return self._convert_table(image)
-            elif task_type == 'diagram' or (task_type == 'auto' and content_info['primary'] == 'diagram'):
-                return self._convert_diagram(image)
-            else:
-                # Universal conversion for mixed or unknown content
-                return self._convert_universal(image, content_info)
+            # Override detection if user specified a task type
+            if task_type != 'auto':
+                content_info['primary'] = task_type
+                content_info['has_equations'] = task_type == 'equation'
+                content_info['has_tables'] = task_type == 'table'
+                content_info['has_diagrams'] = task_type == 'diagram'
+            
+            # Use universal converter for all types
+            latex_code = self._create_universal_latex(image, content_info)
+            
+            return latex_code
             
         except Exception as e:
             raise Exception(f"Error processing image with Gemini: {str(e)}")
 
-    def _convert_equation(self, image):
-        """Convert equation image to LaTeX"""
-        prompt = """You are an expert at converting mathematical equations from images into LaTeX code.
-
-Analyze this image and convert the mathematical content into clean, properly formatted LaTeX code.
-
-REQUIREMENTS:
-1. Use appropriate math environments: equation, align, or inline math ($...$)
-2. Use proper LaTeX commands for all symbols: \\frac, \\sum, \\int, \\sqrt, \\alpha, \\beta, etc.
-3. Handle subscripts with _{} and superscripts with ^{}
-4. For multi-line equations, use align environment with & for alignment
-5. Include \\usepackage{amsmath, amssymb, amsfonts} if needed
-
-OUTPUT FORMAT:
-- Return ONLY the LaTeX code
-- No markdown code blocks (no ```latex)
-- No explanatory text
-- Code should be ready to use in a LaTeX document
-
-Convert the equation now:"""
-
-        return self._call_gemini_vision(prompt, image)
-
-    def _convert_table(self, image):
-        """Convert table image to LaTeX"""
-        prompt = """You are an expert at converting tables from images into LaTeX code.
-
-Analyze this image and convert the table into clean, properly formatted LaTeX code.
-
-REQUIREMENTS:
-1. Use tabular or tabularx environment
-2. Include proper column specifications: |c|l|r|X|
-3. Add horizontal lines with \\hline or \\toprule, \\midrule, \\bottomrule
-4. Bold headers with \\textbf{}
-5. Preserve all data accurately
-6. Handle merged cells if present with \\multicolumn or \\multirow
-
-OUTPUT FORMAT:
-- Return ONLY the LaTeX code
-- Include necessary packages: array, tabularx, booktabs
-- No markdown code blocks
-- No explanatory text
-- Code should be complete and compilable
-
-Example structure:
-\\begin{tabular}{|c|c|c|}
-\\hline
-\\textbf{Header1} & \\textbf{Header2} & \\textbf{Header3} \\\\
-\\hline
-data1 & data2 & data3 \\\\
-\\hline
-\\end{tabular}
-
-Convert the table now:"""
-
-        return self._call_gemini_vision(prompt, image)
-
-    def _convert_diagram(self, image):
-        """Convert diagram image to LaTeX TikZ"""
-        prompt = """You are an expert at converting diagrams and flowcharts from images into LaTeX TikZ code.
-
-Analyze this image and convert the diagram into clean, properly formatted TikZ code.
-
-REQUIREMENTS:
-1. Use TikZ with appropriate libraries: shapes, arrows, positioning
-2. Identify all shapes (rectangles, circles, diamonds, etc.)
-3. Preserve connections and arrows between shapes
-4. Include all labels and text
-5. Maintain relative positions and layout
-6. Use appropriate styles for different element types
-
-OUTPUT FORMAT:
-- Return ONLY the LaTeX/TikZ code
-- Include: \\usepackage{tikz} and \\usetikzlibrary{...}
-- No markdown code blocks
-- No explanatory text
-- Code should be complete and compilable
-
-Example structure:
-\\begin{tikzpicture}[node distance=2cm]
-\\node[rectangle, draw] (start) {Start};
-\\node[rectangle, draw, below of=start] (process) {Process};
-\\draw[->] (start) -- (process);
-\\end{tikzpicture}
-
-Convert the diagram now:"""
-
-        response = self._call_gemini_vision(prompt, image)
-        return self._clean_latex_output(response)
-
-    def _convert_universal(self, image, content_info):
-        """Universal conversion for mixed or unknown content"""
-        content_parts = []
-        if content_info.get('has_equations'):
-            content_parts.append("EQUATIONS")
-        if content_info.get('has_tables'):
-            content_parts.append("TABLES")
-        if content_info.get('has_diagrams'):
-            content_parts.append("DIAGRAMS")
+    def _create_universal_latex(self, image, content_info):
+        """
+        Universal LaTeX generator - works for ALL content types.
+        Based on gemini_universal.py create_universal_latex function.
         
-        content_str = ", ".join(content_parts) if content_parts else "UNKNOWN"
-        
-        prompt = f"""You are an expert at converting images containing mathematical content into LaTeX code.
+        Args:
+            image: PIL Image object
+            content_info: Dictionary with detected content information
+            
+        Returns:
+            Complete, compilable LaTeX document
+        """
+        # Build customized prompt based on content type
+        prompt = f"""Convert this image to a complete, compilable LaTeX document. The image contains:
+- Equations: {"YES" if content_info['has_equations'] else "NO"}
+- Tables: {"YES" if content_info['has_tables'] else "NO"}
+- Diagrams: {"YES" if content_info['has_diagrams'] else "NO"}
 
-This image contains: {content_str}
+CRITICAL REQUIREMENTS:
 
-Analyze this image and convert ALL content into clean, properly formatted LaTeX code.
+1. DOCUMENT STRUCTURE:
+   - Start with \\documentclass{{article}} or \\documentclass{{standalone}}
+   - Include ALL necessary packages
+   - End with \\end{{document}}
 
-REQUIREMENTS:
-1. For EQUATIONS: Use proper math environments (equation, align, $...$)
-2. For TABLES: Use tabular/tabularx with proper formatting
-3. For DIAGRAMS: Use TikZ with appropriate libraries
-4. Include ALL necessary packages
-5. Preserve the structure and order from the image
+2. FOR EQUATIONS (if present):
+   - Use appropriate math environments: equation, align, gather
+   - Proper LaTeX commands for symbols: \\frac, \\sum, \\int, \\sqrt, etc.
+   - Handle subscripts with _{{}} and superscripts with ^{{}}
+   - Use amsmath, amssymb, amsfonts packages
 
-OUTPUT FORMAT:
-- Return ONLY the LaTeX code
-- No markdown code blocks (no ```latex or ```)
-- No explanatory text outside LaTeX comments
-- Code should be complete and ready to use
-- If multiple content types, separate with LaTeX comments
+3. FOR TABLES (if present):
+   - Use tabularx environment with width \\textwidth
+   - Include array, tabularx, booktabs packages
+   - Proper column specifications: |X|c|l|r|
+   - All horizontal lines with \\hline
+   - Bold headers with \\textbf{{}}
+   - Use geometry package for wide tables: \\usepackage[margin=1cm]{{geometry}}
 
-Convert the content now:"""
+4. FOR DIAGRAMS (if present):
+   - Use TikZ with all necessary libraries
+   - Include \\usepackage{{tikz}} and \\usetikzlibrary{{shapes,arrows,positioning}}
+   - Identify all shapes, connections, and labels
+   - Preserve colors, positions, and styles
+   - Use standalone class for diagrams: \\documentclass{{standalone}}
 
-        response = self._call_gemini_vision(prompt, image)
-        return self._clean_latex_output(response)
+5. MIXED CONTENT:
+   - Clearly separate different content types with sections/comments
+   - Maintain logical order from the image
+   - Use appropriate environments for each part
+
+6. OUTPUT FORMAT:
+   - Generate ONLY raw LaTeX code
+   - No markdown code blocks (no ```latex)
+   - No explanatory text outside LaTeX comments
+   - Code must compile without errors
+
+Generate the complete, compilable LaTeX document now:"""
+
+        try:
+            response = self.model.generate_content([prompt, image])
+            latex_code = response.text.strip()
+            
+            # Clean up markdown code blocks if present
+            latex_code = self._clean_latex_output(latex_code)
+            
+            # Add identification comment at the top
+            content_labels = []
+            if content_info['has_equations']:
+                content_labels.append("EQUATIONS")
+            if content_info['has_tables']:
+                content_labels.append("TABLES")
+            if content_info['has_diagrams']:
+                content_labels.append("DIAGRAMS")
+            
+            content_header = f"% Generated by MathScriber AI - Universal Converter\n"
+            content_header += f"% Content Detected: {', '.join(content_labels) if content_labels else 'UNKNOWN'}\n"
+            content_header += f"% Primary Type: {content_info['primary'].upper()}\n"
+            content_header += "% " + "=" * 60 + "\n\n"
+            
+            # Insert header after documentclass line
+            lines = latex_code.split('\n')
+            for i, line in enumerate(lines):
+                if line.strip().startswith('\\documentclass'):
+                    lines.insert(i + 1, content_header)
+                    break
+            else:
+                # If no documentclass found, add at the beginning
+                latex_code = content_header + latex_code
+                lines = latex_code.split('\n')
+            
+            latex_code = '\n'.join(lines)
+            
+            return latex_code
+            
+        except Exception as e:
+            raise Exception(f"Error generating universal LaTeX: {str(e)}")
 
     def _clean_latex_output(self, text):
         """Clean up the LaTeX output by removing markdown code blocks"""

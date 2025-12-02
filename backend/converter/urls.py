@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ConvertImageView, HealthCheckView, RegisterView, LoginView, ConversionHistoryView
+from .views import ConvertImageView, HealthCheckView, RegisterView, LoginView, ConversionHistoryView, ConversionDetailView
 
 urlpatterns = [
     path('convert-image/', ConvertImageView.as_view(), name='convert-image'),
@@ -7,4 +7,5 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('history/', ConversionHistoryView.as_view(), name='conversion-history'),
+    path('result/<uuid:conversion_id>/', ConversionDetailView.as_view(), name='conversion-detail'),
 ]
