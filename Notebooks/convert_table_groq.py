@@ -76,7 +76,8 @@ CRITICAL REQUIREMENTS:
    - Return ONLY the table/equation code
    - NO document preamble or wrapper
    - NO markdown fences (no ```)
-   - NO explanations or comments
+   - NO explanations or % comments
+   - NO metadata or header comments
 
 Generate the clean LaTeX code now:"""
 

@@ -92,10 +92,10 @@ Requirements:
 7. Maintain accurate relative positions and spacing
 8. Use appropriate TikZ node styles (rounded corners, shadows, etc.)
 9. Include arrow styles and connection types (solid, dashed, etc.)
-10. Add clear comments explaining each section
 
 Generate ONLY the complete LaTeX code, starting with \\documentclass and ending with \\end{document}.
-Make sure the code compiles without errors. Do not include any markdown formatting or explanatory text outside the LaTeX code.
+Make sure the code compiles without errors. 
+Do NOT include: markdown formatting, explanatory text, % comments, or metadata.
 Return ONLY the raw LaTeX code."""
 
     try:

@@ -2,13 +2,22 @@ import os
 import random
 import sys
 import importlib.util
-import fitz  # PyMuPDF
-from pdf2image import convert_from_path
 from PIL import Image
 import tempfile
 import shutil
 import subprocess
 from pathlib import Path
+
+# Optional imports with fallback
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    fitz = None
+    
+try:
+    from pdf2image import convert_from_path
+except ImportError:
+    convert_from_path = None
 
 # Global variables to store loaded modules
 latexocr_module = None
@@ -363,8 +372,11 @@ def process_table_with_gemini(image_path):
                 pass
         
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "Unknown error"
-            print(f"[ERROR] Error running convert_table_gemini.py: {error_msg}")
+            error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
+            print(f"[ERROR] Error running convert_table_gemini.py:")
+            print(f"[ERROR] Return code: {result.returncode}")
+            print(f"[ERROR] Stderr: {result.stderr}")
+            print(f"[ERROR] Stdout: {result.stdout}")
             return f"% Error running Gemini conversion: {error_msg}"
         
         # The script creates a .tex file with the same base name as the image
@@ -443,9 +455,12 @@ def process_with_groq(image_path):
                 pass
         
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "Unknown error"
-            print(f"[ERROR] Error running convert_table_groq.py: {error_msg}")
-            return f"% Error running Groq table conversion: {error_msg}"
+            error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
+            print(f"[ERROR] Error running convert_table_groq.py:")
+            print(f"[ERROR] Return code: {result.returncode}")
+            print(f"[ERROR] Stderr: {result.stderr}")
+            print(f"[ERROR] Stdout: {result.stdout}")
+            return f"% Error running Groq conversion: {error_msg}"
         
         # The script creates a .tex file with the same base name as the image
         base_name = os.path.splitext(os.path.basename(image_path))[0]
@@ -525,8 +540,11 @@ def process_with_mistral(image_path):
                 pass
         
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "Unknown error"
-            print(f"[ERROR] Error running convert_mistral.py: {error_msg}")
+            error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
+            print(f"[ERROR] Error running convert_mistral.py:")
+            print(f"[ERROR] Return code: {result.returncode}")
+            print(f"[ERROR] Stderr: {result.stderr}")
+            print(f"[ERROR] Stdout: {result.stdout}")
             return f"% Error running Mistral conversion: {error_msg}"
         
         # The script creates a .tex file. For Mistral, it saves next to the image path.
@@ -614,8 +632,11 @@ def process_with_gemini_universal(image_path):
                 pass
         
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "Unknown error"
-            print(f"[ERROR] Error running gemini_universal.py: {error_msg}")
+            error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
+            print(f"[ERROR] Error running gemini_universal.py:")
+            print(f"[ERROR] Return code: {result.returncode}")
+            print(f"[ERROR] Stderr: {result.stderr}")
+            print(f"[ERROR] Stdout: {result.stdout}")
             return f"% Error running Gemini Universal conversion: {error_msg}"
         
         # The script creates a .tex file in test_outputs directory
@@ -754,8 +775,11 @@ def process_with_gemini_diagram(image_path):
                 pass
         
         if result.returncode != 0:
-            error_msg = result.stderr if result.stderr else "Unknown error"
-            print(f"[ERROR] Error running gemini_diagram.py: {error_msg}")
+            error_msg = result.stderr if result.stderr else result.stdout if result.stdout else "Unknown error"
+            print(f"[ERROR] Error running gemini_diagram.py:")
+            print(f"[ERROR] Return code: {result.returncode}")
+            print(f"[ERROR] Stderr: {result.stderr}")
+            print(f"[ERROR] Stdout: {result.stdout}")
             return f"% Error running Gemini diagram conversion: {error_msg}"
         
         # The script creates a .tex file with the same base name as the image

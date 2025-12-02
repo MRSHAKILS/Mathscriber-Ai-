@@ -79,7 +79,7 @@ def create_latex_standalone(image_path: str) -> str:
 
     6.  NO DOCUMENT WRAPPER: Output ONLY the table/equation code. No \documentclass, no \begin{document}, no preamble.
 
-    7.  NO EXTRA TEXT: No explanations, no markdown fences like ```latex, no comments.
+    7.  NO EXTRA TEXT: No explanations, no markdown fences like ```latex, NO COMMENTS (no % lines), no metadata.
 
     Generate the clean LaTeX code now:
     """

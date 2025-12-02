@@ -807,22 +807,51 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Get cursor position
                 const cursor = editor.getCursorPosition();
                 
+                // Check if editor already has document structure
+                const editorContent = editor.getValue();
+                const hasDocStructure = editorContent.includes('\\documentclass') && editorContent.includes('\\begin{document}');
+                
                 // Clean up the LaTeX code
                 let latexToInsert = convertedLatex;
                 
-                // If it's a full document, extract just the body content
-                if (latexToInsert.includes('\\documentclass')) {
+                // CASE 1: Converter gave full document & editor is empty -> use as-is
+                if (latexToInsert.includes('\\documentclass') && !hasDocStructure) {
+                    // Full document from converter, editor empty - insert as-is
+                    latexToInsert = latexToInsert;
+                }
+                // CASE 2: Converter gave full document & editor has document -> extract body only
+                else if (latexToInsert.includes('\\documentclass') && hasDocStructure) {
                     const bodyMatch = latexToInsert.match(/\\begin{document}([\s\S]*?)\\end{document}/);
                     if (bodyMatch) {
                         latexToInsert = bodyMatch[1].trim();
                     }
                 }
+                // CASE 3: Converter gave raw content & editor is empty -> wrap in document
+                else if (!latexToInsert.includes('\\documentclass') && !hasDocStructure) {
+                    latexToInsert = `\\documentclass{article}
+\\usepackage{amsmath}
+\\usepackage{amssymb}
+\\usepackage{amsfonts}
+\\usepackage{array}
+\\usepackage{graphicx}
+\\usepackage{tikz}
+
+\\begin{document}
+
+${latexToInsert}
+
+\\end{document}`;
+                }
+                // CASE 4: Converter gave raw content & editor has document -> insert as-is
+                // (latexToInsert stays as-is)
                 
-                // Add proper spacing
-                if (cursor.column > 0) {
+                // Add proper spacing for insertion
+                if (cursor.column > 0 && !latexToInsert.startsWith('\n')) {
                     latexToInsert = '\n' + latexToInsert;
                 }
-                latexToInsert += '\n';
+                if (!latexToInsert.endsWith('\n')) {
+                    latexToInsert += '\n';
+                }
                 
                 // Insert the LaTeX code at cursor
                 editor.session.insert(cursor, latexToInsert);

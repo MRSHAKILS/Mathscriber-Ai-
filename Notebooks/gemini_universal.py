@@ -132,13 +132,14 @@ Be precise and identify all content types present in the image."""
         }
 
 
-def create_universal_latex(image_path: str, content_info: dict) -> str:
+def create_universal_latex(image_path: str, content_info: dict, mode: str = "mathjax") -> str:
     """
-    Generates complete LaTeX document for any content type using Gemini Vision API.
+    Generates LaTeX code for any content type using Gemini Vision API.
     
     Args:
         image_path: Path to the image file
         content_info: Dictionary with detected content information
+        mode: Output mode - "mathjax" for web rendering or "compiler" for LaTeX compilation
         
     Returns:
         Generated LaTeX code as string
@@ -170,8 +171,10 @@ def create_universal_latex(image_path: str, content_info: dict) -> str:
     # Use gemini-2.5-flash - stable version with good quota
     model = genai.GenerativeModel('gemini-2.5-flash')
 
-    # Build customized prompt based on content type
-    prompt = f"""Convert this image to a complete, compilable LaTeX document. The image contains:
+    # Build customized prompt based on mode
+    if mode == "compiler":
+        # Full LaTeX document for compilation
+        prompt = f"""Convert this image to a complete, compilable LaTeX document. The image contains:
 - Equations: {"YES" if content_info['has_equations'] else "NO"}
 - Tables: {"YES" if content_info['has_tables'] else "NO"}
 - Diagrams: {"YES" if content_info['has_diagrams'] else "NO"}
@@ -180,42 +183,73 @@ CRITICAL REQUIREMENTS:
 
 1. DOCUMENT STRUCTURE:
    - Start with \\documentclass{{article}} or \\documentclass{{standalone}}
-   - Include ALL necessary packages
-   - End with \\end{{document}}
+   - Include ALL necessary packages (amsmath, amssymb, amsfonts, array, tabularx, tikz, etc.)
+   - Use \\begin{{document}} and \\end{{document}}
 
 2. FOR EQUATIONS (if present):
    - Use appropriate math environments: equation, align, gather
-   - Proper LaTeX commands for symbols: \\frac, \\sum, \\int, \\sqrt, etc.
-   - Handle subscripts with _{{}} and superscripts with ^{{}}
-   - Use amsmath, amssymb, amsfonts packages
+   - Proper LaTeX commands: \\frac, \\sum, \\int, \\sqrt, etc.
+   - Include amsmath, amssymb, amsfonts packages
 
 3. FOR TABLES (if present):
-   - Use tabularx environment with width \\textwidth
-   - Include array, tabularx, booktabs packages
-   - Proper column specifications: |X|c|l|r|
-   - All horizontal lines with \\hline
-   - Bold headers with \\textbf{{}}
-   - Use geometry package for wide tables: \\usepackage[margin=1cm]{{geometry}}
+   - Use tabularx or tabular environment
+   - Include array, tabularx packages
+   - Use \\hline for borders
 
 4. FOR DIAGRAMS (if present):
-   - Use TikZ with all necessary libraries
-   - Include \\usepackage{{tikz}} and \\usetikzlibrary{{shapes,arrows,positioning}}
-   - Identify all shapes, connections, and labels
-   - Preserve colors, positions, and styles
-   - Use standalone class for diagrams: \\documentclass{{standalone}}
+   - Use TikZ with necessary libraries
+   - Include \\usepackage{{tikz}}
 
-5. MIXED CONTENT:
-   - Clearly separate different content types with sections/comments
-   - Maintain logical order from the image
-   - Use appropriate environments for each part
+5. OUTPUT FORMAT:
+   - Complete compilable document
+   - NO markdown blocks (no ```)
+   - NO % comments
+   - Start with \\documentclass
 
-6. OUTPUT FORMAT:
-   - Generate ONLY raw LaTeX code
-   - No markdown code blocks (no ```latex)
-   - No explanatory text outside LaTeX comments
-   - Code must compile without errors
+Generate the complete LaTeX document now:"""
+    else:
+        # MathJax mode - raw content only
+        prompt = f"""Convert this image to LaTeX code for MathJax rendering. The image contains:
+- Equations: {"YES" if content_info['has_equations'] else "NO"}
+- Tables: {"YES" if content_info['has_tables'] else "NO"}
+- Diagrams: {"YES" if content_info['has_diagrams'] else "NO"}
 
-Generate the complete, compilable LaTeX document now:"""
+CRITICAL REQUIREMENTS:
+
+1. OUTPUT ONLY THE CONTENT CODE:
+   - Do NOT include \\documentclass, \\usepackage, \\begin{{document}}, or \\end{{document}}
+   - Output ONLY the actual equation/table/diagram code
+   - This will be rendered by MathJax in a web browser
+
+2. FOR EQUATIONS (if present):
+   - Use appropriate math environments: equation, align, gather
+   - For display equations: \\[ ... \\] or \\begin{{equation}} ... \\end{{equation}}
+   - For inline math: $ ... $
+   - Proper LaTeX commands: \\frac, \\sum, \\int, \\sqrt, \\log, \\sin, \\cos, etc.
+   - Handle subscripts with _{{}} and superscripts with ^{{}}
+   - Use \\text{{}} for text within equations
+
+3. FOR TABLES (if present):
+   - Use array environment for math tables: \\begin{{array}}{{|c|c|c|}} ... \\end{{array}}
+   - OR use \\begin{{tabular}}{{|c|c|c|}} ... \\end{{tabular}}
+   - Include \\hline for horizontal lines
+   - Use \\textbf{{}} for bold headers
+   - Proper column alignment: c (center), l (left), r (right)
+
+4. FOR DIAGRAMS (if present):
+   - Describe the diagram structure as a formatted table or text representation
+   - Use nested arrays or aligned environments
+   - Do NOT use TikZ (not supported by MathJax)
+
+5. OUTPUT FORMAT:
+   - Return ONLY the raw LaTeX code for the content
+   - NO document wrapper or preamble
+   - NO markdown code blocks (no ```)
+   - NO % comments
+   - NO \\documentclass, \\usepackage, \\begin{{document}}, \\end{{document}}
+   - Start directly with the equation/table/diagram code
+
+Generate clean LaTeX code for MathJax now:"""
 
     try:
         with Image.open(image_path) as img:
@@ -236,35 +270,7 @@ Generate the complete, compilable LaTeX document now:"""
             
             latex_code = latex_code.strip()
             
-            # Add identification comment at the top
-            content_labels = []
-            if content_info['has_equations']:
-                content_labels.append("EQUATIONS")
-            if content_info['has_tables']:
-                content_labels.append("TABLES")
-            if content_info['has_diagrams']:
-                content_labels.append("DIAGRAMS")
-            
-            content_header = f"% Generated by Gemini Universal Converter\n"
-            content_header += f"% Content Detected: {', '.join(content_labels)}\n"
-            content_header += f"% Primary Type: {content_info['primary'].upper()}\n"
-            content_header += "% " + "=" * 60 + "\n\n"
-            
-            # Insert header after documentclass line
-            lines = latex_code.split('\n')
-            for i, line in enumerate(lines):
-                if line.strip().startswith('\\documentclass'):
-                    lines.insert(i + 1, content_header)
-                    break
-            else:
-                # If no documentclass found, add at the beginning
-                latex_code = content_header + latex_code
-                lines = latex_code.split('\n')
-            
-            latex_code = '\n'.join(lines)
-            
             print("[SUCCESS] Successfully generated LaTeX code")
-            print(f"[INFO] Content types processed: {', '.join(content_labels)}")
             return latex_code
             
     except Exception as e:
@@ -277,8 +283,12 @@ Generate the complete, compilable LaTeX document now:"""
 def main():
     """Command-line interface for standalone usage."""
     if len(sys.argv) < 2:
-        print("Usage: python gemini_universal.py <image_path> [output_path]")
+        print("Usage: python gemini_universal.py <image_path> [output_path] [mode]")
         print("Example: python gemini_universal.py myimage.png output.tex")
+        print("         python gemini_universal.py myimage.png output.tex compiler")
+        print("\nModes:")
+        print("  mathjax (default) - Raw LaTeX for web rendering")
+        print("  compiler - Full document for LaTeX compilation")
         print("\nThis script automatically detects and converts:")
         print("  - Mathematical equations")
         print("  - Tables with data")
@@ -288,6 +298,14 @@ def main():
     
     # Get input and output paths
     image_path = sys.argv[1]
+    
+    # Get mode (default: mathjax)
+    mode = "mathjax"
+    if len(sys.argv) >= 4:
+        mode = sys.argv[3].lower()
+        if mode not in ["mathjax", "compiler"]:
+            print(f"Invalid mode: {mode}. Using 'mathjax' as default.")
+            mode = "mathjax"
     
     # Default output to test_outputs folder
     if len(sys.argv) >= 3:
@@ -310,7 +328,8 @@ def main():
         content_info = detect_content_type(image_path)
         
         # Step 2: Generate LaTeX based on content
-        latex_code = create_universal_latex(image_path, content_info)
+        print(f"Output mode: {mode.upper()}")
+        latex_code = create_universal_latex(image_path, content_info, mode)
         
         # Step 3: Save to file
         with open(output_path, 'w', encoding='utf-8') as f:

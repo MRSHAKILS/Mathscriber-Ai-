@@ -90,8 +90,9 @@ CRITICAL INSTRUCTIONS:
    - Return ONLY the table/equation code
    - NO document preamble or wrapper
    - NO markdown code fences (no ```latex)
-   - NO explanatory text, ONLY LaTeX code
-   - Ensure all commands are properly closed
+   - NO explanatory text or % comments
+   - NO metadata or header comments
+   - ONLY LaTeX code, ensure all commands are properly closed
 
 Generate clean, compilable LaTeX code:"""
                         },
