@@ -7,8 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("converter.urls")),
     path("", include('editor.urls', namespace='editor')),
-
-  # 👈 include your app’s routes
+    path("visuals/", include('visuals.urls', namespace='visuals')),
 ]
 
 # Add this at the end

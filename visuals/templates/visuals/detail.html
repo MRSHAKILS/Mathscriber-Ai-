@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Visual Detail - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-5xl mx-auto">
+        <div class="mb-6">
+            <a href="{% url 'visuals:gallery' %}" class="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300">
+                <i class="bi bi-arrow-left"></i> Back to Gallery
+            </a>
+        </div>
+        
+        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-8">
+            <!-- Visual Image -->
+            <div class="mb-8">
+                <img src="{{ MEDIA_URL }}{{ visual.file_path }}" 
+                     alt="Visual" 
+                     class="w-full rounded-lg shadow-lg">
+            </div>
+            
+            <!-- Visual Info -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-900 dark:text-white mb-4">Content</h2>
+                <p class="text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-700 rounded-lg p-4">
+                    {{ visual.content }}
+                </p>
+            </div>
+            
+            {% if visual.context %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-2">Context</h3>
+                <p class="text-stone-600 dark:text-stone-400">{{ visual.context }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Metadata -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Format</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.format|upper }}</div>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Status</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.status|title }}</div>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Color Mode</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.color_mode|title }}</div>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Created</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ MEDIA_URL }}{{ visual.file_path }}" 
+                   download 
+                   class="btn-primary">
+                    <i class="bi bi-download"></i> Download
+                </a>
+                <button onclick="duplicateVisual('{{ visual.id }}')" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="bi bi-files"></i> Duplicate
+                </button>
+                <a href="{% url 'visuals:generator' %}" 
+                   class="bg-stone-600 hover:bg-stone-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="bi bi-plus-lg"></i> Create New
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function duplicateVisual(visualId) {
+        if (!confirm('Duplicate this visual?')) return;
+        
+        try {
+            const response = await fetch(`/visuals/api/${visualId}/duplicate/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/visuals/${data.id}/`;
+            } else {
+                alert('Failed to duplicate visual');
+            }
+        } catch (error) {
+            alert('Network error');
+        }
+    }
+</script>
+{% endblock %}

@@ -48,6 +48,9 @@ opencv-python-headless==4.12.0.88
 # LangGraph and related
 langgraph==1.0.4
 langgraph-checkpoint==3.0.0
+
+# REST API & Napkin AI Integration
+djangorestframework==3.15.2
 langgraph-prebuilt==1.0.2
 langsmith==0.4.37
 

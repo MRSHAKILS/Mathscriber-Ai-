@@ -1,7 +1,11 @@
 from pathlib import Path
-
+import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -21,8 +25,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "converter",  
-    "editor"
+    "editor",
+    "visuals",
 ]
 
 MIDDLEWARE = [
@@ -98,3 +104,20 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+}
+
+# Napkin AI Configuration
+import os
+
+NAPKIN_API_KEY = os.getenv('NAPKIN_API_KEY', 'sk-7e9fb09c4363d79a6457a8e20fc3d4bb1a0f56b40c8e9b69ab948150ffc1b80b')
+NAPKIN_API_URL = os.getenv('NAPKIN_API_URL', 'https://api.napkin.ai/v1')

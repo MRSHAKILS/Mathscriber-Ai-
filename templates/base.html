@@ -169,6 +169,10 @@
                         <i class="bi bi-code-square text-sm group-hover:scale-110 transition-transform"></i>
                         <span>Editor</span>
                     </a>
+                    <a href="{% url 'visuals:generator' %}" class="nav-link group">
+                        <i class="bi bi-brush-fill text-sm group-hover:scale-110 transition-transform"></i>
+                        <span>Visuals</span>
+                    </a>
                     <a href="{% url 'converter:results' %}" class="nav-link group">
                         <i class="bi bi-file-earmark-text-fill text-sm group-hover:scale-110 transition-transform"></i>
                         <span>Results</span>
@@ -244,6 +248,11 @@
                 <a href="{% url 'editor:project_list' %}" class="mobile-nav-link">
                     <i class="bi bi-code-square"></i>
                     <span>Live Editor</span>
+                    <i class="bi bi-chevron-right ml-auto"></i>
+                </a>
+                <a href="{% url 'visuals:generator' %}" class="mobile-nav-link">
+                    <i class="bi bi-brush-fill"></i>
+                    <span>Visual Generator</span>
                     <i class="bi bi-chevron-right ml-auto"></i>
                 </a>
                 <a href="{% url 'converter:results' %}" class="mobile-nav-link">

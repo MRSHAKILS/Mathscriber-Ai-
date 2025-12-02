@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+
+{% block title %}Visual Generator - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+            AI Visual Generator
+        </h1>
+        <p class="text-center text-stone-600 dark:text-stone-400 mb-12">
+            Transform your text into beautiful visuals powered by Napkin AI
+        </p>
+        
+        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-8 mb-8">
+            <!-- Text Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+                    Your Content (minimum 50 characters)
+                </label>
+                <textarea id="contentInput" 
+                          rows="8"
+                          class="w-full px-4 py-3 border-2 border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 dark:bg-stone-700 dark:text-white"
+                          placeholder="Enter your text here... For example: 'The software development lifecycle includes planning, design, implementation, testing, and deployment phases.'"></textarea>
+                <p id="charCount" class="text-sm text-stone-500 dark:text-stone-400 mt-2">0 characters</p>
+            </div>
+            
+            <!-- Context (Optional) -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+                    Additional Context (optional)
+                </label>
+                <textarea id="contextInput" 
+                          rows="3"
+                          class="w-full px-4 py-3 border-2 border-stone-300 dark:border-stone-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 dark:bg-stone-700 dark:text-white"
+                          placeholder="Provide additional context that helps generate better visuals..."></textarea>
+            </div>
+            
+            <!-- Style Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">
+                    Select Visual Style
+                </label>
+                <div id="styleSelector" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <!-- Styles will be loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- Format Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
+                    Output Format
+                </label>
+                <div class="flex gap-4">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="format" value="png" checked class="mr-2">
+                        <span class="text-stone-700 dark:text-stone-300">PNG (Raster)</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="format" value="svg" class="mr-2">
+                        <span class="text-stone-700 dark:text-stone-300">SVG (Vector)</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="format" value="ppt" class="mr-2">
+                        <span class="text-stone-700 dark:text-stone-300">PowerPoint</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Generate Button -->
+            <button id="generateBtn" 
+                    disabled
+                    class="w-full btn-primary py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="bi bi-magic"></i> Generate Visual
+            </button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loading" class="hidden text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-600 mb-4"></div>
+            <h3 class="text-xl font-semibold text-stone-900 dark:text-white mb-2">Generating Your Visual...</h3>
+            <p class="text-stone-600 dark:text-stone-400">This may take 10-30 seconds</p>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="errorMessage" class="hidden bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg p-4 mb-8">
+            <p class="text-red-800 dark:text-red-200"></p>
+        </div>
+        
+        <!-- Result -->
+        <div id="visualResult" class="hidden bg-white dark:bg-stone-800 rounded-xl shadow-lg p-8">
+            <h2 class="text-2xl font-bold mb-6 text-stone-900 dark:text-white">Generated Visual</h2>
+            <div class="mb-6">
+                <img id="visualImage" src="" alt="Generated Visual" class="w-full rounded-lg shadow-md">
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a id="downloadBtn" href="#" download class="btn-primary">
+                    <i class="bi bi-download"></i> Download
+                </a>
+                <button id="regenerateBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="bi bi-arrow-clockwise"></i> Regenerate
+                </button>
+                <button id="newVisualBtn" class="bg-stone-600 hover:bg-stone-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    <i class="bi bi-plus-lg"></i> Create New
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    let selectedStyle = null;
+    let currentVisualId = null;
+    let availableStyles = [];
+    let pollingInterval = null;
+
+    const contentInput = document.getElementById('contentInput');
+    const contextInput = document.getElementById('contextInput');
+    const styleSelector = document.getElementById('styleSelector');
+    const generateBtn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loading');
+    const visualResult = document.getElementById('visualResult');
+    const visualImage = document.getElementById('visualImage');
+    const errorMessage = document.getElementById('errorMessage');
+    const charCount = document.getElementById('charCount');
+
+    // Helper to get gradient colors for style categories
+    function getStyleGradient(category) {
+        const gradients = {
+            'colorful': 'from-pink-500 to-orange-500',
+            'casual': 'from-blue-400 to-cyan-400',
+            'hand-drawn': 'from-purple-500 to-indigo-500',
+            'formal': 'from-slate-600 to-stone-700',
+            'monochrome': 'from-gray-500 to-gray-700'
+        };
+        return gradients[category] || 'from-teal-500 to-blue-500';
+    }
+
+    // Load available styles
+    async function loadStyles() {
+        try {
+            const response = await fetch('/visuals/api/options/');
+            const data = await response.json();
+            availableStyles = data.styles;
+            
+            styleSelector.innerHTML = availableStyles.map(style => `
+                <div class="style-option cursor-pointer border-2 border-stone-300 dark:border-stone-600 rounded-lg p-4 hover:border-teal-500 transition-colors" 
+                     data-style-id="${style.id}">
+                    <div class="h-24 mb-2 bg-gradient-to-br ${getStyleGradient(style.category)} rounded-lg flex items-center justify-center">
+                        <i class="bi bi-palette text-3xl text-white opacity-80"></i>
+                    </div>
+                    <div class="font-semibold text-xs text-stone-900 dark:text-white text-center">${style.name}</div>
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mt-1 text-center capitalize">${style.category}</div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.style-option').forEach(o => {
+                        o.classList.remove('border-teal-500', 'bg-teal-50', 'dark:bg-teal-900/20');
+                        o.classList.add('border-stone-300', 'dark:border-stone-600');
+                    });
+                    option.classList.remove('border-stone-300', 'dark:border-stone-600');
+                    option.classList.add('border-teal-500', 'bg-teal-50', 'dark:bg-teal-900/20');
+                    selectedStyle = option.dataset.styleId;
+                    checkGenerateButton();
+                });
+            });
+
+            // Select first style by default
+            if (availableStyles.length > 0) {
+                document.querySelector('.style-option').click();
+            }
+        } catch (error) {
+            showError('Failed to load visual styles');
+            console.error(error);
+        }
+    }
+
+    function checkGenerateButton() {
+        const text = contentInput.value.trim();
+        generateBtn.disabled = !(text.length >= 50 && selectedStyle);
+    }
+
+    function showError(message) {
+        errorMessage.querySelector('p').textContent = message;
+        errorMessage.classList.remove('hidden');
+        setTimeout(() => {
+            errorMessage.classList.add('hidden');
+        }, 5000);
+    }
+
+    async function pollVisualStatus(visualId) {
+        try {
+            const response = await fetch(`/visuals/api/status/${visualId}/`);
+            const data = await response.json();
+            
+            if (data.status === 'completed' && data.file_path) {
+                // Clear polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                
+                // Show result
+                loading.classList.add('hidden');
+                visualImage.src = '/media/' + data.file_path;
+                document.getElementById('downloadBtn').href = '/media/' + data.file_path;
+                visualResult.classList.remove('hidden');
+                generateBtn.disabled = false;
+                
+            } else if (data.status === 'failed') {
+                // Clear polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                
+                loading.classList.add('hidden');
+                showError(data.error_message || 'Visual generation failed');
+                generateBtn.disabled = false;
+            }
+            // Otherwise keep polling (status is 'processing' or 'pending')
+            
+        } catch (error) {
+            console.error('Error checking status:', error);
+        }
+    }
+
+    async function generateVisual() {
+        const content = contentInput.value.trim();
+        const context = contextInput.value.trim();
+        const format = document.querySelector('input[name="format"]:checked').value;
+        
+        if (content.length < 50) {
+            showError('Content must be at least 50 characters');
+            return;
+        }
+
+        generateBtn.disabled = true;
+        loading.classList.remove('hidden');
+        visualResult.classList.add('hidden');
+        errorMessage.classList.add('hidden');
+
+        try {
+            const response = await fetch('/visuals/api/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    content: content,
+                    context: context || null,
+                    format: format,
+                    style_id: selectedStyle
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                currentVisualId = data.id;
+                
+                // Start polling for status
+                pollingInterval = setInterval(() => {
+                    pollVisualStatus(currentVisualId);
+                }, 2000); // Poll every 2 seconds
+                
+                // Also check immediately
+                pollVisualStatus(currentVisualId);
+                
+            } else {
+                loading.classList.add('hidden');
+                generateBtn.disabled = false;
+                
+                if (response.status === 503) {
+                    showError('Service not configured. Please add NAPKIN_API_KEY to your environment variables.');
+                } else {
+                    showError(data.error || data.details || 'Failed to generate visual');
+                }
+            }
+        } catch (error) {
+            loading.classList.add('hidden');
+            generateBtn.disabled = false;
+            showError('Network error. Please try again.');
+            console.error(error);
+        }
+    }
+
+    // Event listeners
+    contentInput.addEventListener('input', () => {
+        const length = contentInput.value.length;
+        charCount.textContent = `${length} characters`;
+        checkGenerateButton();
+    });
+
+    generateBtn.addEventListener('click', generateVisual);
+
+    document.getElementById('regenerateBtn')?.addEventListener('click', async () => {
+        if (!currentVisualId) return;
+        
+        loading.classList.remove('hidden');
+        visualResult.classList.add('hidden');
+        
+        try {
+            const response = await fetch(`/visuals/api/${currentVisualId}/regenerate/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    style_id: selectedStyle
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                visualImage.src = '/media/' + data.file_path;
+                document.getElementById('downloadBtn').href = '/media/' + data.file_path;
+                visualResult.classList.remove('hidden');
+            } else {
+                showError('Failed to regenerate visual');
+            }
+        } catch (error) {
+            showError('Network error');
+        } finally {
+            loading.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('newVisualBtn')?.addEventListener('click', () => {
+        visualResult.classList.add('hidden');
+        contentInput.value = '';
+        contextInput.value = '';
+        charCount.textContent = '0 characters';
+        currentVisualId = null;
+        checkGenerateButton();
+    });
+
+    // Initialize
+    loadStyles();
+</script>
+{% endblock %}
