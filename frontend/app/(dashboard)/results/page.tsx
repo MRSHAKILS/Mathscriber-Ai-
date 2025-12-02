@@ -46,14 +46,14 @@ export default function ResultsPage() {
           </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6 flex gap-4">
-          <select className="px-4 py-2 border border-gray-300 rounded-lg">
+        <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-md p-4 mb-6 flex gap-4">
+          <select className="px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg">
             <option>All Status</option>
             <option>Completed</option>
             <option>Processing</option>
             <option>Failed</option>
           </select>
-          <select className="px-4 py-2 border border-gray-300 rounded-lg">
+          <select className="px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg">
             <option>Last 7 Days</option>
             <option>Last 30 Days</option>
             <option>Last 3 Months</option>
@@ -62,53 +62,53 @@ export default function ResultsPage() {
           <input
             type="text"
             placeholder="Search..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+            className="flex-1 px-4 py-2 bg-gray-800 text-white border border-gray-600 rounded-lg placeholder-gray-400"
           />
         </div>
 
         {/* Results Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-md overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   File Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Accuracy
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-gray-900 divide-y divide-gray-700">
               {results.map((result) => (
-                <tr key={result.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={result.id} className="hover:bg-gray-800">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                     {result.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     {result.date}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900/50 text-green-400">
                       {result.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     {result.accuracy}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-blue-600 hover:text-blue-900 mr-3">View</button>
-                    <button className="text-green-600 hover:text-green-900 mr-3">Download</button>
-                    <button className="text-red-600 hover:text-red-900">Delete</button>
+                    <button className="text-blue-400 hover:text-blue-300 mr-3">View</button>
+                    <button className="text-green-400 hover:text-green-300 mr-3">Download</button>
+                    <button className="text-red-400 hover:text-red-300">Delete</button>
                   </td>
                 </tr>
               ))}

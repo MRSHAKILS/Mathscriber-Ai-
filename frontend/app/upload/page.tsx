@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import { useState, useRef, DragEvent, ChangeEvent, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, 
@@ -16,7 +16,9 @@ import {
   Clock
 } from 'lucide-react';
 import Navbar from '@/components/home/NavbarNew';
+import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/home/Footer';
+import { convertImageToLatex } from '@/lib/api';
 
 type FileWithPreview = {
   file: File;
@@ -29,7 +31,16 @@ export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [task, setTask] = useState('equation');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [latexResult, setLatexResult] = useState('');
+  const [error, setError] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -87,16 +98,36 @@ export default function UploadPage() {
   };
 
   const handleSubmit = async () => {
+    if (files.length === 0) return;
+
     setIsProcessing(true);
-    // Simulate processing
-    setTimeout(() => {
+    setError('');
+    setLatexResult('');
+
+    try {
+      // For now, convert only the first file
+      const result = await convertImageToLatex(files[0].file);
+
+      if (result.success) {
+        setLatexResult(result.latex_code);
+      } else {
+        setError(result.message || 'Conversion failed');
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during conversion');
+    } finally {
       setIsProcessing(false);
-      alert('Files processed! (This is a demo)');
-    }, 3000);
+    }
+  };
+
+  const copyLatex = () => {
+    navigator.clipboard.writeText(latexResult);
   };
 
   return (
-    <>
+    <div className="flex min-h-screen bg-black">
+      {isLoggedIn && <Sidebar />}
+      <div className="flex-1 flex flex-col">
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-black via-red-950/10 to-black pt-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -355,9 +386,47 @@ export default function UploadPage() {
               </motion.div>
             ))}
           </motion.div>
+
+          {/* LaTeX Result Section */}
+          {latexResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8"
+            >
+              <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+                <h2 className="text-2xl font-bold text-white mb-4">LaTeX Output</h2>
+                <div className="bg-gray-800 rounded-lg p-4 mb-4">
+                  <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap break-all">
+                    {latexResult}
+                  </pre>
+                </div>
+                <button
+                  onClick={copyLatex}
+                  className="px-6 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white font-semibold rounded-lg hover:from-red-500 hover:to-orange-500 transition-all"
+                >
+                  Copy LaTeX
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8"
+            >
+              <div className="bg-red-900/20 border border-red-800 rounded-xl p-4">
+                <p className="text-red-400">{error}</p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
       <Footer />
-    </>
+      </div>
+    </div>
   );
 }

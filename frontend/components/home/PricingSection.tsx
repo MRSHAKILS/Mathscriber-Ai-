@@ -166,7 +166,7 @@ const PricingSection = () => {
                 ))}
               </ul>
 
-              <Link href={tier.name === 'Enterprise' ? '/contact' : '/signup'}>
+              <Link href={tier.name === 'Enterprise' ? '/contact' : '/upload'}>
                 <button
                   className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
                     tier.popular
