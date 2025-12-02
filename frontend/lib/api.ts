@@ -47,32 +47,30 @@ export async function convertImageToLatex(
     formData.append('image', imageFile)
     formData.append('conversion_type', conversionType)
 
-    // Get auth token if available
-    const token = localStorage.getItem('token')
-    const headers: HeadersInit = {}
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-
+    // Don't set Content-Type header for FormData - browser will set it with boundary
     const response = await fetch(`${API_BASE_URL}/convert-image/`, {
       method: 'POST',
-      headers,
       body: formData,
     })
 
+    const data = await response.json()
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      // Return the error message from the server if available
+      return {
+        success: false,
+        latex_code: '',
+        message: data.message || `Server error: ${response.status}`,
+      }
     }
 
-    const data = await response.json()
     return data
   } catch (error) {
     console.error('API Error:', error)
     return {
       success: false,
       latex_code: '',
-      message: 'Failed to connect to the server. Please ensure the backend is running.',
+      message: 'Failed to connect to the server. Please ensure the backend is running at http://localhost:8000',
     }
   }
 }

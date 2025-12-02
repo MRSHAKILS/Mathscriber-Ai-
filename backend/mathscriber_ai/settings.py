@@ -173,8 +173,8 @@ LOGIN_URL = 'http://localhost:3000/login'
 LOGIN_REDIRECT_URL = '/editor/projects/'
 LOGOUT_REDIRECT_URL = 'http://localhost:3000/'
 
-# Gemini API Key
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+# Gemini API Key (uses GOOGLE_API_KEY from .env)
+GEMINI_API_KEY = os.getenv('GOOGLE_API_KEY', '')
 
 # Allow iframes from same origin (needed for PDF preview in editor)
 X_FRAME_OPTIONS = 'SAMEORIGIN'

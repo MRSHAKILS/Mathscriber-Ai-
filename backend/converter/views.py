@@ -16,6 +16,7 @@ class ConvertImageView(APIView):
     API endpoint to convert uploaded images to LaTeX code
     POST /api/convert-image/
     """
+    permission_classes = [AllowAny]  # Allow both authenticated and unauthenticated requests
     authentication_classes = [JWTAuthentication]
     
     def post(self, request):
