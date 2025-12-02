@@ -1,0 +1,94 @@
+{% extends 'editor/base.html' %}
+
+{% block title %}My Projects{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+        <div>
+            <h1 class="text-5xl font-black mb-2">
+                <span class="text-white">My LaTeX </span>
+                <span class="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">Projects</span>
+            </h1>
+            <p class="text-gray-400">Create and manage your LaTeX documents</p>
+        </div>
+        <a href="{% url 'editor:project_create' %}" class="group relative inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-[length:200%_100%] animate-gradient"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 opacity-0 group-hover:opacity-100 blur-xl transition-opacity"></div>
+            <i class="bi bi-plus-lg relative z-10"></i>
+            <span class="relative z-10">New Project</span>
+        </a>
+    </div>
+
+    {% if projects %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for project in projects %}
+                <div class="group relative bg-gradient-to-b from-gray-900/90 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-red-500/10 hover:border-red-500/30 transition-all duration-300 overflow-hidden card-glow">
+                    <!-- Gradient accent -->
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600/20 to-orange-600/20 border border-red-500/20 flex items-center justify-center">
+                                <i class="bi bi-file-earmark-text text-2xl text-red-400"></i>
+                            </div>
+                            <div class="flex gap-2">
+                                {% with project.documents.first as first_doc %}
+                                    {% if first_doc %}
+                                        <a href="{% url 'editor:document_editor' project.pk first_doc.pk %}" class="p-2 rounded-lg bg-red-600/10 text-red-400 hover:bg-red-600/20 transition-colors">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                                <a href="{% url 'editor:project_delete' project.pk %}" class="p-2 rounded-lg bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white transition-colors">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <h2 class="text-xl font-bold text-white mb-2 group-hover:text-red-400 transition-colors">{{ project.name }}</h2>
+                        <p class="text-gray-400 text-sm mb-4 line-clamp-2">{{ project.description|truncatewords:15|default:"No description provided" }}</p>
+                        
+                        <div class="flex items-center gap-4 text-xs text-gray-500">
+                            <div class="flex items-center gap-1">
+                                <i class="bi bi-calendar"></i>
+                                <span>{{ project.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="bi bi-file-text"></i>
+                                <span>{{ project.documents.count }} doc{{ project.documents.count|pluralize }}</span>
+                            </div>
+                        </div>
+                        
+                        {% with project.documents.first as first_doc %}
+                            {% if first_doc %}
+                                <a href="{% url 'editor:document_editor' project.pk first_doc.pk %}" class="mt-4 block w-full py-2 px-4 bg-gradient-to-r from-red-600/10 to-orange-600/10 border border-red-500/20 rounded-lg text-center text-sm font-medium text-red-400 hover:from-red-600/20 hover:to-orange-600/20 hover:border-red-500/40 transition-all">
+                                    <i class="bi bi-box-arrow-up-right mr-2"></i>Open Project
+                                </a>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="flex flex-col items-center justify-center py-24">
+            <div class="relative mb-6">
+                <div class="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 rounded-full blur-3xl opacity-20"></div>
+                <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-red-600/20 to-orange-600/20 border border-red-500/20 flex items-center justify-center">
+                    <i class="bi bi-folder-x text-5xl text-red-400"></i>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-3">No projects yet</h2>
+            <p class="text-gray-400 mb-8 text-center max-w-md">Start your LaTeX journey by creating your first project. Compile beautiful documents with ease.</p>
+            <a href="{% url 'editor:project_create' %}" class="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-[length:200%_100%] animate-gradient"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 opacity-0 group-hover:opacity-100 blur-xl transition-opacity"></div>
+                <i class="bi bi-plus-lg relative z-10"></i>
+                <span class="relative z-10">Create Your First Project</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'editor/base.html' %}
+
+{% block title %}Create Project{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-3xl">
+    <div class="mb-8">
+        <h1 class="text-5xl font-black mb-3">
+            <span class="text-white">Create New </span>
+            <span class="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">Project</span>
+        </h1>
+        <p class="text-gray-400">Set up your LaTeX project and start creating beautiful documents</p>
+    </div>
+
+    <div class="bg-gradient-to-b from-gray-900/90 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-red-500/10 p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-300">
+                    Project Name <span class="text-red-400">*</span>
+                </label>
+                <input type="text" name="name" value="{{ form.name.value|default:'' }}" required
+                    class="w-full px-4 py-3 bg-gray-900/50 border border-red-500/20 rounded-lg text-white placeholder-gray-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-all"
+                    placeholder="My LaTeX Document">
+                {% if form.name.errors %}
+                    <p class="text-sm text-red-400 mt-1">{{ form.name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-300">
+                    Description <span class="text-gray-500 font-normal">(optional)</span>
+                </label>
+                <textarea name="description" rows="3"
+                    class="w-full px-4 py-3 bg-gray-900/50 border border-red-500/20 rounded-lg text-white placeholder-gray-500 focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-all"
+                    placeholder="Brief description of your project">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                    <p class="text-sm text-red-400 mt-1">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            {{ form.latex_code }}
+            {{ form.latex_filename }}
+
+            <div class="flex gap-4 pt-4">
+                <button type="submit" class="group relative flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 bg-[length:200%_100%] animate-gradient"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 opacity-0 group-hover:opacity-100 blur-xl transition-opacity"></div>
+                    <i class="bi bi-check-lg relative z-10"></i>
+                    <span class="relative z-10">Create Project</span>
+                </button>
+                <a href="{% url 'editor:project_list' %}" class="px-6 py-3 rounded-xl border border-red-500/20 text-gray-300 font-semibold hover:bg-red-600/10 hover:border-red-500/30 transition-all">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

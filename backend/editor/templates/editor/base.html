@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LaTeX Editor{% endblock %} - Mathscriber AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #000000 0%, #1a0505 100%);
+        }
+        .gradient-border {
+            background: linear-gradient(135deg, #ef4444, #f97316, #ef4444);
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .card-glow {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.15);
+        }
+        .card-glow:hover {
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen text-gray-100">
+    <!-- Modern Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-2xl shadow-[0_8px_32px_rgba(239,68,68,0.12)] border-b border-red-500/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <a href="http://localhost:3000" class="flex items-center gap-2.5 group">
+                    <div class="relative">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 rounded-xl blur-lg opacity-50 group-hover:opacity-80 transition-all duration-500"></div>
+                        <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 via-red-500 to-orange-600 flex items-center justify-center shadow-2xl">
+                            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M7 10h10M7 14h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                                <path d="M12 8v8" stroke-width="1.5" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-lg font-black tracking-tight leading-none">
+                            <span class="text-white">Math</span><span class="bg-gradient-to-r from-red-400 via-orange-400 to-red-500 bg-clip-text text-transparent">Scriber</span>
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Navigation Links -->
+                <div class="flex items-center gap-2">
+                    <a href="http://localhost:3000" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all">
+                        <i class="bi bi-house-door mr-2"></i>Home
+                    </a>
+                    <a href="{% url 'editor:project_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-red-600 to-orange-600 text-white hover:shadow-lg hover:shadow-red-500/50 transition-all">
+                        <i class="bi bi-folder mr-2"></i>My Projects
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-16">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!-- Folders -->
+{% for folder_data in tree.folders %}
+    <div class="ml-2">
+        <div class="file-tree-item flex items-center gap-2">
+            <i class="bi bi-folder-fill text-yellow-500"></i>
+            <span>{{ folder_data.folder.name }}</span>
+        </div>
+        <div class="ml-4">
+            {% include 'editor/file_tree.html' with tree=folder_data %}
+        </div>
+    </div>
+{% endfor %}
+
+<!-- Documents -->
+{% for document in tree.documents %}
+    <div class="file-tree-item flex items-center gap-2 ml-2 {% if current_doc.pk == document.pk %}active{% endif %}"
+         onclick="openDocument({{ project.pk }}, {{ document.pk }})">
+        <i class="bi bi-file-earmark-code {% if document.is_main %}text-green-500{% else %}text-blue-500{% endif %}"></i>
+        <span>{{ document.name }}</span>
+        {% if document.is_main %}
+            <span class="badge badge-xs badge-success">main</span>
+        {% endif %}
+    </div>
+{% endfor %}
+
+<!-- Binary Files -->
+{% for binary in tree.binaries %}
+    <div class="file-tree-item flex items-center gap-2 ml-2">
+        <i class="bi bi-file-earmark-image text-purple-500"></i>
+        <span>{{ binary.filename }}</span>
+    </div>
+{% endfor %}

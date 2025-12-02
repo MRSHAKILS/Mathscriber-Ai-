@@ -1,0 +1,31 @@
+{% if run and run.status == 'success' and run.pdf %}
+    <iframe 
+        src="{% url 'editor:download_pdf' project.pk run.pk %}?t={{ run.finished_at|date:'U' }}" 
+        class="w-full h-full border-0"
+        type="application/pdf">
+    </iframe>
+{% elif run and run.status == 'error' %}
+    <div class="p-4">
+        <div class="alert alert-error">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>Compilation Failed</span>
+        </div>
+        <div class="mt-4 bg-gray-800 p-4 rounded-lg overflow-x-auto">
+            <pre class="text-xs text-red-400">{{ run.log }}</pre>
+        </div>
+    </div>
+{% elif run and run.status == 'running' %}
+    <div class="flex items-center justify-center h-full">
+        <div class="text-center">
+            <span class="loading loading-spinner loading-lg"></span>
+            <p class="mt-4">Compiling...</p>
+        </div>
+    </div>
+{% else %}
+    <div class="flex items-center justify-center h-full text-gray-500">
+        <div class="text-center">
+            <i class="bi bi-file-pdf text-6xl"></i>
+            <p class="mt-4">Compile to see PDF preview</p>
+        </div>
+    </div>
+{% endif %}

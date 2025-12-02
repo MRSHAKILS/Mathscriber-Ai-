@@ -1,0 +1,36 @@
+{% extends 'editor/base.html' %}
+
+{% block title %}Delete Project{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="alert alert-warning mb-6">
+        <i class="bi bi-exclamation-triangle text-2xl"></i>
+        <div>
+            <h3 class="font-bold">Confirm Deletion</h3>
+            <div class="text-sm">This action cannot be undone.</div>
+        </div>
+    </div>
+
+    <div class="card bg-gray-800 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Delete "{{ project.name }}"?</h2>
+            <p class="text-gray-400">
+                This will permanently delete the project and all its files, folders, and compilation history.
+            </p>
+
+            <form method="post" class="mt-6">
+                {% csrf_token %}
+                <div class="flex gap-4">
+                    <button type="submit" class="btn btn-error flex-1">
+                        <i class="bi bi-trash"></i> Delete Project
+                    </button>
+                    <a href="{% url 'editor:project_list' %}" class="btn btn-ghost flex-1">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
