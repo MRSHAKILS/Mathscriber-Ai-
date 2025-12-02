@@ -11,12 +11,55 @@
             </a>
         </div>
         
-        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-8">
+        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
+            <!-- Status Badge -->
+            <div class="mb-6">
+                {% if visual.status == 'completed' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-check-circle-fill"></i> Completed
+                </span>
+                {% elif visual.status == 'processing' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-hourglass-split"></i> Processing
+                </span>
+                {% elif visual.status == 'pending' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-clock"></i> Pending
+                </span>
+                {% elif visual.status == 'failed' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-x-circle-fill"></i> Failed
+                </span>
+                {% endif %}
+            </div>
+            
             <!-- Visual Image -->
             <div class="mb-8">
+                {% if visual.status == 'completed' and visual.file_path %}
                 <img src="{{ MEDIA_URL }}{{ visual.file_path }}" 
                      alt="Visual" 
                      class="w-full rounded-lg shadow-lg">
+                {% elif visual.status == 'processing' or visual.status == 'pending' %}
+                <div class="w-full aspect-video bg-stone-100 dark:bg-stone-700 rounded-lg flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-600 mb-4"></div>
+                        <p class="text-stone-600 dark:text-stone-400">Generating visual...</p>
+                        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                        </button>
+                    </div>
+                </div>
+                {% elif visual.status == 'failed' %}
+                <div class="w-full aspect-video bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-red-200 dark:border-red-800 flex items-center justify-center">
+                    <div class="text-center text-red-600 dark:text-red-400">
+                        <i class="bi bi-exclamation-triangle text-5xl mb-3"></i>
+                        <p class="text-lg font-semibold mb-2">Generation Failed</p>
+                        {% if visual.error_message %}
+                        <p class="text-sm">{{ visual.error_message }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
             
             <!-- Visual Info -->
@@ -35,7 +78,7 @@
             {% endif %}
             
             <!-- Metadata -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
                     <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Format</div>
                     <div class="font-semibold text-stone-900 dark:text-white">{{ visual.format|upper }}</div>
@@ -55,20 +98,30 @@
             </div>
             
             <!-- Actions -->
-            <div class="flex flex-wrap gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3">
+                {% if visual.status == 'completed' and visual.file_path %}
                 <a href="{{ MEDIA_URL }}{{ visual.file_path }}" 
                    download 
-                   class="btn-primary">
-                    <i class="bi bi-download"></i> Download
+                   class="btn-primary text-center">
+                    <i class="bi bi-download"></i> <span>Download</span>
                 </a>
                 <button onclick="duplicateVisual('{{ visual.id }}')" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
-                    <i class="bi bi-files"></i> Duplicate
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
+                    <i class="bi bi-files"></i> <span>Duplicate</span>
                 </button>
-                <a href="{% url 'visuals:generator' %}" 
-                   class="bg-stone-600 hover:bg-stone-700 text-white px-6 py-2 rounded-lg transition-colors">
-                    <i class="bi bi-plus-lg"></i> Create New
+                {% endif %}
+                <a href="{% url 'visuals:gallery' %}" 
+                   class="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
+                    <i class="bi bi-collection"></i> <span class="hidden sm:inline">View All Visuals</span><span class="sm:hidden">Gallery</span>
                 </a>
+                <a href="{% url 'visuals:generator' %}" 
+                   class="bg-stone-600 hover:bg-stone-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
+                    <i class="bi bi-plus-lg"></i> <span>Create New</span>
+                </a>
+                <button onclick="deleteVisual('{{ visual.id }}')" 
+                        class="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
+                    <i class="bi bi-trash"></i> <span>Delete</span>
+                </button>
             </div>
         </div>
     </div>
@@ -109,6 +162,30 @@
             }
         } catch (error) {
             alert('Network error');
+        }
+    }
+    
+    async function deleteVisual(visualId) {
+        if (!confirm('Are you sure you want to delete this visual? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/visuals/api/${visualId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                window.location.href = '{% url "visuals:gallery" %}';
+            } else {
+                alert('Failed to delete visual');
+            }
+        } catch (error) {
+            alert('Network error');
+            console.error(error);
         }
     }
 </script>

@@ -12,6 +12,8 @@ urlpatterns = [
     path('api/options/', views.visual_options, name='visual_options'),
     path('api/generate/', views.generate_visual_simple, name='generate_simple'),
     path('api/status/<uuid:pk>/', views.check_visual_status, name='check_status'),
+    path('api/recent/', views.get_recent_visuals, name='recent_visuals'),
+    path('api/export-pdf/', views.export_visuals_pdf, name='export_pdf'),
     path('api/', include(router.urls)),
     
     # Template views

@@ -5,16 +5,25 @@
 {% block content %}
 <div class="container mx-auto px-4 py-12">
     <div class="max-w-5xl mx-auto">
-        <h1 class="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
-            AI Visual Generator
-        </h1>
-        <p class="text-center text-stone-600 dark:text-stone-400 mb-12">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 sm:mb-8">
+            <div class="flex-1 text-center sm:text-left">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+                    AI Visual Generator
+                </h1>
+            </div>
+            <a href="{% url 'visuals:gallery' %}" class="btn-primary flex items-center gap-2 whitespace-nowrap">
+                <i class="bi bi-clock-history"></i>
+                <span class="hidden sm:inline">View History</span>
+                <span class="sm:hidden">History</span>
+            </a>
+        </div>
+        <p class="text-center text-sm sm:text-base text-stone-600 dark:text-stone-400 mb-8 sm:mb-12 px-4">
             Transform your text into beautiful visuals powered by Napkin AI
         </p>
         
-        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-8 mb-8">
+        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-4 sm:p-6 md:p-8 mb-8">
             <!-- Text Input -->
-            <div class="mb-6">
+            <div class="mb-4 sm:mb-6">
                 <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
                     Your Content (minimum 50 characters)
                 </label>
@@ -47,22 +56,22 @@
             </div>
             
             <!-- Format Selection -->
-            <div class="mb-6">
+            <div class="mb-4 sm:mb-6">
                 <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
                     Output Format
                 </label>
-                <div class="flex gap-4">
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <label class="flex items-center cursor-pointer">
                         <input type="radio" name="format" value="png" checked class="mr-2">
-                        <span class="text-stone-700 dark:text-stone-300">PNG (Raster)</span>
+                        <span class="text-sm sm:text-base text-stone-700 dark:text-stone-300">PNG (Raster)</span>
                     </label>
                     <label class="flex items-center cursor-pointer">
                         <input type="radio" name="format" value="svg" class="mr-2">
-                        <span class="text-stone-700 dark:text-stone-300">SVG (Vector)</span>
+                        <span class="text-sm sm:text-base text-stone-700 dark:text-stone-300">SVG (Vector)</span>
                     </label>
                     <label class="flex items-center cursor-pointer">
                         <input type="radio" name="format" value="ppt" class="mr-2">
-                        <span class="text-stone-700 dark:text-stone-300">PowerPoint</span>
+                        <span class="text-sm sm:text-base text-stone-700 dark:text-stone-300">PowerPoint</span>
                     </label>
                 </div>
             </div>
@@ -93,15 +102,18 @@
             <div class="mb-6">
                 <img id="visualImage" src="" alt="Generated Visual" class="w-full rounded-lg shadow-md">
             </div>
-            <div class="flex flex-wrap gap-3">
-                <a id="downloadBtn" href="#" download class="btn-primary">
-                    <i class="bi bi-download"></i> Download
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-3">
+                <a id="downloadBtn" href="#" download class="btn-primary text-center">
+                    <i class="bi bi-download"></i> <span class="hidden sm:inline">Download</span>
                 </a>
-                <button id="regenerateBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
-                    <i class="bi bi-arrow-clockwise"></i> Regenerate
+                <a href="{% url 'visuals:gallery' %}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="bi bi-collection"></i> <span class="hidden sm:inline">View All</span><span class="sm:hidden">All Visuals</span>
+                </a>
+                <button id="regenerateBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors">
+                    <i class="bi bi-arrow-clockwise"></i> <span class="hidden sm:inline">Regenerate</span>
                 </button>
-                <button id="newVisualBtn" class="bg-stone-600 hover:bg-stone-700 text-white px-6 py-2 rounded-lg transition-colors">
-                    <i class="bi bi-plus-lg"></i> Create New
+                <button id="newVisualBtn" class="bg-stone-600 hover:bg-stone-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors">
+                    <i class="bi bi-plus-lg"></i> <span class="hidden sm:inline">Create New</span><span class="sm:hidden">New</span>
                 </button>
             </div>
         </div>

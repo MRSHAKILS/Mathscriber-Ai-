@@ -96,6 +96,22 @@ class VisualViewSet(viewsets.ModelViewSet):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def destroy(self, request, pk=None):
+        """Delete a visual"""
+        visual = self.get_object()
+        
+        # Delete file if exists
+        if visual.file_path:
+            file_path = os.path.join(settings.MEDIA_ROOT, visual.file_path)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    print(f"Error deleting file: {e}")
+        
+        visual.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
@@ -110,6 +126,97 @@ def visual_options(request):
         'color_modes': ['light', 'dark', 'both'],
         'orientations': ['auto', 'horizontal', 'vertical', 'square']
     })
+
+
+@api_view(['GET'])
+def get_recent_visuals(request):
+    """Get recent visuals for the current user or session"""
+    limit = int(request.GET.get('limit', 5))
+    
+    visuals = Visual.objects.all().order_by('-created_at')[:limit]
+    
+    if request.user.is_authenticated:
+        visuals = Visual.objects.filter(owner=request.user).order_by('-created_at')[:limit]
+    else:
+        # For anonymous users, show recent visuals from last 24 hours
+        from django.utils import timezone
+        from datetime import timedelta
+        cutoff_time = timezone.now() - timedelta(hours=24)
+        visuals = Visual.objects.filter(created_at__gte=cutoff_time).order_by('-created_at')[:limit]
+    
+    return Response(VisualSerializer(visuals, many=True).data)
+
+
+@api_view(['POST'])
+def export_visuals_pdf(request):
+    """Export multiple visuals to a single PDF"""
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.utils import ImageReader
+    from io import BytesIO
+    import tempfile
+    
+    visual_ids = request.data.get('visual_ids', [])
+    
+    if not visual_ids:
+        return Response(
+            {'error': 'No visual IDs provided'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    visuals = Visual.objects.filter(id__in=visual_ids, status='completed')
+    
+    if not visuals:
+        return Response(
+            {'error': 'No completed visuals found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    # Create PDF
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    for visual in visuals:
+        if visual.file_path:
+            try:
+                img_path = os.path.join(settings.MEDIA_ROOT, visual.file_path)
+                if os.path.exists(img_path):
+                    img = ImageReader(img_path)
+                    img_width, img_height = img.getSize()
+                    
+                    # Scale image to fit page with margin
+                    margin = 50
+                    max_width = width - (2 * margin)
+                    max_height = height - (2 * margin) - 50  # Extra space for text
+                    
+                    scale = min(max_width / img_width, max_height / img_height)
+                    scaled_width = img_width * scale
+                    scaled_height = img_height * scale
+                    
+                    # Center image
+                    x = (width - scaled_width) / 2
+                    y = (height - scaled_height) / 2 + 25
+                    
+                    pdf.drawImage(img_path, x, y, scaled_width, scaled_height)
+                    
+                    # Add content text at bottom
+                    pdf.setFont("Helvetica", 10)
+                    text = visual.content[:100] + '...' if len(visual.content) > 100 else visual.content
+                    pdf.drawString(margin, margin, text)
+                    
+                    pdf.showPage()
+            except Exception as e:
+                print(f"Error adding visual to PDF: {e}")
+                continue
+    
+    pdf.save()
+    buffer.seek(0)
+    
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="visuals_export.pdf"'
+    
+    return response
 
 
 @api_view(['POST'])
@@ -218,15 +325,28 @@ def visual_generator_page(request):
 
 def visual_gallery_page(request):
     """Gallery of user's visuals"""
-    visuals = Visual.objects.filter(status='completed').order_by('-created_at')
+    # Show all visuals (completed, processing, pending, failed) for better history tracking
+    visuals = Visual.objects.all().order_by('-created_at')
     
     if request.user.is_authenticated:
         visuals = visuals.filter(owner=request.user)
+    else:
+        # For anonymous users, show all recent visuals from last 24 hours
+        from django.utils import timezone
+        from datetime import timedelta
+        cutoff_time = timezone.now() - timedelta(hours=24)
+        visuals = visuals.filter(created_at__gte=cutoff_time)
     
-    return render(request, 'visuals/gallery.html', {'visuals': visuals})
+    return render(request, 'visuals/gallery.html', {
+        'visuals': visuals,
+        'MEDIA_URL': settings.MEDIA_URL
+    })
 
 
 def visual_detail_page(request, pk):
     """Detail page for a specific visual"""
     visual = get_object_or_404(Visual, pk=pk)
-    return render(request, 'visuals/detail.html', {'visual': visual})
+    return render(request, 'visuals/detail.html', {
+        'visual': visual,
+        'MEDIA_URL': settings.MEDIA_URL
+    })
