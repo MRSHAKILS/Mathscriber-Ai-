@@ -1,0 +1,12 @@
+# Root .gitignore
+.DS_Store
+*.log
+.env
+.env.local
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
