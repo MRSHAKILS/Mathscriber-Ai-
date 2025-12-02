@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/home/NavbarNew';
 import Footer from '@/components/home/Footer';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { 
   Mail, 
   Lock, 
@@ -53,6 +55,8 @@ const passwordRequirements = [
 ];
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const supabase = getSupabaseBrowserClient();
   const [formData, setFormData] = useState({
     displayName: '',
     email: '',
@@ -69,6 +73,7 @@ export default function RegisterPage() {
     password?: string;
     confirmPassword?: string;
     agreeToTerms?: string;
+    general?: string;
   }>({});
 
   const validateForm = () => {
@@ -118,28 +123,54 @@ export default function RegisterPage() {
     if (!validateForm()) return;
     
     setIsLoading(true);
+    setErrors({});
     
-    // TODO: Implement Firebase/Supabase registration
-    // Data ready for backend:
-    // - displayName: User's display name
-    // - email: User's email address
-    // - password: User's password (should be hashed by auth provider)
-    console.log('Registration attempt:', {
-      displayName: formData.displayName,
-      email: formData.email,
-      password: formData.password, // Will be handled by Firebase/Supabase
-    });
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            display_name: formData.displayName,
+          },
+        },
+      });
+
+      if (error) {
+        setErrors({ general: error.message });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // Show success message and redirect
+        alert('Registration successful! Please check your email to verify your account.');
+        router.push('/login');
+      }
+    } catch (error: any) {
+      setErrors({ general: error.message || 'An error occurred during registration' });
       setIsLoading(false);
-      // Handle registration response
-    }, 1500);
+    }
   };
 
-  const handleSocialLogin = (provider: 'google' | 'facebook' | 'github') => {
-    // TODO: Implement social registration with Firebase/Supabase
-    console.log(`Register with ${provider}`);
+  const handleSocialLogin = async (provider: 'google' | 'facebook' | 'github') => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo: `${window.location.origin}/upload`,
+        },
+      });
+
+      if (error) {
+        setErrors({ general: error.message });
+        setIsLoading(false);
+      }
+    } catch (error: any) {
+      setErrors({ general: error.message || 'Social registration failed' });
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,6 +349,13 @@ export default function RegisterPage() {
             <span className="text-sm text-gray-500">or register with email</span>
             <div className="flex-1 h-px bg-white/10" />
           </div>
+
+          {/* General Error Display */}
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+              {errors.general}
+            </div>
+          )}
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
