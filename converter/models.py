@@ -6,13 +6,8 @@ class UploadedImage(models.Model):
         ('table', 'Table (Tesseract)'),
         ('table_gemini', 'Table/Equation (Gemini AI)'),
         ('groq', 'Table/Equation (Groq AI)'),
-        ('grok2', 'Table/Equation (Grok 2 AI)'),
         ('mistral', 'Table/Equation (Mistral AI)'),
         ('gemini_universal', 'Universal: Equation/Table/Diagram (Gemini AI - Auto-Detect)'),
-        ('deepseek_diagram', 'Diagram Template (TikZ)'),
-        ('deepseek_diagram_ai', 'Diagram AI-Powered (DeepSeek - Requires Credits)'),
-        ('huggingface_diagram', 'Diagram Intelligent Template (HuggingFace Analysis)'),
-        ('openai_diagram', 'Diagram AI-Powered (OpenAI GPT-4o)'),
         ('gemini_diagram', 'Diagram AI-Powered (Gemini 2.0 Flash)'),
     ]
 
