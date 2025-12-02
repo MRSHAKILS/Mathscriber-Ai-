@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const model = formData.get('model') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -13,22 +14,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Implement actual conversion logic - forward to Django backend
-    console.log('Converting file:', file.name, 'with model:', model);
+    // Forward to Django backend
+    const backendFormData = new FormData();
+    backendFormData.append('image', file);
 
-    // Dummy response
+    const response = await fetch(`${API_BASE_URL}/convert-image/`, {
+      method: 'POST',
+      body: backendFormData,
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: data.message || 'Conversion failed' },
+        { status: response.status }
+      );
+    }
+
     return NextResponse.json({
-      success: true,
+      success: data.success,
       data: {
-        id: '123',
-        latex: '\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}',
-        confidence: 0.98,
-        processingTime: 1.2,
+        latex: data.latex_code,
+        message: data.message,
       },
     });
   } catch (error) {
+    console.error('Conversion error:', error);
     return NextResponse.json(
-      { success: false, error: 'Conversion failed' },
+      { success: false, error: 'Failed to connect to backend server' },
       { status: 500 }
     );
   }

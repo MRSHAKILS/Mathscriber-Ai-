@@ -167,13 +167,13 @@ const HeroSection = () => {
                   Try Converter Now
                 </motion.button>
               </Link>
-              <Link href="#comparison">
+              <Link href="/#how-it-works">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-lg hover:bg-white/10 backdrop-blur-sm transition duration-300"
                 >
-                  View AI Models
+                  How It Works
                 </motion.button>
               </Link>
             </motion.div>

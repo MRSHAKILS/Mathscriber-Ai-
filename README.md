@@ -1,325 +1,140 @@
-# 🧮 Mathscriber AI
+# Mathscriber AI
 
-AI-powered tool to convert handwritten mathematical equations, diagrams, and tables from images to LaTeX code using Google Gemini.
+Convert mathematical equations, diagrams, and tables from images to LaTeX code using AI.
 
-## 🚀 Quick Start
+## 🚀 Features
 
-```bash
-# Clone repository
-git clone https://github.com/MRSHAKILS/Mathscriber-Ai-.git
-cd Mathscriber-Ai-
-
-# Setup backend
-cd backend
-python -m venv venv
-.\venv\Scripts\activate  # Windows
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
-
-# Setup frontend (new terminal)
-cd frontend
-npm install --legacy-peer-deps
-npm run dev
-```
-
-**Servers:**
-- Backend: http://127.0.0.1:8000
-- Frontend: http://localhost:3000
-
-## 🎯 Features
-
-- ✅ **Image Upload** - Drag-drop or click to upload math images
-- ✅ **AI Conversion** - Gemini 2.0 Flash for accurate LaTeX extraction
-- ✅ **Live Preview** - Real-time LaTeX rendering
-- ✅ **History** - Track all conversions with database storage
-- ✅ **Templates** - Pre-built LaTeX templates library
-- ✅ **Playground** - Interactive LaTeX editor with tools
-- ✅ **Analytics** - Usage statistics and insights
+- **Image Upload**: Upload images containing equations, diagrams, or tables
+- **Canvas Scanner**: Draw equations on a digital canvas
+- **AI-Powered**: Uses Gemini 2.0 Flash model for accurate conversion
+- **Instant Results**: Get LaTeX code in seconds
+- **Clean UI**: Modern Neumorphism design with TailwindCSS
+- **Easy Copy**: One-click copy to clipboard
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Backend** | Django 5.0.1 + REST Framework 3.14.0 |
-| **Database** | PostgreSQL 14+ |
-| **AI Model** | Google Gemini 2.0 Flash |
-| **Frontend** | Next.js 16.0.6 + React 19.2.0 |
-| **Styling** | Tailwind CSS 3.4.3 + DaisyUI 5.5.5 |
-| **Language** | TypeScript 5.4.5 |
+### Backend
+
+- Django 5.0
+- Django REST Framework
+- Gemini API (Google Generative AI)
+- SQLite database
+- CORS enabled
+
+### Frontend
+
+- Next.js 14 (App Router)
+- TypeScript
+- TailwindCSS (Neumorphism design)
+- Lucide React icons
 
 ## 📋 Prerequisites
 
-- **Python** 3.11+
-- **Node.js** 18+
-- **PostgreSQL** 14+
-- **Gemini API Key** - Get from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- Python 3.9+
+- Node.js 18+
+- Gemini API key (Get from [Google AI Studio](https://makersuite.google.com/app/apikey))
 
-## 🔧 Setup Guide
+## 🔧 Installation
 
-### 1️⃣ Backend Setup
+### Backend Setup
+
+1. Navigate to the backend directory:
 
 ```bash
 cd backend
+```
 
-# Create virtual environment
+2. Create a virtual environment:
+
+```bash
 python -m venv venv
+```
 
-# Activate (Windows)
-.\venv\Scripts\activate
-# Activate (Linux/Mac)
-source venv/bin/activate
+3. Activate the virtual environment:
 
-# Install dependencies
+- Windows: `venv\Scripts\activate`
+- macOS/Linux: `source venv/bin/activate`
+
+4. Install dependencies:
+
+```bash
 pip install -r requirements.txt
+```
 
-# Setup database (PostgreSQL)
-# Open pgAdmin or psql and run:
-# CREATE DATABASE upscriber_db;
-# CREATE USER mathscriber_user WITH PASSWORD 'admin123';
-# ALTER USER mathscriber_user WITH SUPERUSER;
+5. Create a `.env` file:
 
-# Configure environment
+```bash
 cp .env.example .env
-# Edit .env and add your Gemini API key
+```
 
-# Run migrations
+6. Add your Gemini API key to `.env`:
+
+```
+GEMINI_API_KEY=your_actual_api_key_here
+```
+
+7. Run migrations:
+
+```bash
 python manage.py migrate
+```
 
-# Start server
+8. Start the development server:
+
+```bash
 python manage.py runserver
 ```
 
-### 2️⃣ Frontend Setup
+Backend will be available at `http://localhost:8000`
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
 
 ```bash
 cd frontend
+```
 
-# Install dependencies (Important: use --legacy-peer-deps)
-npm install --legacy-peer-deps
+2. Install dependencies:
 
-# Configure environment
+```bash
+npm install
+```
+
+3. Create a `.env.local` file:
+
+```bash
 cp .env.local.example .env.local
+```
 
-# Start dev server
+4. Start the development server:
+
+```bash
 npm run dev
 ```
 
-## 📖 Documentation
-
-| Document | Description |
-|----------|-------------|
-| **[BACKEND_DOCS.md](./BACKEND_DOCS.md)** | Complete backend documentation - API endpoints, database models, Gemini integration |
-| **[FRONTEND_DOCS.md](./FRONTEND_DOCS.md)** | Complete frontend documentation - components, routing, styling, TypeScript guide |
-| **[TEAM_SETUP.md](./TEAM_SETUP.md)** | Quick setup guide for team members |
-| **[SHAKIL_PULL_INSTRUCTIONS.md](./SHAKIL_PULL_INSTRUCTIONS.md)** | Branch merge instructions |
-
-## 🗂️ Project Structure
-
-```
-Mathscriber-Ai-/
-├── backend/                  # Django REST API
-│   ├── converter/           # Main app (models, views, Gemini integration)
-│   ├── mathscriber_ai/      # Django settings
-│   ├── requirements.txt     # Python dependencies
-│   └── .env                 # Environment variables (gitignored)
-├── frontend/                # Next.js application
-│   ├── app/                 # Pages and routes
-│   ├── components/          # Reusable UI components
-│   ├── lib/                 # Utilities
-│   ├── package.json         # Node dependencies
-│   └── .env.local          # Frontend config (gitignored)
-├── BACKEND_DOCS.md          # Backend documentation
-├── FRONTEND_DOCS.md         # Frontend documentation
-└── README.md               # This file
-```
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health/` | Health check |
-| POST | `/api/convert-image/` | Convert image to LaTeX |
-| GET | `/api/history/` | Get all conversions |
-| GET | `/api/history/<id>/` | Get specific conversion |
-
-See [BACKEND_DOCS.md](./BACKEND_DOCS.md) for detailed API documentation.
-
-## 💻 Development
-
-```bash
-# Backend
-cd backend
-python manage.py check              # Check for issues
-python manage.py showmigrations     # View migrations
-python manage.py shell              # Django shell
-
-# Frontend
-cd frontend
-npm run dev                         # Start dev server
-npm run build                       # Build for production
-npx tsc --noEmit                   # Type check
-```
-
-## 🐛 Troubleshooting
-
-### Backend Issues
-
-**Database connection failed:**
-```sql
--- In PostgreSQL, run:
-ALTER USER mathscriber_user WITH SUPERUSER;
-GRANT ALL ON SCHEMA public TO mathscriber_user;
-```
-
-**Port 8000 in use:**
-```bash
-netstat -ano | findstr :8000
-taskkill /PID <number> /F
-```
-
-### Frontend Issues
-
-**npm install errors:**
-```bash
-npm install --legacy-peer-deps
-```
-
-**Port 3000 in use:**
-```bash
-netstat -ano | findstr :3000
-taskkill /PID <number> /F
-```
-
-**Module not found:**
-```bash
-rm -rf node_modules .next
-npm install --legacy-peer-deps
-```
+Frontend will be available at `http://localhost:3000`
 
 ## 🎯 Usage
 
-1. Open browser at `http://localhost:3000`
-2. Upload an image containing mathematical equations
-3. Select AI model (Gemini 2.0 Flash)
-4. Click "Convert" to get LaTeX code
-5. Copy, edit, or download the results
-6. View conversion history in Results page
+1. Open your browser and go to `http://localhost:3000`
+2. Choose one of two options:
+   - **Upload Image**: Click "Upload Image" and select an image file
+   - **Canvas Scanner**: Click "Canvas Scanner" and draw your equation
+3. Click "Convert to LaTeX"
+4. Copy the generated LaTeX code and use it in your documents
 
-## 🌟 Key Features Explained
+## 📁 Project Structure
 
-### Dashboard
-- Overview statistics
-- Recent conversions
-- Quick access to all tools
-
-### Upload Page
-- Drag-drop image upload
-- Multiple format support (JPG, PNG, WebP)
-- Real-time conversion with progress
-
-### Playground
-- Interactive LaTeX editor
-- Live preview rendering
-- Symbol toolbar for quick insertion
-- Graph visualization tools
-
-### Results
-- Complete conversion history
-- Search and filter capabilities
-- Re-edit previous conversions
-
-### Templates
-- Pre-built LaTeX templates
-- Categories: Equations, Matrices, Calculus, etc.
-- One-click insertion
-
-## 🤝 Team Workflow
-
-### For Team Members Cloning
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/MRSHAKILS/Mathscriber-Ai-.git
-   cd Mathscriber-Ai-
-   ```
-
-2. **Follow setup in TEAM_SETUP.md**
-
-3. **Create your branch:**
-   ```bash
-   git checkout -b your-name
-   ```
-
-### Pulling Changes
-
-**From Sanjana's branch (frontend changes):**
-```bash
-git fetch origin
-git checkout origin/sanjana -- frontend/
 ```
-
-**From Shakil's branch (backend changes):**
-```bash
-git fetch origin
-git checkout origin/shakil -- backend/
-```
-
-See [SHAKIL_PULL_INSTRUCTIONS.md](./SHAKIL_PULL_INSTRUCTIONS.md) for detailed merge instructions.
-
-## 📝 Environment Variables
-
-### Backend (.env)
-```env
-GEMINI_API_KEY=your_key_here
-DB_NAME=upscriber_db
-DB_USER=mathscriber_user
-DB_PASSWORD=admin123
-DB_HOST=localhost
-DB_PORT=5432
-```
-
-### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
-NEXT_PUBLIC_WS_URL=ws://127.0.0.1:8000
-```
-
-## 🔒 Security Notes
-
-- ⚠️ Never commit `.env` files
-- 🔑 Keep API keys private
-- 🛡️ Use environment variables for sensitive data
-- 🔐 Enable HTTPS in production
-
-## 📊 Project Status
-
-- ✅ Backend API - Fully functional
-- ✅ Frontend UI - Complete with all pages
-- ✅ Database - PostgreSQL configured
-- ✅ AI Integration - Gemini 2.0 Flash working
-- ✅ Documentation - Comprehensive guides available
-
-## 📜 License
-
-This project is created for the Solvio Hackathon.
-
-## 👥 Team
-
-**Solvio Hackathon Team**
-- Backend: Shakil
-- Frontend: Sanjana
-- Collaboration: Full Stack Integration
-
-## 📞 Support
-
-- Check [BACKEND_DOCS.md](./BACKEND_DOCS.md) for backend issues
-- Check [FRONTEND_DOCS.md](./FRONTEND_DOCS.md) for frontend issues
-- Check [TEAM_SETUP.md](./TEAM_SETUP.md) for setup help
-
----
-
-**Built with ❤️ for Solvio Hackathon 2025**
+Mathscriber AI/
+├── backend/
+│   ├── mathscriber_ai/
+│   │   ├── settings.py       # Django settings (REST, CORS configured)
+│   │   ├── urls.py            # Main URL routing
+│   │   └── wsgi.py
+│   ├── converter/
+│   │   ├── converter.py       # Gemini API integration
 │   │   ├── views.py           # API endpoints
 │   │   ├── serializers.py     # Request/response validation
 │   │   └── urls.py            # App URL routing
@@ -434,4 +249,3 @@ For issues or questions, please open an issue on GitHub.
 ---
 
 Built with ❤️ for hackathons
-
