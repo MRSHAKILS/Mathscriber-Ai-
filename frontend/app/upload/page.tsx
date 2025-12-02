@@ -8,9 +8,14 @@ export default function UploadPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  const handleConversion = async (latexCode: string) => {
-    // Navigate to results page with LaTeX code
-    router.push(`/result?latex=${encodeURIComponent(latexCode)}`)
+  const handleConversion = async (result: any) => {
+    // Navigate to results page with conversion ID and data
+    if (result.id) {
+      router.push(`/result?id=${result.id}`)
+    } else {
+      // Fallback to query params
+      router.push(`/result?latex=${encodeURIComponent(result.latex_code)}&image=${encodeURIComponent(result.image_url || '')}`)
+    }
   }
 
   return (
