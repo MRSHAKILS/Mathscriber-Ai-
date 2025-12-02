@@ -12,48 +12,53 @@
 
 ## 📊 Component Status
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| **converter2.py** | ✅ Ready | Multi-agent system initialized |
-| **API Views** | ✅ Ready | All endpoints integrated |
-| **URL Routes** | ✅ Ready | Routes configured and accessible |
-| **Dependencies** | ✅ Ready | All packages installed |
-| **Django Check** | ✅ Pass | 0 issues identified |
-| **Gemini API** | ✅ Connected | 3 agents initialized |
-| **Backend Server** | ✅ Running | Port 8000 |
-| **Frontend Server** | ✅ Running | Next.js dev mode |
+| Component           | Status       | Details                          |
+| ------------------- | ------------ | -------------------------------- |
+| **converter2.py**   | ✅ Ready     | Multi-agent system initialized   |
+| **API Views**       | ✅ Ready     | All endpoints integrated         |
+| **URL Routes**      | ✅ Ready     | Routes configured and accessible |
+| **Dependencies**    | ✅ Ready     | All packages installed           |
+| **Django Check**    | ✅ Pass      | 0 issues identified              |
+| **Gemini API**      | ✅ Connected | 3 agents initialized             |
+| **Backend Server**  | ✅ Running   | Port 8000                        |
+| **Frontend Server** | ✅ Running   | Next.js dev mode                 |
 
 ---
 
 ## 🚀 Available Endpoints
 
 ### 1. **Standard Endpoints (Agentic by Default)**
+
 ```
 POST http://localhost:8000/api/convert/upload
-POST http://localhost:8000/api/convert/capture  
+POST http://localhost:8000/api/convert/capture
 POST http://localhost:8000/api/convert/canvas
 ```
 
 **Request:**
+
 ```javascript
 const formData = new FormData();
-formData.append('image', imageFile);
+formData.append("image", imageFile);
 // Optional: Set to 'false' for simple converter
-formData.append('use_agentic', 'true');  
+formData.append("use_agentic", "true");
 ```
 
 ### 2. **Dedicated Agentic Endpoint**
+
 ```
 POST http://localhost:8000/api/convert/agentic
 ```
 
 **Request:**
+
 ```javascript
 const formData = new FormData();
-formData.append('image', imageFile);
+formData.append("image", imageFile);
 ```
 
 **Response Example:**
+
 ```json
 {
   "success": true,
@@ -79,16 +84,19 @@ formData.append('image', imageFile);
 ## 🤖 Agent Details
 
 ### Agent 1: Content Identifier
+
 - **Model**: `gemini-2.0-flash-exp`
 - **Status**: ✅ Operational
 - **Function**: Analyzes image content type and structure
 
-### Agent 2: LaTeX Converter  
+### Agent 2: LaTeX Converter
+
 - **Model**: `gemini-2.0-flash-exp`
 - **Status**: ✅ Operational
 - **Function**: Converts image to LaTeX with context awareness
 
 ### Agent 3: Validator & Corrector
+
 - **Model**: `gemini-2.0-flash-exp`
 - **Status**: ✅ Operational
 - **Function**: Validates output and applies corrections
@@ -100,50 +108,53 @@ formData.append('image', imageFile);
 ### Frontend Integration
 
 #### Option 1: Using Existing Upload Component
+
 The existing upload endpoints now use the agentic converter by default. No changes needed!
 
 ```typescript
 // Your existing code works with agentic converter now
-const response = await fetch('/api/convert/upload', {
-  method: 'POST',
-  body: formData
+const response = await fetch("/api/convert/upload", {
+  method: "POST",
+  body: formData,
 });
 ```
 
 #### Option 2: Using Dedicated Agentic Endpoint
+
 ```typescript
 async function convertWithAgentic(imageFile: File) {
   const formData = new FormData();
-  formData.append('image', imageFile);
-  
-  const response = await fetch('/api/convert/agentic', {
-    method: 'POST',
-    body: formData
+  formData.append("image", imageFile);
+
+  const response = await fetch("/api/convert/agentic", {
+    method: "POST",
+    body: formData,
   });
-  
+
   const result = await response.json();
-  
+
   // Access workflow details
-  console.log('Agents Used:', result.workflow.agents_used);
-  console.log('Content Type:', result.workflow.content_analysis.type);
-  console.log('Validation:', result.workflow.validation.status);
-  
+  console.log("Agents Used:", result.workflow.agents_used);
+  console.log("Content Type:", result.workflow.content_analysis.type);
+  console.log("Validation:", result.workflow.validation.status);
+
   return result.latex;
 }
 ```
 
 #### Option 3: Toggle Between Simple and Agentic
+
 ```typescript
 async function convertImage(imageFile: File, useAgentic: boolean = true) {
   const formData = new FormData();
-  formData.append('image', imageFile);
-  formData.append('use_agentic', useAgentic.toString());
-  
-  const response = await fetch('/api/convert/upload', {
-    method: 'POST',
-    body: formData
+  formData.append("image", imageFile);
+  formData.append("use_agentic", useAgentic.toString());
+
+  const response = await fetch("/api/convert/upload", {
+    method: "POST",
+    body: formData,
   });
-  
+
   return await response.json();
 }
 
@@ -176,7 +187,7 @@ with open('equation.png', 'rb') as f:
         'http://localhost:8000/api/convert/agentic',
         files=files
     )
-    
+
 result = response.json()
 print(f"LaTeX: {result['latex']}")
 print(f"Validation: {result['workflow']['validation']['status']}")
@@ -201,6 +212,7 @@ print(f"Validation: {result['workflow']['validation']['status']}")
 ## 📚 Documentation
 
 Full documentation available in:
+
 - **AGENTIC_CONVERTER.md** - Complete technical documentation
 - **test_agentic_converter.py** - Initialization test script
 
@@ -253,6 +265,7 @@ Full documentation available in:
 The agentic converter is fully integrated and operational. You can start using it immediately with your existing frontend code or test it directly via API calls.
 
 **Next Steps:**
+
 1. Test with a sample equation image
 2. Review the workflow response
 3. Integrate detailed validation feedback in UI (optional)

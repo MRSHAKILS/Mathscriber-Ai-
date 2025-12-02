@@ -9,6 +9,7 @@ The **Agentic Converter** (`converter2.py`) implements a sophisticated multi-age
 ### Three Specialized Agents
 
 1. **Agent 1: Content Identifier**
+
    - **Model**: Gemini 2.0 Flash Exp
    - **Purpose**: Analyzes and identifies the content type in the uploaded image
    - **Output**: Structured analysis including:
@@ -19,6 +20,7 @@ The **Agentic Converter** (`converter2.py`) implements a sophisticated multi-age
      - Overall structure
 
 2. **Agent 2: LaTeX Converter**
+
    - **Model**: Gemini 2.0 Flash Exp
    - **Purpose**: Converts the image to LaTeX using insights from Agent 1
    - **Features**:
@@ -68,6 +70,7 @@ Final LaTeX Output
 ## API Endpoints
 
 ### 1. Standard Conversion (with option)
+
 ```
 POST /api/convert/upload
 POST /api/convert/capture
@@ -75,10 +78,12 @@ POST /api/convert/canvas
 ```
 
 **Parameters:**
+
 - `image`: Image file (required)
 - `use_agentic`: Boolean string ("true"/"false"), default: "true"
 
 **Response:**
+
 ```json
 {
   "input": "base64_encoded_image",
@@ -105,14 +110,17 @@ POST /api/convert/canvas
 ```
 
 ### 2. Dedicated Agentic Endpoint
+
 ```
 POST /api/convert/agentic
 ```
 
 **Parameters:**
+
 - `image`: Image file (required)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -160,18 +168,22 @@ POST /api/convert/agentic
 ## Key Features
 
 ### 1. Content-Aware Conversion
+
 The converter adapts its approach based on the identified content type:
+
 - **Equations**: Uses appropriate math delimiters ($ or $$)
 - **Diagrams**: Generates TikZ code with package imports
 - **Tables**: Creates proper tabular/array environments
 - **Mixed**: Handles complex documents with multiple content types
 
 ### 2. Comprehensive Validation
+
 - **AI Validation**: Agent 3 reviews the LaTeX against the original image
 - **Programmatic Validation**: Automated checks for common issues
 - **Auto-Correction**: Fixes issues automatically when possible
 
 ### 3. Quality Assurance
+
 - Ensures all brackets are matched
 - Verifies math delimiters are balanced
 - Removes markdown formatting
@@ -179,7 +191,9 @@ The converter adapts its approach based on the identified content type:
 - Validates syntax correctness
 
 ### 4. Detailed Reporting
+
 Provides comprehensive workflow information:
+
 - Agent execution status
 - Content analysis results
 - Validation results
@@ -193,43 +207,46 @@ Provides comprehensive workflow information:
 ```typescript
 // Use agentic converter (default)
 const formData = new FormData();
-formData.append('image', imageFile);
+formData.append("image", imageFile);
 
-const response = await fetch('/api/convert/upload', {
-  method: 'POST',
-  body: formData
+const response = await fetch("/api/convert/upload", {
+  method: "POST",
+  body: formData,
 });
 
 const result = await response.json();
-console.log('LaTeX:', result.latex);
-console.log('Content Type:', result.workflow.content_analysis.type);
-console.log('Validation:', result.workflow.validation.status);
+console.log("LaTeX:", result.latex);
+console.log("Content Type:", result.workflow.content_analysis.type);
+console.log("Validation:", result.workflow.validation.status);
 ```
 
 ```typescript
 // Use dedicated agentic endpoint
 const formData = new FormData();
-formData.append('image', imageFile);
+formData.append("image", imageFile);
 
-const response = await fetch('/api/convert/agentic', {
-  method: 'POST',
-  body: formData
+const response = await fetch("/api/convert/agentic", {
+  method: "POST",
+  body: formData,
 });
 
 const result = await response.json();
-console.log('Agents Used:', result.workflow.agents_used);
-console.log('All Checks Passed:', result.workflow.validation.programmatic_checks.all_passed);
+console.log("Agents Used:", result.workflow.agents_used);
+console.log(
+  "All Checks Passed:",
+  result.workflow.validation.programmatic_checks.all_passed
+);
 ```
 
 ```typescript
 // Use simple converter (opt-out of agentic)
 const formData = new FormData();
-formData.append('image', imageFile);
-formData.append('use_agentic', 'false');
+formData.append("image", imageFile);
+formData.append("use_agentic", "false");
 
-const response = await fetch('/api/convert/upload', {
-  method: 'POST',
-  body: formData
+const response = await fetch("/api/convert/upload", {
+  method: "POST",
+  body: formData,
 });
 ```
 
@@ -259,29 +276,30 @@ print(f"Corrected: {was_corrected}")
 
 ## Benefits Over Simple Converter
 
-| Feature | Simple Converter | Agentic Converter |
-|---------|-----------------|-------------------|
-| Content Analysis | ❌ | ✅ Detailed analysis |
-| Context-Aware Conversion | ❌ | ✅ Adaptive approach |
-| Validation | ❌ | ✅ AI + Programmatic |
-| Auto-Correction | ❌ | ✅ Multiple correction passes |
-| Bracket Verification | ❌ | ✅ Comprehensive checks |
-| Quality Reporting | ❌ | ✅ Detailed workflow status |
-| Accuracy | Good | Excellent |
-| Output Cleanliness | Good | Guaranteed |
+| Feature                  | Simple Converter | Agentic Converter             |
+| ------------------------ | ---------------- | ----------------------------- |
+| Content Analysis         | ❌               | ✅ Detailed analysis          |
+| Context-Aware Conversion | ❌               | ✅ Adaptive approach          |
+| Validation               | ❌               | ✅ AI + Programmatic          |
+| Auto-Correction          | ❌               | ✅ Multiple correction passes |
+| Bracket Verification     | ❌               | ✅ Comprehensive checks       |
+| Quality Reporting        | ❌               | ✅ Detailed workflow status   |
+| Accuracy                 | Good             | Excellent                     |
+| Output Cleanliness       | Good             | Guaranteed                    |
 
 ## Performance Considerations
 
 - **Processing Time**: ~2-3x longer than simple converter (3 agent calls)
 - **Accuracy**: Significantly higher due to validation and correction
 - **Reliability**: More robust for complex content
-- **Use Cases**: 
+- **Use Cases**:
   - Use **Agentic** for: Complex equations, important documents, production use
   - Use **Simple** for: Quick tests, simple equations, development
 
 ## Error Handling
 
 The agentic converter includes comprehensive error handling:
+
 - Graceful fallbacks if any agent fails
 - Detailed error messages
 - Debug logging for troubleshooting
@@ -290,6 +308,7 @@ The agentic converter includes comprehensive error handling:
 ## Future Enhancements
 
 Potential improvements:
+
 1. Add Agent 4 for LaTeX compilation testing
 2. Implement learning from user corrections
 3. Add support for more specialized content types
@@ -299,6 +318,7 @@ Potential improvements:
 ## Configuration
 
 The agentic converter uses these settings:
+
 - **Model**: `gemini-2.0-flash-exp` (can be changed in code)
 - **API Key**: From `settings.GEMINI_API_KEY`
 - **Validation Strictness**: High (can be adjusted)
@@ -306,12 +326,14 @@ The agentic converter uses these settings:
 ## Debugging
 
 Enable detailed logging:
+
 ```python
 import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
 
 Debug output includes:
+
 - Agent initialization status
 - Content identification results
 - Conversion progress
