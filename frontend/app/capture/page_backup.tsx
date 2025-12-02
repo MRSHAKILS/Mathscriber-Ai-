@@ -1,76 +1,29 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Camera, 
-  RefreshCw, 
-  Loader2, 
-  X, 
-  Check, 
-  Pencil,
-  Eraser,
-  Trash2,
-  Download,
-  Copy,
-  Sparkles,
-  Zap
-} from 'lucide-react';
-import Navbar from '@/components/home/NavbarNew';
+import { motion } from 'framer-motion';
+import { Camera, RefreshCw, Loader2, X, Check } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
-import Footer from '@/components/home/Footer';
-import { useAuth } from '@/lib/auth/auth-context';
-import ConversionResult from '@/components/ConversionResult';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { convertImageToLatex } from '@/lib/api';
 
 export default function CapturePage() {
-  const { user, loading: authLoading } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const captureCanvasRef = useRef<HTMLCanvasElement>(null);
-  const drawCanvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const [activeTab, setActiveTab] = useState<'camera' | 'draw'>('camera');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [latexResult, setLatexResult] = useState('');
-  const [conversionId, setConversionId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-  
-  // Drawing state
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [brushSize, setBrushSize] = useState(3);
-  const [color, setColor] = useState('#000000');
-  const [isErasing, setIsErasing] = useState(false);
 
   useEffect(() => {
     return () => {
+      // Cleanup: stop camera when component unmounts
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
   }, [stream]);
-
-  // Initialize drawing canvas
-  useEffect(() => {
-    if (activeTab === 'draw') {
-      const canvas = drawCanvasRef.current;
-      if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-  }, [activeTab]);
 
   const startCamera = async () => {
     try {
@@ -105,19 +58,25 @@ export default function CapturePage() {
 
   const captureImage = () => {
     const video = videoRef.current;
-    const canvas = captureCanvasRef.current;
+    const canvas = canvasRef.current;
     
     if (!video || !canvas) return;
 
     const context = canvas.getContext('2d');
     if (!context) return;
 
+    // Set canvas size to video size
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+
+    // Draw video frame to canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+    // Get image data URL
     const imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
     setCapturedImage(imageDataUrl);
+    
+    // Stop camera after capture
     stopCamera();
   };
 
@@ -143,16 +102,7 @@ export default function CapturePage() {
       const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
 
       // Send to API with capture conversion type
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('task_type', 'equation');
-
-      const apiResponse = await fetch(`${API_BASE_URL}/api/convert-image/`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await apiResponse.json();
+      const result = await convertImageToLatex(file, 'capture');
 
       if (result.success) {
         setLatexResult(result.latex_code);
@@ -219,7 +169,7 @@ export default function CapturePage() {
                   )}
 
                   {/* Hidden canvas for capture */}
-                  <canvas ref={captureCanvasRef} className="hidden" />
+                  <canvas ref={canvasRef} className="hidden" />
                 </div>
               </div>
 
