@@ -20,8 +20,8 @@ PyMuPDF==1.26.5
 pdf2image==1.17.0
 
 # AI model integrations
-langchain==1.0.5
-langchain-core==1.0.4
+langchain==1.1.0
+langchain-core==1.1.0
 google-generativeai==0.8.5
 langchain-google-genai==3.2.0
 langchain-huggingface==1.0.1
@@ -46,7 +46,7 @@ albumentations==1.4.24
 opencv-python-headless==4.12.0.88
 
 # LangGraph and related
-langgraph==1.0.2
+langgraph==1.0.4
 langgraph-checkpoint==3.0.0
 langgraph-prebuilt==1.0.2
 langsmith==0.4.37
