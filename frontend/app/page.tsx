@@ -4,6 +4,7 @@ import FeaturesSection from '@/components/home/FeaturesSection'
 import HowItWorksSection from '@/components/home/HowItWorksSection'
 import CTASection from '@/components/home/CTASection'
 import SeeItAction from '@/components/home/SeeItAction'
+import TestimonialsSection from '@/components/home/TestimonialsSection'
 import Footer from '@/components/ui/Footer'
 
 export default function HomePage() {
@@ -14,6 +15,7 @@ export default function HomePage() {
       <FeaturesSection />
       <HowItWorksSection />
       <SeeItAction />
+      <TestimonialsSection />
       <CTASection />
       <Footer />
     </div>
