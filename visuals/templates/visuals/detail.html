@@ -5,13 +5,19 @@
 {% block content %}
 <div class="container mx-auto px-4 py-12">
     <div class="max-w-5xl mx-auto">
-        <div class="mb-6">
-            <a href="{% url 'visuals:gallery' %}" class="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300">
-                <i class="bi bi-arrow-left"></i> Back to Gallery
+        <!-- Hero Header -->
+        <div class="bg-gradient-to-br from-blue-50 via-teal-50 to-purple-50 dark:from-blue-900/20 dark:via-teal-900/20 dark:to-purple-900/20 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl border border-blue-100 dark:border-blue-800 animate-fade-in">
+            <a href="{% url 'visuals:gallery' %}" class="group inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 mb-4 font-semibold text-stone-700 dark:text-stone-300">
+                <i class="bi bi-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                <span>Back to Gallery</span>
             </a>
+            <h1 class="text-3xl sm:text-4xl font-extrabold mb-2">
+                <span class="bg-gradient-to-r from-blue-600 via-teal-600 to-purple-600 bg-clip-text text-transparent">Visual Details</span>
+            </h1>
+            <p class="text-stone-600 dark:text-stone-400">View and manage your generated visual</p>
         </div>
         
-        <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
+        <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border-2 border-stone-200 dark:border-stone-700 p-6 sm:p-8 md:p-10 animate-slide-up">
             <!-- Status Badge -->
             <div class="mb-6">
                 {% if visual.status == 'completed' %}
@@ -95,33 +101,56 @@
                     <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Created</div>
                     <div class="font-semibold text-stone-900 dark:text-white">{{ visual.created_at|date:"M d, Y" }}</div>
                 </div>
+                {% if visual.visual_query %}
+                <div class="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-3">
+                    <div class="text-xs text-teal-600 dark:text-teal-400 mb-1">Diagram Type</div>
+                    <div class="font-semibold text-teal-900 dark:text-teal-300">{{ visual.visual_query|title }}</div>
+                </div>
+                {% endif %}
+                {% if visual.orientation and visual.orientation != 'auto' %}
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Orientation</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.orientation|title }}</div>
+                </div>
+                {% endif %}
             </div>
             
             <!-- Actions -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3">
-                {% if visual.status == 'completed' and visual.file_path %}
-                <a href="{{ MEDIA_URL }}{{ visual.file_path }}" 
-                   download 
-                   class="btn-primary text-center">
-                    <i class="bi bi-download"></i> <span>Download</span>
-                </a>
-                <button onclick="duplicateVisual('{{ visual.id }}')" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
-                    <i class="bi bi-files"></i> <span>Duplicate</span>
-                </button>
-                {% endif %}
-                <a href="{% url 'visuals:gallery' %}" 
-                   class="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
-                    <i class="bi bi-collection"></i> <span class="hidden sm:inline">View All Visuals</span><span class="sm:hidden">Gallery</span>
-                </a>
-                <a href="{% url 'visuals:generator' %}" 
-                   class="bg-stone-600 hover:bg-stone-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
-                    <i class="bi bi-plus-lg"></i> <span>Create New</span>
-                </a>
-                <button onclick="deleteVisual('{{ visual.id }}')" 
-                        class="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 rounded-lg transition-colors text-center">
-                    <i class="bi bi-trash"></i> <span>Delete</span>
-                </button>
+            <div class="bg-stone-50 dark:bg-stone-900/50 rounded-xl p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="text-lg font-bold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="bi bi-tools text-teal-600"></i>
+                    <span>Actions</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% if visual.status == 'completed' and visual.file_path %}
+                    <a href="{{ MEDIA_URL }}{{ visual.file_path }}" 
+                       download 
+                       class="group flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-download text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Download</span>
+                    </a>
+                    <button onclick="duplicateVisual('{{ visual.id }}')" 
+                            class="group flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-files text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Duplicate</span>
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'visuals:gallery' %}" 
+                       class="group flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-collection text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Gallery</span>
+                    </a>
+                    <a href="{% url 'visuals:generator' %}" 
+                       class="group flex items-center justify-center gap-2 px-6 py-3 bg-stone-600 hover:bg-stone-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-plus-lg text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+                        <span>Create New</span>
+                    </a>
+                    <button onclick="deleteVisual('{{ visual.id }}')" 
+                            class="group flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-trash text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Delete</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
