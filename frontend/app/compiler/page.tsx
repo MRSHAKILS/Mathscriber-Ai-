@@ -84,6 +84,7 @@ export default function CompilerPage() {
   const { user, loading: authLoading } = useAuth();
   const [latexCode, setLatexCode] = useState(sampleTemplates[0].code);
   const [activeView, setActiveView] = useState<'split' | 'code' | 'preview'>('split');
+  const [previewMode, setPreviewMode] = useState<'math' | 'document'>('document');
   const [copied, setCopied] = useState(false);
   const [compiling, setCompiling] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -161,7 +162,114 @@ export default function CompilerPage() {
     }
   };
 
+  // Parse LaTeX document structure for document view
+  const parseDocumentStructure = (code: string) => {
+    try {
+      const docMatch = code.match(/\\begin{document}([\s\S]*?)\\end{document}/);
+      if (!docMatch) return { title: '', content: [] };
+
+      let content = docMatch[1].trim();
+      const elements: any[] = [];
+
+      // Extract title
+      const titleMatch = code.match(/\\title\{([^}]+)\}/);
+      const title = titleMatch ? titleMatch[1] : '';
+
+      // Split content into sections and math blocks
+      const lines = content.split('\n');
+      let currentText = '';
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Skip empty lines
+        if (!line) {
+          if (currentText) {
+            elements.push({ type: 'text', content: currentText.trim() });
+            currentText = '';
+          }
+          continue;
+        }
+
+        // Check for equation environment
+        if (line.includes('\\begin{equation')) {
+          if (currentText) {
+            elements.push({ type: 'text', content: currentText.trim() });
+            currentText = '';
+          }
+          
+          let eqContent = '';
+          i++;
+          while (i < lines.length && !lines[i].includes('\\end{equation')) {
+            eqContent += lines[i].trim() + ' ';
+            i++;
+          }
+          elements.push({ type: 'equation', content: eqContent.trim() });
+          continue;
+        }
+
+        // Check for align environment
+        if (line.includes('\\begin{align')) {
+          if (currentText) {
+            elements.push({ type: 'text', content: currentText.trim() });
+            currentText = '';
+          }
+          
+          let alignContent = '';
+          i++;
+          while (i < lines.length && !lines[i].includes('\\end{align')) {
+            alignContent += lines[i].trim() + ' ';
+            i++;
+          }
+          elements.push({ type: 'align', content: alignContent.trim() });
+          continue;
+        }
+
+        // Check for inline or display math
+        if (line.includes('$$')) {
+          if (currentText) {
+            elements.push({ type: 'text', content: currentText.trim() });
+            currentText = '';
+          }
+          const mathMatch = line.match(/\$\$(.*?)\$\$/);
+          if (mathMatch) {
+            elements.push({ type: 'display', content: mathMatch[1].trim() });
+          }
+          continue;
+        }
+
+        // Regular text with possible inline math
+        if (line.includes('$')) {
+          const parts = line.split(/(\$[^$]+\$)/);
+          parts.forEach(part => {
+            if (part.startsWith('$') && part.endsWith('$')) {
+              if (currentText) {
+                elements.push({ type: 'text', content: currentText.trim() });
+                currentText = '';
+              }
+              elements.push({ type: 'inline', content: part.slice(1, -1) });
+            } else if (part.trim()) {
+              currentText += part + ' ';
+            }
+          });
+        } else {
+          currentText += line + ' ';
+        }
+      }
+
+      if (currentText) {
+        elements.push({ type: 'text', content: currentText.trim() });
+      }
+
+      return { title, content: elements };
+    } catch (error) {
+      console.error('Error parsing document:', error);
+      return { title: '', content: [] };
+    }
+  };
+
   const mathExpressions = extractMathContent(latexCode);
+  const documentStructure = parseDocumentStructure(latexCode);
 
   if (authLoading) {
     return (
@@ -366,9 +474,34 @@ export default function CompilerPage() {
             {(activeView === 'split' || activeView === 'preview') && (
               <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
                 <div className="bg-gray-100 px-6 py-3 border-b border-gray-300 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Eye size={20} className="text-purple-600" />
-                    <span className="text-gray-900 font-semibold">Preview</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Eye size={20} className="text-purple-600" />
+                      <span className="text-gray-900 font-semibold">Preview</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPreviewMode('document')}
+                        className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+                          previewMode === 'document'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        <FileText size={14} className="inline mr-1" />
+                        Document
+                      </button>
+                      <button
+                        onClick={() => setPreviewMode('math')}
+                        className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+                          previewMode === 'math'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        Math Only
+                      </button>
+                    </div>
                   </div>
                   {compiling && (
                     <div className="flex items-center gap-2 text-purple-600">
@@ -378,59 +511,172 @@ export default function CompilerPage() {
                   )}
                 </div>
                 
-                <div className="p-8 min-h-[600px] max-h-[600px] overflow-auto">
-                  {mathExpressions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                      <AlertCircle size={48} className="mb-4" />
-                      <p className="text-lg font-semibold">No Mathematical Content</p>
-                      <p className="text-sm mt-2">Add equations to see the preview</p>
+                <div className="min-h-[600px] max-h-[600px] overflow-auto">
+                  {previewMode === 'document' ? (
+                    /* Document View - Like Word/PDF */
+                    <div className="bg-gray-200 p-8">
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white shadow-2xl mx-auto"
+                        style={{
+                          maxWidth: '8.5in',
+                          minHeight: '11in',
+                          padding: '1in',
+                          fontFamily: 'Georgia, "Times New Roman", serif'
+                        }}
+                      >
+                        {documentStructure.title && (
+                          <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">
+                            {documentStructure.title}
+                          </h1>
+                        )}
+                        
+                        {documentStructure.content.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                            <FileText size={48} className="mb-4" />
+                            <p className="text-lg font-semibold">Empty Document</p>
+                            <p className="text-sm mt-2">Add content to your LaTeX code</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            {documentStructure.content.map((element, index) => (
+                              <div key={index}>
+                                {element.type === 'text' && (
+                                  <p className="text-gray-900 text-justify leading-relaxed text-base">
+                                    {element.content}
+                                  </p>
+                                )}
+                                
+                                {element.type === 'equation' && (
+                                  <div className="my-8 flex justify-center">
+                                    <div className="inline-block">
+                                      <BlockMath
+                                        math={element.content}
+                                        errorColor="#dc2626"
+                                        renderError={(error) => (
+                                          <span className="text-red-600 text-sm">
+                                            Error: {error.message}
+                                          </span>
+                                        )}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {element.type === 'align' && (
+                                  <div className="my-8 flex justify-center">
+                                    <div className="inline-block">
+                                      <BlockMath
+                                        math={element.content}
+                                        errorColor="#dc2626"
+                                        renderError={(error) => (
+                                          <span className="text-red-600 text-sm">
+                                            Error: {error.message}
+                                          </span>
+                                        )}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {element.type === 'display' && (
+                                  <div className="my-6 flex justify-center">
+                                    <div className="inline-block">
+                                      <BlockMath
+                                        math={element.content}
+                                        errorColor="#dc2626"
+                                        renderError={(error) => (
+                                          <span className="text-red-600 text-sm">
+                                            Error: {error.message}
+                                          </span>
+                                        )}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {element.type === 'inline' && (
+                                  <div className="inline">
+                                    <InlineMath
+                                      math={element.content}
+                                      errorColor="#dc2626"
+                                      renderError={(error) => (
+                                        <span className="text-red-600 text-sm">
+                                          Error: {error.message}
+                                        </span>
+                                      )}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Page number */}
+                        <div className="mt-12 pt-6 border-t border-gray-300 text-center text-sm text-gray-500">
+                          Page 1
+                        </div>
+                      </motion.div>
                     </div>
                   ) : (
-                    <div className="space-y-8">
-                      {mathExpressions.map((expr, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="bg-gray-50 p-6 rounded-xl border border-gray-200"
-                        >
-                          <div className="text-xs text-gray-500 mb-4 font-mono uppercase tracking-wider">
-                            {expr.type} {index + 1}
-                          </div>
-                          <div className="overflow-x-auto">
-                            {renderError ? (
-                              <div className="text-red-600 p-4 bg-red-50 rounded-lg">
-                                <AlertCircle size={20} className="inline mr-2" />
-                                <span className="font-semibold">Render Error:</span>
-                                <p className="text-sm mt-1">{renderError}</p>
+                    /* Math Only View */
+                    <div className="p-8">
+                      {mathExpressions.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                          <AlertCircle size={48} className="mb-4" />
+                          <p className="text-lg font-semibold">No Mathematical Content</p>
+                          <p className="text-sm mt-2">Add equations to see the preview</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-8">
+                          {mathExpressions.map((expr, index) => (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.1 }}
+                              className="bg-gray-50 p-6 rounded-xl border border-gray-200"
+                            >
+                              <div className="text-xs text-gray-500 mb-4 font-mono uppercase tracking-wider">
+                                {expr.type} {index + 1}
                               </div>
-                            ) : expr.type === 'inline' ? (
-                              <InlineMath
-                                math={expr.content}
-                                errorColor="#dc2626"
-                                renderError={(error) => {
-                                  setRenderError(error.message);
-                                  return <span className="text-red-600">Error: {error.message}</span>;
-                                }}
-                              />
-                            ) : (
-                              <BlockMath
-                                math={expr.content}
-                                errorColor="#dc2626"
-                                renderError={(error) => {
-                                  setRenderError(error.message);
-                                  return <span className="text-red-600">Error: {error.message}</span>;
-                                }}
-                              />
-                            )}
+                              <div className="overflow-x-auto">
+                                {renderError ? (
+                                  <div className="text-red-600 p-4 bg-red-50 rounded-lg">
+                                    <AlertCircle size={20} className="inline mr-2" />
+                                    <span className="font-semibold">Render Error:</span>
+                                    <p className="text-sm mt-1">{renderError}</p>
+                                  </div>
+                                ) : expr.type === 'inline' ? (
+                                  <InlineMath
+                                    math={expr.content}
+                                    errorColor="#dc2626"
+                                    renderError={(error) => {
+                                      setRenderError(error.message);
+                                      return <span className="text-red-600">Error: {error.message}</span>;
+                                    }}
+                                  />
+                                ) : (
+                                  <BlockMath
+                                    math={expr.content}
+                                    errorColor="#dc2626"
+                                    renderError={(error) => {
+                                      setRenderError(error.message);
+                                      return <span className="text-red-600">Error: {error.message}</span>;
+                                    }}
+                                  />
+                                )}
+                              </div>
+                            </motion.div>
+                          ))}
+                          
+                          <div className="text-center text-sm text-gray-500 pt-4 border-t border-gray-300">
+                            <p>✓ Rendered with KaTeX • High-quality mathematical typesetting</p>
                           </div>
-                        </motion.div>
-                      ))}
-                      
-                      <div className="text-center text-sm text-gray-500 pt-4 border-t border-gray-300">
-                        <p>✓ Rendered with KaTeX • High-quality mathematical typesetting</p>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

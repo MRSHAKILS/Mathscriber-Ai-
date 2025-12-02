@@ -171,20 +171,27 @@ export default function CapturePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-black">
-      <Sidebar />
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-green-950 to-slate-950">
+      <Navbar />
       
-      <div className="flex-1 p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-7xl mx-auto"
-        >
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Camera Capture</h1>
-            <p className="text-gray-400">Capture mathematical expressions with your camera and convert to LaTeX</p>
-          </div>
+      <div className="flex">
+        <Sidebar />
+        
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 ml-0 lg:ml-64">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8"
+            >
+              <h1 className="text-3xl lg:text-4xl font-black text-white mb-2 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+                Camera & Drawing Capture
+              </h1>
+              <p className="text-gray-400 text-lg">Capture math with camera or draw equations by hand</p>
+            </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Camera Section */}
@@ -349,8 +356,19 @@ export default function CapturePage() {
               </div>
             </div>
           </div>
-        </motion.div>
+          </div>
+        </main>
       </div>
+
+      <Footer />
+
+      {showResult && conversionId && latexResult && (
+        <ConversionResult
+          conversionId={conversionId}
+          latexCode={latexResult}
+          onClose={() => setShowResult(false)}
+        />
+      )}
     </div>
   );
 }

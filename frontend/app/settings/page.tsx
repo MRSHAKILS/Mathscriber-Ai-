@@ -2,13 +2,37 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Key, Bell, Shield, Save } from 'lucide-react';
+import { 
+  User, 
+  Mail, 
+  Key, 
+  Bell, 
+  Shield, 
+  Save, 
+  CheckCircle,
+  Loader2,
+  Settings as SettingsIcon,
+  Eye,
+  EyeOff,
+  AlertCircle
+} from 'lucide-react';
+import Navbar from '@/components/home/NavbarNew';
 import Sidebar from '@/components/Sidebar';
+import Footer from '@/components/home/Footer';
+import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
+
+interface FormErrors {
+  name?: string;
+  email?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { user, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,37 +41,99 @@ export default function SettingsPage() {
     confirmPassword: '',
   });
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'preferences'>('profile');
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: false,
+    updates: true,
+  });
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    
-    if (!userData || !token) {
-      router.push('/login');
-      return;
+    if (!authLoading && user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+        email: user.email || '',
+      }));
+    }
+  }, [user, authLoading]);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (activeTab === 'profile') {
+      if (!formData.name.trim()) {
+        newErrors.name = 'Name is required';
+      }
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Invalid email format';
+      }
     }
 
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    setFormData({
-      ...formData,
-      name: parsedUser.name || '',
-      email: parsedUser.email || '',
-    });
-  }, []);
+    if (activeTab === 'security') {
+      if (formData.newPassword) {
+        if (!formData.currentPassword) {
+          newErrors.currentPassword = 'Current password is required';
+        }
+        if (formData.newPassword.length < 8) {
+          newErrors.newPassword = 'Password must be at least 8 characters';
+        }
+        if (formData.newPassword !== formData.confirmPassword) {
+          newErrors.confirmPassword = 'Passwords do not match';
+        }
+      }
+    }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    // Update user data in localStorage
-    const updatedUser = {
-      ...user,
-      name: formData.name,
-      email: formData.email,
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error for this field
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+
+    setSaving(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Update user data (in real app, make API call here)
+      if (activeTab === 'profile') {
+        // Update profile
+        console.log('Updating profile:', { name: formData.name, email: formData.email });
+      } else if (activeTab === 'security') {
+        // Update password
+        console.log('Updating password');
+        setFormData(prev => ({
+          ...prev,
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        }));
+      }
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error('Save error:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
     localStorage.setItem('user', JSON.stringify(updatedUser));
     setUser(updatedUser);
     setSaved(true);
