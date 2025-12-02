@@ -175,7 +175,7 @@ export default function Navbar() {
                     Sign In
                   </motion.button>
                 </Link>
-                <Link href="/upload">
+                <Link href="http://localhost:8000/editor/projects/">
                   <motion.button
                     whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(239,68,68,0.5)' }}
                     whileTap={{ scale: 0.95 }}
@@ -278,7 +278,7 @@ export default function Navbar() {
                       Sign In
                     </button>
                   </Link>
-                  <Link href="/upload" onClick={() => setIsMobileMenuOpen(false)} className="block">
+                  <Link href="http://localhost:8000/editor/projects/" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <button className="w-full py-3.5 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 flex items-center justify-center gap-2">
                       <Rocket className="w-4 h-4" />
                       Get Started Free

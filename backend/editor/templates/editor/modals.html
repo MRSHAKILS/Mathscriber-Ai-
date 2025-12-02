@@ -1,0 +1,71 @@
+<!-- New Document Modal -->
+<dialog id="new-doc-modal" class="modal">
+    <div class="modal-box bg-gray-800">
+        <h3 class="font-bold text-lg mb-4">Create New Document</h3>
+        <form id="new-doc-form" method="post">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">File Name</span>
+                </label>
+                {{ new_doc_form.name }}
+                {{ new_doc_form.folder_id }}
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <button type="button" class="btn" onclick="document.getElementById('new-doc-modal').close()">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- New Folder Modal -->
+<dialog id="new-folder-modal" class="modal">
+    <div class="modal-box bg-gray-800">
+        <h3 class="font-bold text-lg mb-4">Create New Folder</h3>
+        <form id="new-folder-form" method="post">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Folder Name</span>
+                </label>
+                {{ new_folder_form.name }}
+                {{ new_folder_form.folder_id }}
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <button type="button" class="btn" onclick="document.getElementById('new-folder-modal').close()">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Upload File Modal -->
+<dialog id="upload-modal" class="modal">
+    <div class="modal-box bg-gray-800">
+        <h3 class="font-bold text-lg mb-4">Upload Files</h3>
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Select Files (images, PDFs, etc.)</span>
+                </label>
+                <input type="file" name="file" multiple class="file-input file-input-bordered w-full" />
+                {{ upload_binary_form.folder_id }}
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Upload</button>
+                <button type="button" class="btn" onclick="document.getElementById('upload-modal').close()">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>

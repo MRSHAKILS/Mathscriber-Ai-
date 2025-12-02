@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'converter',
+    'editor',
 ]
 
 MIDDLEWARE = [
@@ -44,6 +45,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'editor.middleware.JWTAuthenticationMiddleware',  # JWT authentication for editor views
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -166,5 +168,13 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+# Login/Logout URLs - redirect to frontend
+LOGIN_URL = 'http://localhost:3000/login'
+LOGIN_REDIRECT_URL = '/editor/projects/'
+LOGOUT_REDIRECT_URL = 'http://localhost:3000/'
+
 # Gemini API Key
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+
+# Allow iframes from same origin (needed for PDF preview in editor)
+X_FRAME_OPTIONS = 'SAMEORIGIN'

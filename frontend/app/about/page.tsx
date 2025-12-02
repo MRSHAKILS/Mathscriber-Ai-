@@ -133,7 +133,7 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="/upload"
+                href="http://localhost:8000/editor/projects/"
                 className="px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-red-600/30 hover:shadow-red-500/50 transition-all duration-300"
               >
                 Get Started Free
