@@ -155,8 +155,19 @@
         
         .testimonialsSwiper {
             position: relative;
-            overflow: visible !important;
+            overflow: hidden !important;
             padding: 0 20px 50px 20px;
+        }
+        
+        .testimonialsSwiper .swiper-slide {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .testimonialsSwiper .swiper-slide-active {
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
         .testimonial-next,
@@ -370,7 +381,12 @@
                                     </svg>
                                     Try Converter Now
                                 </a>
-                                
+                                <a href="{% url 'visuals:generator' %}" class="inline-flex items-center justify-center px-6 py-4 bg-teal-600 text-white font-semibold rounded-lg shadow-lg hover:bg-teal-700 transition duration-300 transform hover:-translate-y-1 gsap-scale-in" style="animation-delay: 0.1s">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    AI Diagram Generator
+                                </a>
                             </div>
                             
                             <!-- Trust Indicators -->
@@ -649,6 +665,100 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Diagram Generator Section -->
+            <section class="py-16 sm:py-24 bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-pink-50/50">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16 gsap-fade-in">
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-4">
+                            <i class="bi bi-stars text-purple-600"></i>
+                            <span class="text-sm font-semibold text-purple-700">NEW FEATURE</span>
+                        </div>
+                        <h2 class="text-3xl font-bold text-stone-900 sm:text-4xl mb-4">
+                            AI-Powered Diagram Generator
+                        </h2>
+                        <p class="mt-4 text-lg text-stone-600 max-w-3xl mx-auto">
+                            Create professional diagrams instantly with AI. Choose from 9 diagram types and 15 visual styles to bring your ideas to life.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
+                        <!-- Feature Highlights -->
+                        <div class="space-y-6 gsap-fade-in">
+                            <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border-2 border-purple-200 hover:border-purple-400 transition-all duration-300">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <i class="bi bi-diagram-3-fill text-2xl text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-stone-900 mb-2">9 Diagram Types</h3>
+                                        <p class="text-stone-600">Flowcharts, Mind Maps, Sequence Diagrams, Class Diagrams, ER Diagrams, Network Diagrams, Gantt Charts, State Machines, and Component Diagrams</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border-2 border-blue-200 hover:border-blue-400 transition-all duration-300">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="bi bi-palette-fill text-2xl text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-stone-900 mb-2">15 Visual Styles</h3>
+                                        <p class="text-stone-600">Professional, Minimalist, Colorful, Hand-drawn, Tech, Corporate, Academic, Creative, Dark Mode, and more - perfect for any presentation</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border-2 border-pink-200 hover:border-pink-400 transition-all duration-300">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                                        <i class="bi bi-lightning-charge-fill text-2xl text-pink-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-stone-900 mb-2">Instant Generation</h3>
+                                        <p class="text-stone-600">Just describe your diagram in natural language, and our AI creates professional visuals in seconds - no design skills needed</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Preview -->
+                        <div class="relative gsap-fade-in" style="animation-delay: 0.2s">
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 shadow-2xl border-2 border-purple-200">
+                                <div class="bg-white rounded-xl p-6 shadow-lg mb-4">
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <i class="bi bi-terminal text-purple-600"></i>
+                                        <span class="text-sm font-semibold text-stone-700">Input Description</span>
+                                    </div>
+                                    <p class="text-stone-600 italic">"Create a flowchart showing the user authentication process with login, validation, and authorization steps"</p>
+                                </div>
+                                <div class="flex items-center justify-center py-4">
+                                    <i class="bi bi-arrow-down text-3xl text-purple-600 animate-bounce"></i>
+                                </div>
+                                <div class="bg-white rounded-xl p-6 shadow-lg">
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <i class="bi bi-image text-purple-600"></i>
+                                        <span class="text-sm font-semibold text-stone-700">Generated Diagram</span>
+                                    </div>
+                                    <div class="aspect-video bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center">
+                                        <i class="bi bi-diagram-3 text-6xl text-purple-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="text-center gsap-fade-in">
+                        <a href="{% url 'visuals:generator' %}" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
+                            <i class="bi bi-stars"></i>
+                            <span>Try AI Diagram Generator</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                        <p class="text-stone-600 text-sm mt-4">Free to use • No signup required • Export as PNG or SVG</p>
                     </div>
                 </div>
             </section>
@@ -1502,6 +1612,7 @@
                     spaceBetween: 30,
                     loop: true,
                     grabCursor: true,
+                    centeredSlides: true,
                     
                     // Autoplay
                     autoplay: {
@@ -1528,14 +1639,17 @@
                         640: {
                             slidesPerView: 1,
                             spaceBetween: 20,
+                            centeredSlides: true,
                         },
                         768: {
                             slidesPerView: 1,
                             spaceBetween: 30,
+                            centeredSlides: true,
                         },
                         1024: {
                             slidesPerView: 1,
                             spaceBetween: 40,
+                            centeredSlides: true,
                         },
                     },
                     
