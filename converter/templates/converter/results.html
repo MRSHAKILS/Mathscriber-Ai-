@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Results - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold mb-8 text-center">Conversion Results</h1>
+    
+    {% if uploads %}
+        <div class="grid grid-cols-1 gap-8">
+            {% for upload in uploads %}
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Image Preview -->
+                    <div>
+                        <h3 class="font-semibold mb-2">Original Image</h3>
+                        <img src="{{ upload.image.url }}" alt="Uploaded image" class="w-full rounded border">
+                        <p class="text-sm text-gray-500 mt-2">
+                            Model: {{ upload.model_used }}<br>
+                            Date: {{ upload.created_at|date:"Y-m-d H:i" }}
+                        </p>
+                    </div>
+                    
+                    <!-- LaTeX Output -->
+                    <div>
+                        <h3 class="font-semibold mb-2">LaTeX Code</h3>
+                        <div class="relative">
+                            <textarea id="latex-{{ upload.id }}" class="w-full h-40 p-3 border rounded font-mono text-sm bg-gray-50 dark:bg-gray-900">{{ upload.latex_output }}</textarea>
+                            <button onclick="copyToClipboard(document.getElementById('latex-{{ upload.id }}').value)" 
+                                    class="absolute top-2 right-2 bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                        
+                        <!-- LaTeX Preview -->
+                        <h3 class="font-semibold mb-2 mt-4">Preview</h3>
+                        <div class="border rounded p-4 bg-white dark:bg-gray-900 overflow-auto">
+                            <div id="preview-{{ upload.id }}">
+                                $$ {{ upload.latex_output }} $$
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex gap-2 mt-4">
+                            <button onclick="rerenderMath('preview-{{ upload.id }}')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                <i class="bi bi-arrow-clockwise"></i> Re-render
+                            </button>
+                            <a href="{% url 'converter:delete' upload.id %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <i class="bi bi-inbox text-6xl text-gray-400 mb-4"></i>
+            <p class="text-xl text-gray-600 dark:text-gray-400 mb-4">No conversions yet</p>
+            <a href="{% url 'converter:upload' %}" class="btn-primary">
+                Upload Your First File
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

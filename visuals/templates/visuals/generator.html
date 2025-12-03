@@ -1,0 +1,735 @@
+{% extends 'base.html' %}
+
+{% block title %}Visual Generator - MathScriber{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(to bottom right, #f0fdfa, #dbeafe, #fae8ff) !important;
+        min-height: 100vh;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 sm:py-12">
+    <div class="max-w-6xl mx-auto">
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-br from-teal-50 via-blue-50 to-purple-50 dark:from-teal-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 sm:p-8 md:p-10 mb-8 shadow-xl border border-teal-100 dark:border-teal-800 animate-fade-in">
+            <div class="flex flex-col lg:flex-row items-center gap-6">
+                <div class="flex-1 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-full shadow-md mb-4">
+                        <i class="bi bi-stars text-teal-600 dark:text-teal-400"></i>
+                        <span class="text-sm font-semibold text-stone-700 dark:text-stone-300">AI-Powered Visual Generation</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight">
+                        <span class="bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">Transform Text into</span><br>
+                        <span class="text-stone-900 dark:text-white">Beautiful Visuals</span>
+                    </h1>
+                    <p class="text-base sm:text-lg text-stone-600 dark:text-stone-400 mb-6 max-w-2xl mx-auto lg:mx-0">
+                        Create professional diagrams, flowcharts, mind maps, and more with AI. Choose from 15 styles and 9 diagram types.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                        <button onclick="showSamplesModal()" class="group bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-semibold">
+                            <i class="bi bi-images group-hover:scale-110 transition-transform"></i>
+                            <span>View Samples</span>
+                        </button>
+                        <a href="{% url 'visuals:gallery' %}" class="group bg-white dark:bg-stone-800 text-stone-800 dark:text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 font-semibold border-2 border-stone-200 dark:border-stone-700">
+                            <i class="bi bi-clock-history group-hover:scale-110 transition-transform"></i>
+                            <span>View History</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="hidden lg:block">
+                    <div class="relative w-48 h-48">
+                        <div class="absolute inset-0 bg-gradient-to-br from-teal-400 to-blue-500 rounded-3xl animate-pulse-slow opacity-20"></div>
+                        <div class="absolute inset-4 bg-white dark:bg-stone-800 rounded-2xl shadow-2xl flex items-center justify-center">
+                            <i class="bi bi-diagram-3 text-7xl text-teal-600 dark:text-teal-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Form -->
+        <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 p-6 sm:p-8 md:p-10 mb-8 animate-slide-up">
+            <!-- Text Input -->
+            <div class="mb-6">
+                <label class="flex items-center justify-between text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
+                    <span class="flex items-center gap-2">
+                        <i class="bi bi-pencil-square text-teal-600"></i>
+                        Your Content
+                    </span>
+                    <span class="text-xs font-normal text-stone-500 dark:text-stone-400">Minimum 50 characters</span>
+                </label>
+                <div class="relative">
+                    <textarea id="contentInput" 
+                              rows="8"
+                              class="w-full px-4 py-3 border-2 border-stone-300 dark:border-stone-600 rounded-xl focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 dark:bg-stone-700/50 dark:text-white transition-all duration-300 resize-y"
+                              placeholder="Enter your text here...\n\nFor example: 'The software development lifecycle includes planning, design, implementation, testing, and deployment phases.'"></textarea>
+                    <div class="absolute bottom-3 right-3 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-md">
+                        <p id="charCount" class="text-xs font-semibold text-stone-600 dark:text-stone-400">0 / 50</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Context (Optional) -->
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
+                    <i class="bi bi-info-circle text-blue-600"></i>
+                    Additional Context
+                    <span class="text-xs font-normal text-stone-500 dark:text-stone-400">(optional)</span>
+                </label>
+                <textarea id="contextInput" 
+                          rows="3"
+                          class="w-full px-4 py-3 border-2 border-stone-300 dark:border-stone-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:bg-stone-700/50 dark:text-white transition-all duration-300"
+                          placeholder="Provide additional context to help generate better visuals..."></textarea>
+            </div>
+            
+            <!-- Diagram Type Selection -->
+            <div class="mb-6">
+                <label class="flex items-center justify-between text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
+                    <span class="flex items-center gap-2">
+                        <i class="bi bi-diagram-3 text-purple-600"></i>
+                        Diagram Type
+                    </span>
+                    <button type="button" onclick="showDiagramHelp()" class="group flex items-center gap-1 px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-question-circle group-hover:rotate-12 transition-transform"></i>
+                        <span>Help</span>
+                    </button>
+                </label>
+                <div class="relative">
+                    <select id="diagramTypeInput" 
+                            class="w-full px-4 py-3 pr-10 border-2 border-stone-300 dark:border-stone-600 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:bg-stone-700/50 dark:text-white transition-all duration-300 appearance-none cursor-pointer bg-white dark:bg-stone-700 font-medium">
+                        <option value="">🎯 Auto-detect (recommended)</option>
+                        <option value="flowchart">📊 Flowchart - Process flows & decision trees</option>
+                        <option value="mindmap">🧠 Mind Map - Hierarchical ideas & concepts</option>
+                        <option value="timeline">⏱️ Timeline - Events & milestones</option>
+                        <option value="funnel">🔻 Funnel - Conversion & progression</option>
+                        <option value="venn">⭕ Venn Diagram - Overlapping concepts</option>
+                        <option value="matrix">📐 Matrix - 2x2 comparisons</option>
+                        <option value="pyramid">🔺 Pyramid - Hierarchical structure</option>
+                        <option value="cycle">🔄 Cycle - Circular processes</option>
+                        <option value="comparison">⚖️ Comparison - Side-by-side analysis</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <i class="bi bi-chevron-down text-stone-500"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Style Selection -->
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
+                    <i class="bi bi-palette text-pink-600"></i>
+                    Select Visual Style
+                    <span class="text-xs font-normal text-stone-500 dark:text-stone-400">(15 professional styles)</span>
+                </label>
+                <div id="styleSelector" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <!-- Styles will be loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- Format Selection -->
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
+                    <i class="bi bi-file-earmark-arrow-down text-orange-600"></i>
+                    Output Format
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <label class="relative flex items-center gap-3 p-4 border-2 border-stone-300 dark:border-stone-600 rounded-xl cursor-pointer transition-all duration-300 hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 group">
+                        <input type="radio" name="format" value="png" checked class="peer sr-only">
+                        <div class="w-5 h-5 rounded-full border-2 border-stone-400 peer-checked:border-teal-600 peer-checked:bg-teal-600 flex items-center justify-center transition-all">
+                            <i class="bi bi-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 font-semibold text-stone-800 dark:text-stone-200">
+                                <i class="bi bi-image text-lg"></i>
+                                <span>PNG</span>
+                            </div>
+                            <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">Raster image format</p>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl border-2 border-teal-600 bg-teal-50 dark:bg-teal-900/20 opacity-0 peer-checked:opacity-100 transition-opacity -z-10"></div>
+                    </label>
+                    <label class="relative flex items-center gap-3 p-4 border-2 border-stone-300 dark:border-stone-600 rounded-xl cursor-pointer transition-all duration-300 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 group">
+                        <input type="radio" name="format" value="svg" class="peer sr-only">
+                        <div class="w-5 h-5 rounded-full border-2 border-stone-400 peer-checked:border-purple-600 peer-checked:bg-purple-600 flex items-center justify-center transition-all">
+                            <i class="bi bi-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 font-semibold text-stone-800 dark:text-stone-200">
+                                <i class="bi bi-vector-pen text-lg"></i>
+                                <span>SVG</span>
+                            </div>
+                            <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">Scalable vector graphic</p>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl border-2 border-purple-600 bg-purple-50 dark:bg-purple-900/20 opacity-0 peer-checked:opacity-100 transition-opacity -z-10"></div>
+                    </label>
+                    <label class="relative flex items-center gap-3 p-4 border-2 border-stone-300 dark:border-stone-600 rounded-xl cursor-pointer transition-all duration-300 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 group">
+                        <input type="radio" name="format" value="ppt" class="peer sr-only">
+                        <div class="w-5 h-5 rounded-full border-2 border-stone-400 peer-checked:border-orange-600 peer-checked:bg-orange-600 flex items-center justify-center transition-all">
+                            <i class="bi bi-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 font-semibold text-stone-800 dark:text-stone-200">
+                                <i class="bi bi-file-earmark-slides text-lg"></i>
+                                <span>PPT</span>
+                            </div>
+                            <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">PowerPoint format</p>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl border-2 border-orange-600 bg-orange-50 dark:bg-orange-900/20 opacity-0 peer-checked:opacity-100 transition-opacity -z-10"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Generate Button -->
+            <button id="generateBtn" 
+                    disabled
+                    class="group relative w-full bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 hover:from-teal-500 hover:via-blue-500 hover:to-purple-500 text-white py-5 px-8 rounded-xl text-lg font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <span class="relative flex items-center justify-center gap-3">
+                    <i class="bi bi-magic text-xl group-hover:rotate-12 transition-transform"></i>
+                    <span>Generate Visual</span>
+                    <i class="bi bi-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                </span>
+            </button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loading" class="hidden">
+            <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 p-12 text-center animate-scale-in">
+                <div class="relative inline-block mb-6">
+                    <div class="w-20 h-20 border-4 border-teal-200 dark:border-teal-800 rounded-full"></div>
+                    <div class="absolute top-0 left-0 w-20 h-20 border-4 border-t-teal-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                    <div class="absolute top-2 left-2 w-16 h-16 border-4 border-t-transparent border-r-purple-600 border-b-transparent border-l-transparent rounded-full animate-spin" style="animation-duration: 1.5s;"></div>
+                </div>
+                <h3 class="text-2xl font-bold text-stone-900 dark:text-white mb-3 flex items-center justify-center gap-2">
+                    <i class="bi bi-stars text-teal-600 animate-pulse"></i>
+                    <span>Generating Your Visual</span>
+                    <i class="bi bi-stars text-purple-600 animate-pulse"></i>
+                </h3>
+                <p class="text-stone-600 dark:text-stone-400 text-lg mb-4">Please wait while AI creates your diagram...</p>
+                <p class="text-sm text-stone-500 dark:text-stone-500">This usually takes 10-30 seconds</p>
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="errorMessage" class="hidden bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-2xl p-6 mb-8 shadow-lg animate-slide-down">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                    <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-red-800 dark:text-red-200 mb-1">Error</h4>
+                    <p class="text-red-700 dark:text-red-300"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Result -->
+        <div id="visualResult" class="hidden animate-scale-in">
+            <div class="bg-gradient-to-br from-green-50 via-teal-50 to-blue-50 dark:from-green-900/10 dark:via-teal-900/10 dark:to-blue-900/10 rounded-2xl p-6 sm:p-8 border-2 border-green-200 dark:border-green-800 shadow-2xl mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                        <i class="bi bi-check-lg text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-stone-900 dark:text-white">Visual Generated Successfully!</h2>
+                        <p class="text-sm text-stone-600 dark:text-stone-400">Your diagram is ready to download and use</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 p-6 sm:p-8 mb-6">
+                <div class="relative group">
+                    <img id="visualImage" src="" alt="Generated Visual" class="w-full rounded-xl shadow-xl border-2 border-stone-200 dark:border-stone-700 transition-transform duration-300 group-hover:scale-[1.02]">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex items-end p-6">
+                        <p class="text-white font-semibold text-lg">Click to view full size</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-700 p-6">
+                <h3 class="text-lg font-bold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="bi bi-tools text-teal-600"></i>
+                    <span>Actions</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <a id="downloadBtn" href="#" download class="group flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-download text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Download</span>
+                    </a>
+                    <a href="{% url 'visuals:gallery' %}" class="group flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-collection text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>View All</span>
+                    </a>
+                    <button id="regenerateBtn" class="group flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-arrow-clockwise text-lg group-hover:rotate-180 transition-transform duration-500"></i>
+                        <span>Regenerate</span>
+                    </button>
+                    <button id="newVisualBtn" class="group flex items-center justify-center gap-2 px-6 py-3 bg-stone-600 hover:bg-stone-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-plus-lg text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+                        <span>Create New</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    let selectedStyle = null;
+    let currentVisualId = null;
+    let availableStyles = [];
+    let pollingInterval = null;
+
+    const contentInput = document.getElementById('contentInput');
+    const contextInput = document.getElementById('contextInput');
+    const styleSelector = document.getElementById('styleSelector');
+    const generateBtn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loading');
+    const visualResult = document.getElementById('visualResult');
+    const visualImage = document.getElementById('visualImage');
+    const errorMessage = document.getElementById('errorMessage');
+    const charCount = document.getElementById('charCount');
+
+    // Helper to get gradient colors and icons for style categories
+    function getStyleGradient(category) {
+        const gradients = {
+            'colorful': 'from-pink-500 via-rose-500 to-orange-500',
+            'casual': 'from-blue-400 via-sky-400 to-cyan-400',
+            'hand-drawn': 'from-purple-500 via-violet-500 to-indigo-500',
+            'formal': 'from-slate-600 via-stone-600 to-zinc-700',
+            'monochrome': 'from-gray-500 via-slate-500 to-gray-700'
+        };
+        return gradients[category] || 'from-teal-500 via-emerald-500 to-blue-500';
+    }
+
+    function getCategoryIcon(category) {
+        const icons = {
+            'colorful': 'palette-fill',
+            'casual': 'emoji-smile-fill',
+            'hand-drawn': 'brush-fill',
+            'formal': 'briefcase-fill',
+            'monochrome': 'circle-fill'
+        };
+        return icons[category] || 'palette-fill';
+    }
+
+    // Load available styles
+    async function loadStyles() {
+        try {
+            const response = await fetch('/visuals/api/options/');
+            const data = await response.json();
+            availableStyles = data.styles;
+            
+            styleSelector.innerHTML = availableStyles.map(style => `
+                <div class="style-option group cursor-pointer relative overflow-hidden border-2 border-stone-300 dark:border-stone-600 rounded-xl p-4 hover:border-teal-500 hover:shadow-xl transition-all duration-300 hover:scale-105" 
+                     data-style-id="${style.id}">
+                    <div class="relative h-24 mb-3 bg-gradient-to-br ${getStyleGradient(style.category)} rounded-lg flex items-center justify-center overflow-hidden shadow-inner">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                        <i class="bi bi-${getCategoryIcon(style.category)} text-4xl text-white drop-shadow-lg relative z-10 group-hover:scale-110 transition-transform duration-300"></i>
+                        <div class="absolute top-2 right-2 bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold text-stone-700 dark:text-stone-300 capitalize">${style.category}</div>
+                    </div>
+                    <div class="font-bold text-sm text-stone-900 dark:text-white text-center mb-1 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">${style.name}</div>
+                    <div class="text-xs text-stone-500 dark:text-stone-400 text-center line-clamp-2">${style.description || ''}</div>
+                    <div class="absolute inset-0 border-2 border-teal-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.style-option').forEach(o => {
+                        o.classList.remove('border-teal-600', 'bg-gradient-to-br', 'from-teal-50', 'to-blue-50', 'dark:from-teal-900/30', 'dark:to-blue-900/30', 'shadow-xl', 'scale-105');
+                        o.classList.add('border-stone-300', 'dark:border-stone-600');
+                    });
+                    option.classList.remove('border-stone-300', 'dark:border-stone-600');
+                    option.classList.add('border-teal-600', 'bg-gradient-to-br', 'from-teal-50', 'to-blue-50', 'dark:from-teal-900/30', 'dark:to-blue-900/30', 'shadow-xl', 'scale-105');
+                    selectedStyle = option.dataset.styleId;
+                    
+                    // Add checkmark icon
+                    document.querySelectorAll('.style-option .bi-check-circle-fill').forEach(icon => icon.remove());
+                    const checkmark = document.createElement('div');
+                    checkmark.className = 'absolute top-2 left-2 w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center shadow-lg z-20';
+                    checkmark.innerHTML = '<i class="bi bi-check-circle-fill text-white text-sm"></i>';
+                    option.appendChild(checkmark);
+                    
+                    checkGenerateButton();
+                });
+            });
+
+            // Select first style by default
+            if (availableStyles.length > 0) {
+                document.querySelector('.style-option').click();
+            }
+        } catch (error) {
+            showError('Failed to load visual styles');
+            console.error(error);
+        }
+    }
+
+    function checkGenerateButton() {
+        const text = contentInput.value.trim();
+        generateBtn.disabled = !(text.length >= 50 && selectedStyle);
+    }
+
+    function showError(message) {
+        errorMessage.querySelector('p').textContent = message;
+        errorMessage.classList.remove('hidden');
+        setTimeout(() => {
+            errorMessage.classList.add('hidden');
+        }, 5000);
+    }
+
+    async function pollVisualStatus(visualId) {
+        try {
+            const response = await fetch(`/visuals/api/status/${visualId}/`);
+            const data = await response.json();
+            
+            if (data.status === 'completed' && data.file_path) {
+                // Clear polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                
+                // Show result
+                loading.classList.add('hidden');
+                visualImage.src = '/media/' + data.file_path;
+                document.getElementById('downloadBtn').href = '/media/' + data.file_path;
+                visualResult.classList.remove('hidden');
+                generateBtn.disabled = false;
+                
+            } else if (data.status === 'failed') {
+                // Clear polling
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                
+                loading.classList.add('hidden');
+                showError(data.error_message || 'Visual generation failed');
+                generateBtn.disabled = false;
+            }
+            // Otherwise keep polling (status is 'processing' or 'pending')
+            
+        } catch (error) {
+            console.error('Error checking status:', error);
+        }
+    }
+
+    async function generateVisual() {
+        const content = contentInput.value.trim();
+        const context = contextInput.value.trim();
+        const format = document.querySelector('input[name="format"]:checked').value;
+        const diagramType = document.getElementById('diagramTypeInput').value;
+        
+        if (content.length < 50) {
+            showError('Content must be at least 50 characters');
+            return;
+        }
+
+        generateBtn.disabled = true;
+        loading.classList.remove('hidden');
+        visualResult.classList.add('hidden');
+        errorMessage.classList.add('hidden');
+
+        try {
+            const response = await fetch('/visuals/api/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    content: content,
+                    context: context || null,
+                    format: format,
+                    style_id: selectedStyle,
+                    visual_query: diagramType || null
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                currentVisualId = data.id;
+                
+                // Start polling for status
+                pollingInterval = setInterval(() => {
+                    pollVisualStatus(currentVisualId);
+                }, 2000); // Poll every 2 seconds
+                
+                // Also check immediately
+                pollVisualStatus(currentVisualId);
+                
+            } else {
+                loading.classList.add('hidden');
+                generateBtn.disabled = false;
+                
+                if (response.status === 503) {
+                    showError('Service not configured. Please add API_KEY to your environment variables.');
+                } else {
+                    showError(data.error || data.details || 'Failed to generate visual');
+                }
+            }
+        } catch (error) {
+            loading.classList.add('hidden');
+            generateBtn.disabled = false;
+            showError('Network error. Please try again.');
+            console.error(error);
+        }
+    }
+
+    // Event listeners
+    contentInput.addEventListener('input', () => {
+        const length = contentInput.value.length;
+        const progress = Math.min((length / 50) * 100, 100);
+        charCount.textContent = `${length} / 50`;
+        
+        // Update color based on progress
+        if (length >= 50) {
+            charCount.classList.remove('text-stone-600', 'dark:text-stone-400', 'text-orange-600', 'dark:text-orange-400');
+            charCount.classList.add('text-green-600', 'dark:text-green-400');
+        } else if (length >= 25) {
+            charCount.classList.remove('text-stone-600', 'dark:text-stone-400', 'text-green-600', 'dark:text-green-400');
+            charCount.classList.add('text-orange-600', 'dark:text-orange-400');
+        } else {
+            charCount.classList.remove('text-orange-600', 'dark:text-orange-400', 'text-green-600', 'dark:text-green-400');
+            charCount.classList.add('text-stone-600', 'dark:text-stone-400');
+        }
+        
+        checkGenerateButton();
+    });
+
+    generateBtn.addEventListener('click', generateVisual);
+
+    document.getElementById('regenerateBtn')?.addEventListener('click', async () => {
+        if (!currentVisualId) return;
+        
+        loading.classList.remove('hidden');
+        visualResult.classList.add('hidden');
+        
+        try {
+            const response = await fetch(`/visuals/api/${currentVisualId}/regenerate/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    style_id: selectedStyle
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                visualImage.src = '/media/' + data.file_path;
+                document.getElementById('downloadBtn').href = '/media/' + data.file_path;
+                visualResult.classList.remove('hidden');
+            } else {
+                showError('Failed to regenerate visual');
+            }
+        } catch (error) {
+            showError('Network error');
+        } finally {
+            loading.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('newVisualBtn')?.addEventListener('click', () => {
+        visualResult.classList.add('hidden');
+        contentInput.value = '';
+        contextInput.value = '';
+        charCount.textContent = '0 characters';
+        currentVisualId = null;
+        checkGenerateButton();
+    });
+
+    // Helper functions
+    function showDiagramHelp() {
+        alert(`Diagram Types Guide:
+
+• Flowchart - Best for processes, workflows, and decision trees
+• Mind Map - Perfect for brainstorming and hierarchical concepts
+• Timeline - Ideal for events, milestones, and chronological data
+• Funnel - Great for conversion flows and progressive stages
+• Venn Diagram - Shows overlapping relationships between concepts
+• Matrix - 2x2 grids for comparing options or strategies
+• Pyramid - Hierarchical structures from broad to specific
+• Cycle - Circular or repeating processes
+• Comparison - Side-by-side analysis of features or options
+
+Leave as "Auto-detect" to let AI choose the best diagram type!`);
+    }
+
+    function showSamplesModal() {
+        // Create samples modal
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-white dark:bg-stone-800 rounded-xl max-w-6xl w-full max-h-[90vh] overflow-auto p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-stone-800 dark:text-white">Visual Samples & Examples</h2>
+                    <button onclick="this.closest('.fixed').remove()" class="text-stone-500 hover:text-stone-700 dark:hover:text-stone-300">
+                        <i class="bi bi-x-lg text-2xl"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- Style Categories -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-stone-700 dark:text-stone-300">Style Categories</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                                <h4 class="font-bold text-purple-700 dark:text-purple-400 mb-2">🎨 Colorful</h4>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">Bold, vibrant visuals with bright colors - perfect for presentations and creative content</p>
+                                <div class="mt-2 text-xs text-stone-500">Styles: Vibrant Strokes, Glowful Breeze, Bold Canvas, Radiant Blocks, Pragmatic Shades</div>
+                            </div>
+                            <div class="border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                <h4 class="font-bold text-blue-700 dark:text-blue-400 mb-2">✏️ Hand-drawn</h4>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">Artistic, sketch-like appearance - great for brainstorming and informal notes</p>
+                                <div class="mt-2 text-xs text-stone-500">Styles: Artistic Flair, Sketch Notes</div>
+                            </div>
+                            <div class="border-2 border-teal-200 dark:border-teal-800 rounded-lg p-4">
+                                <h4 class="font-bold text-teal-700 dark:text-teal-400 mb-2">💼 Formal</h4>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">Professional, clean designs - ideal for business reports and documentation</p>
+                                <div class="mt-2 text-xs text-stone-500">Styles: Elegant Outline, Subtle Accent, Monochrome Pro, Corporate Clean</div>
+                            </div>
+                            <div class="border-2 border-stone-300 dark:border-stone-600 rounded-lg p-4">
+                                <h4 class="font-bold text-stone-700 dark:text-stone-400 mb-2">⚫ Monochrome</h4>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">Minimalist black & white - perfect for print and focused content</p>
+                                <div class="mt-2 text-xs text-stone-500">Styles: Minimal Contrast, Silver Beam</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diagram Types -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-stone-700 dark:text-stone-300">Diagram Types</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">📊</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Flowchart</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Process flows, workflows, decision trees</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">🧠</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Mind Map</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Hierarchical ideas, brainstorming</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">⏱️</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Timeline</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Events, milestones, chronology</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">🔻</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Funnel</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Conversion flows, stages</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">⭕</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Venn Diagram</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Overlapping concepts, relationships</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">📐</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Matrix</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">2x2 comparisons, quadrants</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">🔺</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Pyramid</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Hierarchical structures</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">🔄</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Cycle</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Circular processes, loops</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg p-4">
+                                <div class="text-2xl mb-2">⚖️</div>
+                                <h4 class="font-bold text-stone-800 dark:text-white mb-1">Comparison</h4>
+                                <p class="text-xs text-stone-600 dark:text-stone-400">Side-by-side analysis</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Example Prompts -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-stone-700 dark:text-stone-300">Example Prompts to Try</h3>
+                        <div class="space-y-3">
+                            <div class="bg-stone-100 dark:bg-stone-700 rounded-lg p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="bi bi-lightbulb text-yellow-500 text-xl"></i>
+                                    <div>
+                                        <div class="font-semibold text-stone-800 dark:text-white mb-1">Software Development Lifecycle</div>
+                                        <p class="text-sm text-stone-600 dark:text-stone-400">The software development lifecycle includes planning, design, implementation, testing, deployment, and maintenance phases. Each phase feeds into the next.</p>
+                                        <button onclick="useSample(this)" class="mt-2 text-xs bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded">Use This</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-stone-100 dark:bg-stone-700 rounded-lg p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="bi bi-lightbulb text-yellow-500 text-xl"></i>
+                                    <div>
+                                        <div class="font-semibold text-stone-800 dark:text-white mb-1">Marketing Funnel</div>
+                                        <p class="text-sm text-stone-600 dark:text-stone-400">Our marketing funnel starts with awareness through social media, moves to interest via email campaigns, desire through product demos, and action with purchase conversions.</p>
+                                        <button onclick="useSample(this)" class="mt-2 text-xs bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded">Use This</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-stone-100 dark:bg-stone-700 rounded-lg p-4">
+                                <div class="flex items-start gap-3">
+                                    <i class="bi bi-lightbulb text-yellow-500 text-xl"></i>
+                                    <div>
+                                        <div class="font-semibold text-stone-800 dark:text-white mb-1">Project Timeline</div>
+                                        <p class="text-sm text-stone-600 dark:text-stone-400">Q1: Research and planning. Q2: Design and prototyping. Q3: Development and testing. Q4: Launch and marketing campaign.</p>
+                                        <button onclick="useSample(this)" class="mt-2 text-xs bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded">Use This</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button onclick="this.closest('.fixed').remove()" class="bg-stone-600 hover:bg-stone-700 text-white px-6 py-2 rounded-lg">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function useSample(button) {
+        const sampleText = button.parentElement.querySelector('p').textContent;
+        document.getElementById('contentInput').value = sampleText;
+        document.getElementById('contentInput').dispatchEvent(new Event('input'));
+        button.closest('.fixed').remove();
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initialize
+    loadStyles();
+</script>
+{% endblock %}

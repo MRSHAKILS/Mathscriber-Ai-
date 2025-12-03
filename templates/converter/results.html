@@ -1,0 +1,1320 @@
+{% extends 'base.html' %}
+
+{% block title %}Results - MathScriber{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<!-- Page Header -->
+<div class="mb-8 animate-slide-up">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-stone-700 to-teal-600 bg-clip-text text-transparent dark:from-stone-200 dark:to-teal-400">
+                LaTeX Conversion Results
+            </h1>
+            <p class="mt-2 text-stone-600 dark:text-stone-400">
+                View, edit, and download your converted LaTeX equations
+            </p>
+        </div>
+        <a href="{% url 'converter:upload' %}" 
+           class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+            <i class="bi bi-plus-circle text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+            <span>Upload More Images</span>
+        </a>
+    </div>
+</div>
+
+{% if processed_images %}
+    <!-- Results Grid -->
+    <div class="space-y-6">
+        {% for image in processed_images %}
+        <div class="result-card bg-white dark:bg-stone-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-stone-200 dark:border-stone-700 animate-slide-up" 
+             data-upload-id="{{ image.id }}" 
+             style="animation-delay: {{ forloop.counter0|add:'00' }}ms">
+            <!-- Card Header - Enhanced with Beautiful Gradient Design -->
+            <div class="relative bg-gradient-to-r from-teal-500 via-blue-500 to-purple-500 px-6 py-5 overflow-hidden">
+                <!-- Animated Background Pattern -->
+                <div class="absolute inset-0 opacity-10">
+                    <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
+                    <div class="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full -translate-x-20 -translate-y-20"></div>
+                    <div class="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full translate-x-16 translate-y-16"></div>
+                </div>
+                
+                <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <!-- ID Badge with Glow Effect -->
+                        <div class="relative group">
+                            <div class="absolute inset-0 bg-white/40 rounded-xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                            <div class="relative w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-all duration-300">
+                                <span class="text-2xl font-black bg-gradient-to-br from-teal-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">#{{ image.id }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Title with Icon -->
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-6 h-6 bg-white/90 rounded-lg flex items-center justify-center shadow-md">
+                                    <i class="bi bi-star-fill text-amber-500 text-xs"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-white drop-shadow-lg">
+                                    Conversion Result
+                                </h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold text-white border border-white/30 shadow-lg">
+                                    <i class="bi bi-lightning-charge-fill mr-1.5"></i>
+                                    {{ image.task|title }}
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold text-white/90 border border-white/30">
+                                    <i class="bi bi-hash mr-1"></i>
+                                    ID: {{ image.id }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Button - Enhanced -->
+                    <button type="button" 
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/95 backdrop-blur-sm text-red-600 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 hover:scale-105 group border-2 border-white/50 hover:border-red-500 shadow-xl hover:shadow-2xl font-semibold" 
+                            onclick="deleteUpload({{ image.id }})">
+                        <i class="bi bi-trash text-base group-hover:scale-110 group-hover:rotate-12 transition-all duration-300"></i>
+                        <span>Delete</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Card Body - Modern Three Column Grid -->
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Column 1: Original Image Section -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-gradient-to-br from-teal-50 to-blue-50 dark:from-stone-900 dark:to-teal-900/20 rounded-xl p-5 border-2 border-teal-200 dark:border-teal-700 shadow-lg hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+                            <!-- Decorative Corner -->
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-teal-400/10 rounded-bl-full"></div>
+                            
+                            <h4 class="text-base font-bold text-stone-900 dark:text-white mb-4 flex items-center gap-2 relative z-10">
+                                <div class="w-8 h-8 bg-gradient-to-br from-teal-500 to-blue-500 rounded-lg flex items-center justify-center shadow-md">
+                                    <i class="bi bi-image text-white text-sm"></i>
+                                </div>
+                                <span class="bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">Input Image</span>
+                            </h4>
+                            <div class="relative group">
+                                <div class="absolute -inset-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-xl blur opacity-0 group-hover:opacity-30 transition duration-500"></div>
+                                <img src="{{ image.image_url }}" 
+                                     class="relative w-full rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-white dark:border-stone-800 transform group-hover:scale-[1.02]" 
+                                     alt="Original Image">
+                            </div>
+                            
+                            <!-- Image Metadata with Beautiful Cards -->
+                            <div class="mt-5 space-y-2.5 relative z-10">
+                                <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-lg p-3 border border-teal-100 dark:border-teal-800 hover:border-teal-300 dark:hover:border-teal-600 transition-all duration-300 hover:shadow-md">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="w-7 h-7 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center mt-0.5 shadow-sm">
+                                            <i class="bi bi-file-earmark text-white text-xs"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <span class="text-xs font-medium text-stone-500 dark:text-stone-400 block mb-0.5">Filename</span>
+                                            <span class="text-sm text-stone-900 dark:text-white font-semibold block truncate">{{ image.filename }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-lg p-3 border border-blue-100 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-md">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="w-7 h-7 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                                            <i class="bi bi-tag text-white text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-medium text-stone-500 dark:text-stone-400 block mb-0.5">Task Type</span>
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold shadow-sm">{{ image.task|title }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if image.model_used %}
+                                <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-lg p-3 border border-purple-100 dark:border-purple-800 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-300 hover:shadow-md">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="w-7 h-7 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                                            <i class="bi bi-cpu text-white text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-medium text-stone-500 dark:text-stone-400 block mb-0.5">AI Model</span>
+                                            <span class="text-sm text-stone-900 dark:text-white font-semibold">{{ image.model_used }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if image.file_type %}
+                                <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-lg p-3 border border-green-100 dark:border-green-800 hover:border-green-300 dark:hover:border-green-600 transition-all duration-300 hover:shadow-md">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="w-7 h-7 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
+                                            <i class="bi bi-file-code text-white text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-medium text-stone-500 dark:text-stone-400 block mb-0.5">File Format</span>
+                                            <span class="text-sm text-stone-900 dark:text-white font-semibold">
+                                                {{ image.file_type }}
+                                                {% if image.page_count %}
+                                                    <span class="text-xs text-stone-500 dark:text-stone-400">({{ image.page_count }} page{{ image.page_count|pluralize }})</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if image.created_at %}
+                                <div class="bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-lg p-3 border border-amber-100 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-600 transition-all duration-300 hover:shadow-md">
+                                    <div class="flex items-start gap-2.5">
+                                        <div class="w-7 h-7 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center shadow-sm">
+                                            <i class="bi bi-clock text-white text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <span class="text-xs font-medium text-stone-500 dark:text-stone-400 block mb-0.5">Processed At</span>
+                                            <span class="text-sm text-stone-900 dark:text-white font-semibold">{{ image.created_at|date:"M d, Y H:i" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2: LaTeX Code Section -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-stone-900 dark:to-purple-900/20 rounded-xl p-5 border-2 border-purple-200 dark:border-purple-700 shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                            <!-- Decorative Corner -->
+                            <div class="absolute top-0 left-0 w-24 h-24 bg-purple-400/10 rounded-br-full"></div>
+                            
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 relative z-10">
+                                <h4 class="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-md">
+                                        <i class="bi bi-code-slash text-white text-sm"></i>
+                                    </div>
+                                    <span class="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">LaTeX Code</span>
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-all duration-300 hover:scale-105 border border-amber-200 dark:border-amber-800 shadow-sm hover:shadow-md font-semibold" 
+                                            id="edit-btn-{{ image.id }}" 
+                                            onclick="toggleEditMode('{{ image.id }}')">
+                                        <i class="bi bi-pencil-square"></i>
+                                        <span>Edit</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Display Mode with Beautiful Code Block -->
+                            <div id="display-mode-{{ image.id }}" class="flex-1 flex flex-col relative z-10">
+                                <div class="relative flex-1 group">
+                                    <div class="absolute -inset-1 bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
+                                    <pre class="relative latex-output bg-white/90 dark:bg-stone-950/90 backdrop-blur-sm p-4 rounded-lg border-2 border-purple-200 dark:border-purple-800 font-mono text-xs text-stone-900 dark:text-stone-100 whitespace-pre-wrap break-words max-h-96 overflow-y-auto cursor-pointer hover:border-purple-400 dark:hover:border-purple-600 transition-all duration-300 shadow-inner" 
+                                         id="latex-display-{{ image.id }}" 
+                                         onclick="selectLatexDisplay('{{ image.id }}')" 
+                                         title="Click to select all text">{{ image.latex_output }}</pre>
+                                </div>
+                                
+                                <div class="flex flex-wrap gap-2 mt-4">
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-lg transition-all duration-300 hover:scale-105 border-2 border-stone-300 dark:border-stone-600 font-semibold shadow-sm hover:shadow-md" 
+                                            id="copy-btn-{{ image.id }}" 
+                                            onclick="copyLatexToClipboard('{{ image.id }}', document.getElementById('latex-edit-{{ image.id }}').value)">
+                                        <i class="bi bi-clipboard"></i>
+                                        <span>Copy</span>
+                                    </button>
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-white dark:bg-stone-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300 hover:scale-105 border-2 border-blue-200 dark:border-blue-800 font-semibold shadow-sm hover:shadow-md" 
+                                            onclick="selectLatexText('{{ image.id }}')">
+                                        <i class="bi bi-cursor-text"></i>
+                                        <span>Select All</span>
+                                    </button>
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-white dark:bg-stone-800 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg transition-all duration-300 hover:scale-105 border-2 border-teal-200 dark:border-teal-800 font-semibold shadow-sm hover:shadow-md" 
+                                            onclick="downloadLatexAsTxt('{{ image.id }}', document.getElementById('latex-edit-{{ image.id }}').value, '{{ image.filename }}')">
+                                        <i class="bi bi-download"></i>
+                                        <span>Download</span>
+                                    </button>
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-white dark:bg-stone-800 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-all duration-300 hover:scale-105 border-2 border-green-200 dark:border-green-800 font-semibold shadow-sm hover:shadow-md" 
+                                            onclick="openInOverleaf('{{ image.id }}', document.getElementById('latex-edit-{{ image.id }}').value)">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                        <span>Overleaf</span>
+                                    </button>
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 rounded-lg transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg font-semibold" 
+                                            onclick="openInRealtimeEditor('{{ image.id }}', document.getElementById('latex-edit-{{ image.id }}').value, '{{ image.filename }}')">
+                                        <i class="bi bi-file-earmark-code"></i>
+                                        <span>Realtime Editor</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Edit Mode with Enhanced Styling -->
+                            <div id="edit-mode-{{ image.id }}" class="hidden flex-1 flex flex-col">
+                                <textarea class="flex-1 p-4 bg-white/90 dark:bg-stone-950/90 backdrop-blur-sm border-2 border-purple-300 dark:border-purple-700 rounded-lg font-mono text-xs text-stone-900 dark:text-stone-100 focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-900 focus:border-purple-500 transition-all shadow-inner" 
+                                          id="latex-edit-{{ image.id }}" 
+                                          rows="15">{{ image.latex_output }}</textarea>
+                                <div class="flex gap-2 mt-4">
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-all duration-300 hover:scale-105 shadow-md hover:shadow-lg font-semibold" 
+                                            onclick="saveLatexEdit('{{ image.id }}')">
+                                        <i class="bi bi-save"></i>
+                                        <span>Save Changes</span>
+                                    </button>
+                                    <button type="button" 
+                                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm bg-stone-500 hover:bg-stone-600 text-white rounded-lg transition-all duration-300 hover:scale-105 shadow-md font-semibold" 
+                                            onclick="cancelLatexEdit('{{ image.id }}')">
+                                        <i class="bi bi-x"></i>
+                                        <span>Cancel</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <textarea id="latex-{{ image.id }}" class="hidden">{{ image.latex_output }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 3: Rendered Output Section -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-stone-900 dark:to-green-900/20 rounded-xl p-5 border-2 border-green-200 dark:border-green-700 shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col relative overflow-hidden">
+                            <!-- Decorative Corner -->
+                            <div class="absolute bottom-0 right-0 w-28 h-28 bg-green-400/10 rounded-tl-full"></div>
+                            
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 relative z-10">
+                                <h4 class="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md">
+                                        <i class="bi bi-eye text-white text-sm"></i>
+                                    </div>
+                                    <span class="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Rendered Output</span>
+                                </h4>
+                                <button type="button" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/90 dark:bg-stone-800/90 backdrop-blur-sm text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300 hover:scale-105 border border-blue-200 dark:border-blue-800 shadow-sm hover:shadow-md font-semibold" 
+                                        onclick="reRenderLatex('{{ image.id }}')">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <span>Re-render</span>
+                                </button>
+                            </div>
+                            <div class="flex-1 flex items-center justify-center relative z-10">
+                                <div class="w-full bg-white/90 dark:bg-stone-950/90 backdrop-blur-sm p-6 rounded-lg border-2 border-green-200 dark:border-green-800 min-h-[200px] overflow-x-auto shadow-inner hover:border-green-400 dark:hover:border-green-600 transition-all duration-300">
+                                    <div class="rendered-math text-center" 
+                                         id="rendered-{{ image.id }}" 
+                                         data-latex="{{ image.latex_output }}">
+                                        $${{ image.latex_output }}$$
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16 animate-scale-in">
+        <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-xl p-12 max-w-2xl mx-auto border border-stone-200 dark:border-stone-700">
+            <div class="w-24 h-24 bg-gradient-to-br from-stone-100 to-teal-50 dark:from-stone-700 dark:to-stone-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <i class="bi bi-image text-5xl text-teal-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-stone-900 dark:text-white mb-3">
+                No Images Processed Yet
+            </h3>
+            <p class="text-stone-600 dark:text-stone-400 mb-8 max-w-md mx-auto">
+                Upload some images to see the LaTeX conversion results here. Start converting your handwritten equations, tables, and diagrams!
+            </p>
+            <a href="{% url 'converter:upload' %}" 
+               class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                <i class="bi bi-upload text-xl group-hover:scale-110 transition-transform"></i>
+                <span>Upload Your First Images</span>
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+
+{% block extra_css %}
+<style>
+    /* Enhanced Three-Column Grid Animations */
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    @keyframes slideInFromLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideInFromRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideInFromTop {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulseGlow {
+        0%, 100% {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        50% {
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+    }
+    
+    @keyframes shimmerEffect {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+    
+    @keyframes floatAnimation {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    
+    /* Apply staggered animations to grid columns */
+    .lg\:col-span-1:nth-child(1) {
+        animation: slideInFromLeft 0.6s ease-out;
+    }
+    
+    .lg\:col-span-1:nth-child(2) {
+        animation: slideInFromTop 0.6s ease-out 0.2s both;
+    }
+    
+    .lg\:col-span-1:nth-child(3) {
+        animation: slideInFromRight 0.6s ease-out 0.4s both;
+    }
+    
+    /* Enhanced Card Hover Effects */
+    .result-card {
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .result-card::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: linear-gradient(45deg, #14b8a6, #3b82f6, #8b5cf6, #ec4899);
+        background-size: 300% 300%;
+        border-radius: inherit;
+        opacity: 0;
+        z-index: -1;
+        transition: opacity 0.4s ease;
+        animation: shimmerEffect 8s linear infinite;
+    }
+    
+    .result-card:hover::before {
+        opacity: 0.3;
+    }
+    
+    /* Code Block Enhancements */
+    .latex-output {
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .latex-output::selection {
+        background: rgba(139, 92, 246, 0.3);
+    }
+    
+    .latex-output:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Metadata Cards Animation */
+    .bg-white\/80:nth-child(1) { animation-delay: 0.1s; }
+    .bg-white\/80:nth-child(2) { animation-delay: 0.15s; }
+    .bg-white\/80:nth-child(3) { animation-delay: 0.2s; }
+    .bg-white\/80:nth-child(4) { animation-delay: 0.25s; }
+    .bg-white\/80:nth-child(5) { animation-delay: 0.3s; }
+    
+    /* Gradient Text Shimmer */
+    @keyframes gradientShift {
+        0%, 100% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+    
+    .bg-gradient-to-r {
+        background-size: 200% 200%;
+        animation: gradientShift 3s ease infinite;
+    }
+    
+    /* Button Ripple Effect */
+    button {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    button::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    button:active::after {
+        width: 300px;
+        height: 300px;
+    }
+    
+    /* Scrollbar Styling */
+    .latex-output::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .latex-output::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+    
+    .latex-output::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        border-radius: 4px;
+    }
+    
+    .latex-output::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #7c3aed, #db2777);
+    }
+    
+    /* Loading Animation for Processing State */
+    @keyframes processingPulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.6;
+            transform: scale(1.05);
+        }
+    }
+    
+    .processing-indicator {
+        animation: processingPulse 2s ease-in-out infinite;
+    }
+    
+    /* Rendered Output Glow */
+    .rendered-math {
+        transition: all 0.3s ease;
+    }
+    
+    .rendered-math:hover {
+        filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
+    }
+    
+    /* Icon Rotation on Hover */
+    button:hover i {
+        display: inline-block;
+        animation: iconBounce 0.6s ease;
+    }
+    
+    @keyframes iconBounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        25% {
+            transform: translateY(-3px);
+        }
+        75% {
+            transform: translateY(-1px);
+        }
+    }
+    
+    /* Header Badge Pulse Animation */
+    @keyframes badgePulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+        }
+    }
+    
+    /* Gradient Animation for Header */
+    @keyframes gradientFlow {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    .result-card > div:first-child {
+        background-size: 200% 200%;
+        animation: gradientFlow 8s ease infinite;
+    }
+    
+    /* Floating Background Circles */
+    @keyframes floatCircle {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+        }
+        33% {
+            transform: translate(10px, -10px) scale(1.05);
+        }
+        66% {
+            transform: translate(-10px, 10px) scale(0.95);
+        }
+    }
+    
+    .result-card > div:first-child > div:first-child > div {
+        animation: floatCircle 8s ease-in-out infinite;
+    }
+    
+    /* Grid Gap Enhancement for Better Separation */
+    @media (min-width: 1024px) {
+        .lg\:grid-cols-3 {
+            gap: 1.5rem;
+        }
+    }
+    
+    /* Dark Mode Enhancements */
+    .dark .latex-output::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Add subtle backdrop blur to cards */
+    .backdrop-blur-sm {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+</style>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're in an iframe - if not, hide "Send to Editor" buttons
+    const isInIframe = window.parent !== window;
+    if (!isInIframe) {
+        document.querySelectorAll('.send-to-editor-btn').forEach(btn => {
+            btn.style.display = 'none';
+        });
+    }
+    
+    // Process all rendered math divs
+    document.querySelectorAll('.rendered-math').forEach(function(div) {
+        const latexCode = div.getAttribute('data-latex');
+        let contentToRender = latexCode;
+        
+        // Check if it's a full LaTeX document
+        if (latexCode && latexCode.includes('\\documentclass')) {
+            // Extract table content (tabularx, tabular, or table environments)
+            let tableMatch = latexCode.match(/\\begin{tabularx}[\s\S]*?\\end{tabularx}/) || 
+                           latexCode.match(/\\begin{tabular}[\s\S]*?\\end{tabular}/) ||
+                           latexCode.match(/\\begin{table}[\s\S]*?\\end{table}/);
+            
+            if (tableMatch) {
+                contentToRender = tableMatch[0];
+                
+                // Convert tabularx to array
+                let match = contentToRender.match(/\\begin{tabularx}{[^}]*}{([^}]*)}\s*([\s\S]*?)\\end{tabularx}/);
+                if (match) {
+                    const columnSpec = match[1].replace(/X/g, 'c').replace(/\\linewidth/g, '');
+                    const tableContent = match[2];
+                    contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+                } else {
+                    // Convert tabular to array
+                    match = contentToRender.match(/\\begin{tabular}{([^}]*)}\s*([\s\S]*?)\\end{tabular}/);
+                    if (match) {
+                        const columnSpec = match[1];
+                        const tableContent = match[2];
+                        contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+                    }
+                }
+            }
+            
+            // Clean up for MathJax - remove unsupported commands
+            contentToRender = contentToRender
+                .replace(/\\toprule/g, '')
+                .replace(/\\midrule/g, '')
+                .replace(/\\bottomrule/g, '')
+                .replace(/\\hline\s*/g, '')
+                .replace(/\\textbf{([^}]*)}/g, '\\mathbf{$1}')
+                .replace(/\\text{([^}]*)}/g, '\\text{$1}');
+            
+            // Add preview note
+            if (!div.parentElement.querySelector('.preview-note')) {
+                const note = document.createElement('div');
+                note.className = 'preview-note bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3 text-sm text-blue-700 dark:text-blue-400';
+                note.innerHTML = '<i class="bi bi-info-circle mr-2"></i><strong>Preview:</strong> Full LaTeX document converted to preview format. Download the .txt file for the complete compilable document.';
+                div.parentElement.insertBefore(note, div.parentElement.firstChild);
+            }
+        } else {
+            // For non-document LaTeX, still convert tabular to array
+            if (contentToRender && (contentToRender.includes('\\begin{tabular}') || contentToRender.includes('\\begin{tabularx}'))) {
+                let match = contentToRender.match(/\\begin{tabularx}{[^}]*}{([^}]*)}\s*([\s\S]*?)\\end{tabularx}/);
+                if (match) {
+                    const columnSpec = match[1].replace(/X/g, 'c').replace(/\\linewidth/g, '');
+                    const tableContent = match[2];
+                    contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+                } else {
+                    match = contentToRender.match(/\\begin{tabular}{([^}]*)}\s*([\s\S]*?)\\end{tabular}/);
+                    if (match) {
+                        const columnSpec = match[1];
+                        const tableContent = match[2];
+                        contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+                    }
+                }
+                
+                contentToRender = contentToRender
+                    .replace(/\\toprule/g, '')
+                    .replace(/\\midrule/g, '')
+                    .replace(/\\bottomrule/g, '')
+                    .replace(/\\hline\s*/g, '')
+                    .replace(/\\textbf{([^}]*)}/g, '\\mathbf{$1}');
+            }
+        }
+        
+        div.innerHTML = `$$${contentToRender}$$`;
+    });
+    
+    // Re-render MathJax after page load
+    if (window.MathJax) {
+        MathJax.typesetPromise().then(() => {
+            console.log('MathJax rendering complete');
+        }).catch((err) => {
+            console.log('MathJax rendering error:', err);
+            document.querySelectorAll('.rendered-math').forEach(function(div) {
+                const parent = div.parentElement;
+                if (!parent.querySelector('.render-warning')) {
+                    const warning = document.createElement('div');
+                    warning.className = 'render-warning bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3 text-sm text-amber-700 dark:text-amber-400';
+                    warning.innerHTML = '<i class="bi bi-exclamation-triangle mr-2"></i>Complex table structure detected. Download the .txt file to compile the full LaTeX document.';
+                    parent.appendChild(warning);
+                }
+            });
+        });
+    }
+});
+
+// Toggle edit mode for LaTeX code
+function toggleEditMode(imageId) {
+    const displayMode = document.getElementById(`display-mode-${imageId}`);
+    const editMode = document.getElementById(`edit-mode-${imageId}`);
+    const editBtn = document.getElementById(`edit-btn-${imageId}`);
+    
+    if (editMode.classList.contains('hidden')) {
+        displayMode.classList.add('hidden');
+        editMode.classList.remove('hidden');
+        editBtn.innerHTML = '<i class="bi bi-eye"></i><span>View</span>';
+        editBtn.classList.remove('bg-amber-50', 'text-amber-700', 'border-amber-200', 'dark:bg-amber-900/30', 'dark:text-amber-400', 'dark:border-amber-800');
+        editBtn.classList.add('bg-amber-100', 'text-amber-800', 'border-amber-300', 'dark:bg-amber-900/50', 'dark:text-amber-300', 'dark:border-amber-700');
+    } else {
+        displayMode.classList.remove('hidden');
+        editMode.classList.add('hidden');
+        editBtn.innerHTML = '<i class="bi bi-pencil-square"></i><span>Edit</span>';
+        editBtn.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200', 'dark:bg-amber-900/30', 'dark:text-amber-400', 'dark:border-amber-800');
+        editBtn.classList.remove('bg-amber-100', 'text-amber-800', 'border-amber-300', 'dark:bg-amber-900/50', 'dark:text-amber-300', 'dark:border-amber-700');
+    }
+}
+
+// Save edited LaTeX code
+async function saveLatexEdit(imageId) {
+    const textarea = document.getElementById(`latex-edit-${imageId}`);
+    const newLatex = textarea.value;
+    
+    try {
+        const response = await fetch(`/update-latex/${imageId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ latex_output: newLatex })
+        });
+        
+        if (response.ok) {
+            const displayDiv = document.getElementById(`latex-display-${imageId}`);
+            displayDiv.textContent = newLatex;
+            
+            const hiddenTextarea = document.getElementById(`latex-${imageId}`);
+            hiddenTextarea.value = newLatex;
+            
+            reRenderLatex(imageId);
+            toggleEditMode(imageId);
+            showAlert('success', 'LaTeX code updated successfully!');
+        } else {
+            showAlert('error', 'Error saving changes. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error saving changes. Please try again.');
+    }
+}
+
+// Cancel edit mode
+function cancelLatexEdit(imageId) {
+    const textarea = document.getElementById(`latex-edit-${imageId}`);
+    const displayDiv = document.getElementById(`latex-display-${imageId}`);
+    textarea.value = displayDiv.textContent;
+    toggleEditMode(imageId);
+}
+
+// Re-render LaTeX output
+function reRenderLatex(imageId) {
+    const textarea = document.getElementById(`latex-edit-${imageId}`);
+    const renderedDiv = document.getElementById(`rendered-${imageId}`);
+    const latexCode = textarea.value;
+    let contentToRender = latexCode;
+    
+    if (latexCode.includes('\\documentclass')) {
+        let tableMatch = latexCode.match(/\\begin{tabularx}[\s\S]*?\\end{tabularx}/) ||
+                       latexCode.match(/\\begin{tabular}[\s\S]*?\\end{tabular}/) ||
+                       latexCode.match(/\\begin{table}[\s\S]*?\\end{table}/);
+        
+        if (tableMatch) {
+            contentToRender = tableMatch[0];
+            let match = contentToRender.match(/\\begin{tabularx}{[^}]*}{([^}]*)}\s*([\s\S]*?)\\end{tabularx}/);
+            if (match) {
+                const columnSpec = match[1].replace(/X/g, 'c').replace(/\\linewidth/g, '');
+                const tableContent = match[2];
+                contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+            } else {
+                match = contentToRender.match(/\\begin{tabular}{([^}]*)}\s*([\s\S]*?)\\end{tabular}/);
+                if (match) {
+                    const columnSpec = match[1];
+                    const tableContent = match[2];
+                    contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+                }
+            }
+        } else {
+            const docMatch = latexCode.match(/\\begin{document}([\s\S]*?)\\end{document}/);
+            if (docMatch && docMatch[1]) {
+                contentToRender = docMatch[1].trim();
+            }
+        }
+        
+        if (!renderedDiv.parentElement.querySelector('.preview-note')) {
+            const note = document.createElement('div');
+            note.className = 'preview-note bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3 text-sm text-blue-700 dark:text-blue-400';
+            note.innerHTML = '<i class="bi bi-info-circle mr-2"></i><strong>Preview:</strong> Full LaTeX document converted to preview format. Download the .txt file for the complete compilable document.';
+            renderedDiv.parentElement.insertBefore(note, renderedDiv.parentElement.firstChild);
+        }
+    } else {
+        if (contentToRender.includes('\\begin{tabular}') || contentToRender.includes('\\begin{tabularx}')) {
+            let match = contentToRender.match(/\\begin{tabularx}{[^}]*}{([^}]*)}\s*([\s\S]*?)\\end{tabularx}/);
+            if (match) {
+                const columnSpec = match[1].replace(/X/g, 'c').replace(/\\linewidth/g, '');
+                const tableContent = match[2];
+                contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+            } else {
+                match = contentToRender.match(/\\begin{tabular}{([^}]*)}\s*([\s\S]*?)\\end{tabular}/);
+                if (match) {
+                    const columnSpec = match[1];
+                    const tableContent = match[2];
+                    contentToRender = `\\begin{array}{${columnSpec}}\n${tableContent}\n\\end{array}`;
+                }
+            }
+        }
+    }
+    
+    contentToRender = contentToRender
+        .replace(/\\toprule/g, '')
+        .replace(/\\midrule/g, '')
+        .replace(/\\bottomrule/g, '')
+        .replace(/\\hline\s*/g, '')
+        .replace(/\\textbf{([^}]*)}/g, '\\mathbf{$1}')
+        .replace(/\\text{([^}]*)}/g, '\\text{$1}');
+    
+    renderedDiv.innerHTML = `$$${contentToRender}$$`;
+    
+    if (window.MathJax) {
+        MathJax.typesetClear([renderedDiv]);
+        MathJax.typesetPromise([renderedDiv]).then(() => {
+            console.log('Re-render complete for', imageId);
+            showAlert('success', 'Output re-rendered successfully!');
+        }).catch((err) => {
+            console.error('MathJax rendering error:', err);
+            showAlert('warning', 'The table structure may be too complex for preview. Download the .txt file to compile the full LaTeX document.');
+        });
+    }
+}
+
+// Show alert message
+function showAlert(type, message) {
+    const typeClasses = {
+        'success': 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400',
+        'error': 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400',
+        'warning': 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
+        'info': 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
+    };
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-2xl border-2 ${typeClasses[type] || typeClasses['info']} animate-slide-down max-w-md`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center gap-3">
+            <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : type === 'error' ? 'bi-x-circle-fill' : type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} text-xl"></i>
+            <span class="font-medium">${message}</span>
+            <button type="button" class="ml-4 hover:scale-110 transition-transform" onclick="this.parentElement.parentElement.remove()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv && alertDiv.parentNode) {
+            alertDiv.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateX(-50%) translateY(-10px)';
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 500);
+        }
+    }, 3000);
+}
+
+// Download LaTeX as .txt file
+function downloadLatexAsTxt(imageId, latexText, originalFilename) {
+    try {
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const content = `${latexText}`;
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        
+        const baseFilename = originalFilename ? 
+            originalFilename.replace(/\.[^/.]+$/, "") : 
+            `result-${imageId}`;
+        downloadLink.download = `${baseFilename}_latex_${timestamp}.txt`;
+        
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        window.URL.revokeObjectURL(url);
+        
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check"></i><span>Downloaded!</span>';
+        button.classList.remove('bg-teal-50', 'hover:bg-teal-100', 'dark:bg-teal-900/30', 'dark:hover:bg-teal-900/50');
+        button.classList.add('bg-teal-600', 'text-white');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.add('bg-teal-50', 'hover:bg-teal-100', 'dark:bg-teal-900/30', 'dark:hover:bg-teal-900/50');
+            button.classList.remove('bg-teal-600', 'text-white');
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error downloading file:', error);
+        showAlert('error', 'Error downloading file. Please try again.');
+    }
+}
+
+// Copy to clipboard
+async function copyLatexToClipboard(imageId, latexText) {
+    try {
+        const button = document.getElementById(`copy-btn-${imageId}`);
+        const originalText = button.innerHTML;
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(latexText);
+            showCopySuccess(button, originalText);
+        } else {
+            const textarea = document.getElementById(`latex-${imageId}`);
+            textarea.style.display = 'block';
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            
+            if (document.execCommand('copy')) {
+                showCopySuccess(button, originalText);
+            } else {
+                throw new Error('Copy command failed');
+            }
+            
+            textarea.style.display = 'none';
+        }
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        showAlert('warning', 'Failed to copy to clipboard. The text has been selected for you to copy manually.');
+        selectLatexText(imageId);
+    }
+}
+
+// Send LaTeX to parent window (for editor integration)
+function sendLatexToEditor(imageId, latexText) {
+    try {
+        console.log('Sending LaTeX to editor:', latexText.substring(0, 100) + '...'); // Debug log
+        
+        // Check if we're in an iframe
+        if (window.parent !== window) {
+            // Send message to parent window
+            window.parent.postMessage({
+                type: 'latex-converted',
+                latex: latexText,
+                imageId: imageId
+            }, '*');
+            
+            showAlert('success', 'LaTeX code sent to editor! Close this window and click "Insert at Cursor" in the editor.');
+        } else {
+            // Not in iframe, just copy to clipboard
+            copyLatexToClipboard(imageId, latexText);
+            showAlert('info', 'Not in editor mode. LaTeX copied to clipboard instead.');
+        }
+    } catch (err) {
+        console.error('Failed to send to editor:', err);
+        showAlert('error', 'Failed to send to editor. Please try copying manually.');
+    }
+}
+
+// Show copy success feedback
+function showCopySuccess(button, originalText) {
+    button.innerHTML = '<i class="bi bi-check"></i><span>Copied!</span>';
+    button.classList.remove('bg-stone-100', 'hover:bg-stone-200', 'dark:bg-stone-800', 'dark:hover:bg-stone-700');
+    button.classList.add('bg-green-600', 'text-white');
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.add('bg-stone-100', 'hover:bg-stone-200', 'dark:bg-stone-800', 'dark:hover:bg-stone-700');
+        button.classList.remove('bg-green-600', 'text-white');
+    }, 2000);
+}
+
+// Select LaTeX display text
+function selectLatexDisplay(imageId) {
+    const displayElement = document.getElementById(`latex-display-${imageId}`);
+    if (window.getSelection && document.createRange) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(displayElement);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        displayElement.classList.add('ring-2', 'ring-teal-500');
+        setTimeout(() => {
+            displayElement.classList.remove('ring-2', 'ring-teal-500');
+        }, 1000);
+    }
+}
+
+// Select LaTeX text for manual copying
+function selectLatexText(imageId) {
+    const textarea = document.getElementById(`latex-${imageId}`);
+    textarea.classList.remove('hidden');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-4';
+    overlay.innerHTML = `
+        <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl p-6 max-w-4xl w-full max-h-[80vh] overflow-auto">
+            <h5 class="text-xl font-bold text-stone-900 dark:text-white mb-3">LaTeX Code Selected</h5>
+            <p class="text-stone-600 dark:text-stone-400 mb-4">The LaTeX code has been selected. Press Ctrl+C (or Cmd+C on Mac) to copy:</p>
+            <textarea class="w-full p-4 bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-stone-700 rounded-lg font-mono text-sm" rows="10" readonly>${textarea.value}</textarea>
+            <div class="mt-4 flex justify-end">
+                <button class="px-6 py-2 bg-stone-500 hover:bg-stone-600 text-white font-medium rounded-lg transition-all" onclick="this.closest('.fixed').remove()">Close</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    overlay.querySelector('textarea').select();
+    
+    setTimeout(() => {
+        textarea.classList.add('hidden');
+    }, 100);
+}
+
+// Delete upload function
+async function deleteUpload(uploadId) {
+    if (!confirm('Are you sure you want to delete this result? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/delete/${uploadId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (response.ok) {
+            const card = document.querySelector(`[data-upload-id="${uploadId}"]`);
+            if (card) {
+                card.style.transition = 'all 0.4s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.remove();
+                    const remainingCards = document.querySelectorAll('[data-upload-id]');
+                    if (remainingCards.length === 0) {
+                        location.reload();
+                    }
+                }, 400);
+            }
+            
+            showAlert('success', 'Result deleted successfully!');
+        } else {
+            showAlert('error', 'Error deleting result. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error deleting result. Please try again.');
+    }
+}
+
+// Open in Overleaf
+function openInOverleaf(imageId, latexText) {
+    try {
+        let fullDoc = latexText;
+        if (!latexText.includes('\\documentclass')) {
+            const packages = ['amsmath', 'amssymb'];
+            if (latexText.includes('tabular') || latexText.includes('array')) {
+                packages.push('array', 'tabularx', 'booktabs');
+            }
+            const preamble = '\\documentclass{article}\n' + 
+                           packages.map(p => `\\usepackage{${p}}`).join('\n') + 
+                           '\n\\begin{document}\n';
+            const closing = '\n\\end{document}';
+            fullDoc = preamble + latexText + closing;
+        }
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://www.overleaf.com/docs';
+        form.target = '_blank';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'snip';
+        input.value = fullDoc;
+        form.appendChild(input);
+        
+        const nameInput = document.createElement('input');
+        nameInput.type = 'hidden';
+        nameInput.name = 'snip_name';
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+        nameInput.value = `LaTeX Export - ${timestamp}`;
+        form.appendChild(nameInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+    } catch (error) {
+        console.error('Error opening in Overleaf:', error);
+        showAlert('error', 'Error opening in Overleaf. Please try downloading the LaTeX and uploading manually.');
+    }
+}
+
+// Open in Realtime Editor - Show modal to choose between new or existing project
+function openInRealtimeEditor(imageId, latexText, filename) {
+    // Store the latex in sessionStorage for the editor to retrieve
+    sessionStorage.setItem('pendingLatexCode', latexText);
+    sessionStorage.setItem('pendingLatexFilename', filename || `result_${imageId}.tex`);
+    
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in';
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+            <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                            <i class="bi bi-file-earmark-code text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">Open in Realtime Editor</h3>
+                            <p class="text-white/80 text-sm">Choose how to open your LaTeX code</p>
+                        </div>
+                    </div>
+                    <button onclick="this.closest('.fixed').remove()" 
+                            class="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 group">
+                        <i class="bi bi-x-lg text-white text-xl group-hover:rotate-90 transition-transform duration-300"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <!-- New Project Option -->
+                <button onclick="createNewProjectWithLatex('${imageId}')" 
+                        class="w-full group relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/30 rounded-xl p-6 border-2 border-green-200 dark:border-green-700 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-400/10 rounded-bl-full"></div>
+                    <div class="relative flex items-start gap-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="bi bi-plus-circle text-white text-2xl"></i>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <h4 class="text-lg font-bold text-stone-900 dark:text-white mb-1 flex items-center gap-2">
+                                Create New Project
+                                <span class="inline-flex items-center px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">Recommended</span>
+                            </h4>
+                            <p class="text-sm text-stone-600 dark:text-stone-400">
+                                Start fresh with a new LaTeX project containing your converted code. Perfect for standalone documents.
+                            </p>
+                        </div>
+                        <i class="bi bi-arrow-right text-2xl text-green-600 dark:text-green-400 group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </div>
+                </button>
+                
+                <!-- Add to Existing Project Option -->
+                <button onclick="showExistingProjects('${imageId}')" 
+                        class="w-full group relative overflow-hidden bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <div class="absolute top-0 left-0 w-32 h-32 bg-blue-400/10 rounded-br-full"></div>
+                    <div class="relative flex items-start gap-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="bi bi-folder-plus text-white text-2xl"></i>
+                        </div>
+                        <div class="flex-1 text-left">
+                            <h4 class="text-lg font-bold text-stone-900 dark:text-white mb-1">
+                                Add to Existing Project
+                            </h4>
+                            <p class="text-sm text-stone-600 dark:text-stone-400">
+                                Insert this LaTeX code into one of your existing projects as a new file.
+                            </p>
+                        </div>
+                        <i class="bi bi-arrow-right text-2xl text-blue-600 dark:text-blue-400 group-hover:translate-x-2 transition-transform duration-300"></i>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="px-6 pb-6">
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <i class="bi bi-info-circle text-amber-600 dark:text-amber-400 text-xl mt-0.5"></i>
+                        <div class="text-sm text-amber-800 dark:text-amber-300">
+                            <p class="font-semibold mb-1">Your code is ready!</p>
+                            <p>The LaTeX code will be automatically inserted into your chosen project. You can compile and edit it in the realtime editor.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Create new project with the LaTeX code
+async function createNewProjectWithLatex(imageId) {
+    const latexCode = sessionStorage.getItem('pendingLatexCode');
+    const filename = sessionStorage.getItem('pendingLatexFilename') || `result_${imageId}.tex`;
+    
+    // Close the modal
+    document.querySelector('.fixed.inset-0').remove();
+    
+    // Show loading indicator
+    showAlert('info', 'Creating new project...');
+    
+    // Create a form to POST the data (safer than GET for large LaTeX code)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/projects/new/';
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Add project name with timestamp for uniqueness
+    const now = new Date();
+    const timestamp = now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+    const projectName = `LaTeX Project - ${timestamp}`;
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'name';
+    nameInput.value = projectName;
+    form.appendChild(nameInput);
+    
+    // Add LaTeX code
+    const latexInput = document.createElement('input');
+    latexInput.type = 'hidden';
+    latexInput.name = 'latex_code';
+    latexInput.value = latexCode;
+    form.appendChild(latexInput);
+    
+    // Add filename
+    const filenameInput = document.createElement('input');
+    filenameInput.type = 'hidden';
+    filenameInput.name = 'latex_filename';
+    filenameInput.value = filename;
+    form.appendChild(filenameInput);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Show existing projects list
+async function showExistingProjects(imageId) {
+    try {
+        const response = await fetch('/projects/');
+        if (!response.ok) {
+            throw new Error('Failed to fetch projects');
+        }
+        
+        // We need to parse HTML or create an API endpoint
+        // For now, redirect to projects page with pending code
+        sessionStorage.setItem('pendingAction', 'addToProject');
+        sessionStorage.setItem('pendingImageId', imageId);
+        window.location.href = '/projects/';
+        
+    } catch (error) {
+        console.error('Error fetching projects:', error);
+        showAlert('error', 'Failed to load projects. Please try again.');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}MathScriber - AI-Powered LaTeX Converter{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="gradient-bg py-20">
+    <div class="container mx-auto px-4 text-center text-white">
+        <h1 class="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
+            Transform Math to <span class="text-glow">LaTeX</span>
+        </h1>
+        <p class="text-xl md:text-2xl mb-8 opacity-90">
+            AI-Powered OCR for Equations, Tables, and Diagrams
+        </p>
+        <div class="flex flex-col md:flex-row gap-4 justify-center">
+            <a href="{% url 'converter:upload' %}" class="btn-primary text-lg px-8 py-3">
+                <i class="bi bi-upload"></i> Start Converting
+            </a>
+            <a href="{% url 'editor:project_list' %}" class="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-8 rounded-lg transition">
+                <i class="bi bi-pencil-square"></i> Live LaTeX Editor
+            </a>
+            <a href="{% url 'converter:results' %}" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-8 rounded-lg transition border border-white/30">
+                <i class="bi bi-clock-history"></i> View Results
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-12 bg-white dark:bg-gray-800">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
+            <div class="p-6">
+                <div class="text-4xl font-bold text-primary mb-2">{{ total_conversions }}+</div>
+                <div class="text-gray-600 dark:text-gray-400">Conversions</div>
+            </div>
+            <div class="p-6">
+                <div class="text-4xl font-bold text-primary mb-2">99%</div>
+                <div class="text-gray-600 dark:text-gray-400">Accuracy (Testing)</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-20">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold text-center mb-12">Powerful Features</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature Cards -->
+            <div class="card-hover bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg" data-animate>
+                <div class="text-4xl text-primary mb-4"><i class="bi bi-calculator"></i></div>
+                <h3 class="text-xl font-semibold mb-2">Equation Recognition</h3>
+                <p class="text-gray-600 dark:text-gray-400">Convert handwritten or printed equations to perfect LaTeX</p>
+            </div>
+            
+            <div class="card-hover bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg" data-animate>
+                <div class="text-4xl text-primary mb-4"><i class="bi bi-table"></i></div>
+                <h3 class="text-xl font-semibold mb-2">Table Conversion</h3>
+                <p class="text-gray-600 dark:text-gray-400">Extract tables with proper formatting and structure</p>
+            </div>
+            
+            <div class="card-hover bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg" data-animate>
+                <div class="text-4xl text-primary mb-4"><i class="bi bi-diagram-3"></i></div>
+                <h3 class="text-xl font-semibold mb-2">Diagram Generation</h3>
+                <p class="text-gray-600 dark:text-gray-400">Convert diagrams to TikZ with AI assistance</p>
+            </div>
+            
+            <div class="card-hover bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg" data-animate>
+                <div class="text-4xl text-primary mb-4"><i class="bi bi-eye"></i></div>
+                <h3 class="text-xl font-semibold mb-2">Live Preview</h3>
+                <p class="text-gray-600 dark:text-gray-400">Render LaTeX in real-time with MathJax</p>
+            </div>
+            
+            <a href="{% url 'editor:project_list' %}" class="card-hover bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-all" data-animate>
+                <div class="text-4xl text-primary mb-4"><i class="bi bi-code-square"></i></div>
+                <h3 class="text-xl font-semibold mb-2">Live LaTeX Editor <i class="bi bi-arrow-right text-sm"></i></h3>
+                <p class="text-gray-600 dark:text-gray-400">Full-featured LaTeX editor with real-time preview and compilation</p>
+            </a>
+            
+            <div class="card-hover bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg" data-animate>
+                <div class="text-4xl text-primary mb-4"><i class="bi bi-lightning"></i></div>
+                <h3 class="text-xl font-semibold mb-2">Fast Processing</h3>
+                <p class="text-gray-600 dark:text-gray-400">Quick and accurate AI-powered conversions</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="gradient-bg py-20 text-white text-center">
+    <div class="container mx-auto px-4">
+        <h2 class="text-4xl font-bold mb-6">Ready to Get Started?</h2>
+        <p class="text-xl mb-8 opacity-90">Transform your math documents in seconds</p>
+        <div class="flex flex-col md:flex-row gap-4 justify-center">
+            <a href="{% url 'converter:upload' %}" class="btn-primary text-lg px-8 py-3 bg-white text-primary hover:bg-gray-100">
+                <i class="bi bi-upload"></i> Start Converting
+            </a>
+            <a href="{% url 'editor:project_list' %}" class="btn-primary text-lg px-8 py-3 bg-white/20 hover:bg-white/30 border border-white">
+                <i class="bi bi-pencil-square"></i> Open Live Editor
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

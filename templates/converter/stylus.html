@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Stylus Drawing - MathScriber{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(to bottom right, #f0fdfa, #dbeafe, #fae8ff);
+        min-height: 100vh;
+    }
+
+    .stylus-hero {
+        background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 2rem 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stylus-hero h1 {
+        color: white;
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .stylus-hero p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+    }
+
+    .drawing-workspace {
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .drawing-container {
+        position: relative;
+        width: 100%;
+        height: calc(100vh - 350px);
+        min-height: 500px;
+        border: 3px solid #0d9488;
+        border-radius: 1rem;
+        background: white;
+        overflow: hidden;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    #drawing-canvas {
+        display: block;
+        cursor: crosshair;
+        touch-action: none;
+    }
+    
+    .toolbar {
+        background: linear-gradient(to right, #f0fdfa, #ecfeff);
+        border: 2px solid #5eead4;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(20, 184, 166, 0.15);
+    }
+    
+    .toolbar-section {
+        margin-bottom: 1rem;
+    }
+
+    .toolbar-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .toolbar-label {
+        font-weight: 600;
+        color: #0f766e;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .tool-group {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 2px solid #99f6e4;
+        border-radius: 0.75rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(20, 184, 166, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .tool-group:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
+        border-color: #5eead4;
+    }
+    
+    .tool-group label {
+        margin: 0 0.5rem 0 0;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #0f766e;
+    }
+    
+    .color-picker {
+        width: 45px;
+        height: 35px;
+        border: 2px solid #0d9488;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .color-picker:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+    }
+    
+    .brush-size {
+        width: 100px;
+        accent-color: #0d9488;
+    }
+    
+    .status-text {
+        font-size: 0.875rem;
+        color: #0f766e;
+        margin-left: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .canvas-info {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(135deg, #0f766e, #0891b2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-modern {
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-modern.active {
+        background: linear-gradient(135deg, #0f766e, #0891b2) !important;
+        color: white !important;
+        box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
+    }
+
+    .btn-pen {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+        color: white;
+    }
+
+    .btn-eraser {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+    }
+
+    .btn-clear {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
+    }
+
+    .btn-undo {
+        background: linear-gradient(135deg, #6b7280, #9ca3af);
+        color: white;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+    }
+
+    .btn-upload {
+        background: linear-gradient(135deg, #0f766e, #0891b2);
+        color: white;
+    }
+
+    .instructions-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 2px solid #99f6e4;
+        box-shadow: 0 10px 30px rgba(20, 184, 166, 0.1);
+        overflow: hidden;
+    }
+
+    .instructions-header {
+        background: linear-gradient(to right, #0f766e, #0891b2);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.125rem;
+    }
+
+    .instructions-body {
+        padding: 1.5rem;
+    }
+
+    .instruction-section h6 {
+        color: #0f766e;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .instruction-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .instruction-list li {
+        padding: 0.5rem 0;
+        color: #475569;
+        display: flex;
+        align-items: start;
+        gap: 0.5rem;
+    }
+
+    .instruction-list li:before {
+        content: "✓";
+        color: #14b8a6;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .status-banner {
+        background: linear-gradient(to right, #f0fdfa, #ecfeff);
+        border: 2px solid #5eead4;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        text-align: center;
+        margin-top: 1rem;
+        box-shadow: 0 2px 8px rgba(20, 184, 166, 0.1);
+    }
+
+    .status-banner .status-text {
+        color: #0f766e;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .stylus-hero h1 {
+            font-size: 2rem;
+        }
+
+        .tool-group {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .drawing-container {
+            height: calc(100vh - 400px);
+            min-height: 400px;
+        }
+
+        .toolbar {
+            padding: 1rem;
+        }
+
+        .btn-modern {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="stylus-hero">
+    <div class="container text-center">
+        <h1>
+            <i class="bi bi-pencil-fill"></i> Digital Drawing Canvas
+        </h1>
+        <p>
+            Draw mathematical equations or diagrams using stylus, pen, touch, or mouse
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <!-- Drawing Workspace -->
+            <div class="drawing-workspace">
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <!-- Drawing Tools Section -->
+                    <div class="toolbar-section">
+                        <span class="toolbar-label"><i class="bi bi-palette-fill"></i> Drawing Tools</span>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <div class="tool-group">
+                                <label for="pen-color">Color</label>
+                                <input type="color" id="pen-color" class="color-picker" value="#000000">
+                            </div>
+                            
+                            <div class="tool-group">
+                                <label for="brush-size">Brush Size</label>
+                                <input type="range" id="brush-size" class="brush-size" min="1" max="20" value="3">
+                                <span id="size-display" class="status-text">3px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode Selection -->
+                    <div class="toolbar-section">
+                        <span class="toolbar-label"><i class="bi bi-gear-fill"></i> Mode</span>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <button id="pen-mode-btn" class="btn btn-modern btn-pen active me-2">
+                                <i class="bi bi-pencil-fill"></i> Pen
+                            </button>
+                            <button id="eraser-mode-btn" class="btn btn-modern btn-eraser me-2">
+                                <i class="bi bi-eraser-fill"></i> Eraser
+                            </button>
+                            <span id="eraser-size-group" style="display: none;">
+                                <div class="tool-group">
+                                    <label for="eraser-size">Eraser Size</label>
+                                    <input type="range" id="eraser-size" class="brush-size" min="5" max="50" value="10">
+                                    <span id="eraser-size-display" class="status-text">10px</span>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="toolbar-section">
+                        <span class="toolbar-label"><i class="bi bi-lightning-fill"></i> Actions</span>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <button id="clear-btn" class="btn btn-modern btn-clear me-2">
+                                <i class="bi bi-trash-fill"></i> Clear Canvas
+                            </button>
+                            <button id="undo-btn" class="btn btn-modern btn-undo me-2">
+                                <i class="bi bi-arrow-counterclockwise"></i> Undo
+                            </button>
+                            <button id="save-pdf-btn" class="btn btn-modern btn-save me-2">
+                                <i class="bi bi-file-earmark-pdf-fill"></i> Save PDF
+                            </button>
+                            <button id="upload-btn" class="btn btn-modern btn-upload">
+                                <i class="bi bi-cloud-upload-fill"></i> Upload to Converter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Banner -->
+                <div class="status-banner">
+                    <span id="status-text" class="status-text">
+                        <i class="bi bi-info-circle-fill"></i> Ready to draw - Use stylus, pen, touch, or mouse
+                    </span>
+                </div>
+                
+                <!-- Drawing Canvas Container -->
+                <div class="drawing-container mt-3">
+                    <canvas id="drawing-canvas"></canvas>
+                    <div class="canvas-info">
+                        <i class="bi bi-display"></i> <span id="canvas-dimensions">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="row mt-4 mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <div class="instructions-card">
+                        <div class="instructions-header">
+                            <i class="bi bi-book-fill"></i> How to Use the Drawing Canvas
+                        </div>
+                        <div class="instructions-body">
+                            <div class="row">
+                                <div class="col-md-6 instruction-section">
+                                    <h6><i class="bi bi-pencil-square"></i> Drawing Features</h6>
+                                    <ul class="instruction-list">
+                                        <li>Use stylus, pen, touch, or mouse to draw on the canvas</li>
+                                        <li>Adjust color and brush size to customize your strokes</li>
+                                        <li>Supports pressure sensitivity for compatible devices</li>
+                                        <li>Multi-touch gestures disabled during drawing for precision</li>
+                                        <li>High DPI support for crisp lines on all displays</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6 instruction-section">
+                                    <h6><i class="bi bi-tools"></i> Available Actions</h6>
+                                    <ul class="instruction-list">
+                                        <li><strong>Pen Mode:</strong> Draw with customizable colors and sizes</li>
+                                        <li><strong>Eraser:</strong> Remove unwanted strokes precisely</li>
+                                        <li><strong>Clear Canvas:</strong> Start fresh with one click</li>
+                                        <li><strong>Undo:</strong> Step back through your drawing history</li>
+                                        <li><strong>Save PDF:</strong> Export your work as a PDF document</li>
+                                        <li><strong>Upload:</strong> Send directly to LaTeX OCR converter</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for uploading to converter -->
+<form id="upload-form" style="display: none;" method="post" action="{% url 'converter:upload' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="task" value="equation">
+    <input type="file" id="upload-input" name="images" accept="image/*">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Stylus Drawing Script -->
+<script src="{% static 'js/stylus.js' %}"></script>
+{% endblock %}

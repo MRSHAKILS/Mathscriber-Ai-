@@ -1,0 +1,82 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,shadows.blur,decorations.markings}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    node distance=3.5cm,
+    auto,
+    % Network node styles
+    server/.style={
+        rectangle,
+        rounded corners=3pt,
+        minimum width=2.5cm,
+        minimum height=1.2cm,
+        text centered,
+        draw=blue!80,
+        fill=blue!15,
+        line width=1.2pt,
+        blur shadow={shadow blur steps=5}
+    },
+    database/.style={
+        cylinder,
+        shape border rotate=90,
+        minimum width=2cm,
+        minimum height=2cm,
+        text centered,
+        draw=green!80,
+        fill=green!15,
+        line width=1.2pt,
+        blur shadow={shadow blur steps=5}
+    },
+    client/.style={
+        ellipse,
+        minimum width=2.2cm,
+        minimum height=1cm,
+        text centered,
+        draw=orange!80,
+        fill=orange!15,
+        line width=1.2pt,
+        blur shadow={shadow blur steps=5}
+    },
+    cloud/.style={
+        cloud,
+        cloud puffs=12,
+        minimum width=2.5cm,
+        minimum height=1.5cm,
+        text centered,
+        draw=purple!80,
+        fill=purple!10,
+        line width=1.2pt
+    },
+    connection/.style={
+        {Stealth[length=4mm]}-{Stealth[length=4mm]},
+        line width=1.3pt,
+        draw=gray!60
+    },
+    oneway/.style={
+        -{Stealth[length=4mm, width=3mm]},
+        line width=1.3pt,
+        draw=gray!60
+    }
+]
+
+% Network layout
+\node[client] (client1) {Client 1};
+\node[client, right=of client1] (client2) {Client 2};
+
+\node[server, below=2.5cm of $(client1)!0.5!(client2)$] (server) {Application\\Server};
+
+\node[database, below left=2cm and 1.5cm of server] (db) {Database};
+\node[cloud, below right=2cm and 1.5cm of server] (cloud) {Cloud\\Storage};
+
+% Connections
+\draw[oneway] (client1) -- node[left, font=\small] {Request} (server);
+\draw[oneway] (client2) -- node[right, font=\small] {Request} (server);
+\draw[connection] (server) -- node[left, font=\small] {Query} (db);
+\draw[connection] (server) -- node[right, font=\small] {API} (cloud);
+
+\end{tikzpicture}
+
+\end{document}

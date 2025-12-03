@@ -1,0 +1,196 @@
+{% extends "editor/base1.html" %}
+{% load static %}
+
+{% block title %}{{ project.name }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav class="flex mb-6 animate-fade-in" aria-label="Breadcrumb">
+  <ol class="inline-flex items-center space-x-2 text-sm">
+    <li class="inline-flex items-center">
+      <a href="{% url 'editor:project_list' %}" class="inline-flex items-center text-stone-600 dark:text-stone-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+        <i class="bi bi-folder-fill mr-2"></i>
+        Projects
+      </a>
+    </li>
+    <li>
+      <div class="flex items-center">
+        <i class="bi bi-chevron-right text-stone-400 mx-2"></i>
+        <span class="font-semibold text-stone-900 dark:text-white">{{ project.name }}</span>
+      </div>
+    </li>
+  </ol>
+</nav>
+
+<!-- Project Header -->
+<div class="bg-gradient-to-r from-teal-50 to-blue-50 dark:from-stone-800 dark:to-stone-700 rounded-2xl p-6 mb-8 border border-teal-200 dark:border-stone-600 animate-slide-up">
+  <div class="flex items-start justify-between">
+    <div class="flex-1">
+      <h1 class="text-3xl font-bold text-stone-900 dark:text-white mb-2">{{ project.name }}</h1>
+      <p class="text-stone-600 dark:text-stone-300">
+        {{ project.description|default:"No description provided" }}
+      </p>
+    </div>
+    <div class="flex-shrink-0 ml-4">
+      <div class="w-16 h-16 bg-gradient-to-br from-teal-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+        <i class="bi bi-folder-open text-white text-2xl"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Documents List (Left - 2 columns) -->
+  <div class="lg:col-span-2 animate-slide-up" style="animation-delay: 0.1s;">
+    <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg border border-stone-200 dark:border-stone-700 overflow-hidden">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-stone-50 to-stone-100 dark:from-stone-700 dark:to-stone-800 px-6 py-4 border-b border-stone-200 dark:border-stone-700">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-stone-900 dark:text-white flex items-center gap-2">
+            <i class="bi bi-file-earmark-text text-teal-600"></i>
+            Documents
+          </h2>
+          <span class="px-3 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 text-sm font-semibold rounded-full">
+            {{ documents|length }} file{{ documents|length|pluralize }}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Documents List -->
+      <div class="divide-y divide-stone-200 dark:divide-stone-700">
+        {% for doc in documents %}
+          <a href="{% url 'editor:document_editor' pk=project.pk doc_id=doc.pk %}" 
+             class="flex items-center justify-between p-4 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300 group">
+            <div class="flex items-center gap-3 flex-1">
+              <div class="w-10 h-10 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <i class="bi bi-file-earmark-text text-teal-600 dark:text-teal-400 text-lg"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-stone-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                  {{ doc.name }}
+                </h3>
+                <p class="text-xs text-stone-500 dark:text-stone-400">Last modified recently</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              {% if doc.is_main %}
+                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full flex items-center gap-1">
+                  <i class="bi bi-star-fill text-xs"></i>
+                  Main
+                </span>
+              {% endif %}
+              <i class="bi bi-chevron-right text-stone-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 group-hover:translate-x-1 transition-all"></i>
+            </div>
+          </a>
+        {% empty %}
+          <div class="p-12 text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-stone-100 dark:bg-stone-700 rounded-full mb-4">
+              <i class="bi bi-file-earmark-plus text-3xl text-stone-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-2">No documents yet</h3>
+            <p class="text-sm text-stone-600 dark:text-stone-400 mb-4">Create your first document to get started</p>
+            <i class="bi bi-arrow-right text-4xl text-teal-600 dark:text-teal-400 animate-pulse"></i>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Create New Document (Right - 1 column) -->
+  <div class="animate-slide-up" style="animation-delay: 0.2s;">
+    <div class="bg-white dark:bg-stone-800 rounded-xl shadow-lg border border-stone-200 dark:border-stone-700 overflow-hidden sticky top-20">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-teal-50 to-blue-50 dark:from-stone-700 dark:to-stone-800 px-6 py-4 border-b border-stone-200 dark:border-stone-700">
+        <h2 class="text-lg font-bold text-stone-900 dark:text-white flex items-center gap-2">
+          <i class="bi bi-plus-circle-fill text-teal-600"></i>
+          New Document
+        </h2>
+      </div>
+      
+      <!-- Form -->
+      <div class="p-6">
+        <form method="POST" action="{% url 'editor:document_create' pk=project.pk %}" class="space-y-4">
+          {% csrf_token %}
+          
+          <div>
+            <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-stone-900 dark:text-white mb-2">
+              Document Name
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="bi bi-file-earmark-text text-stone-400"></i>
+              </div>
+              <input type="text" 
+                     name="{{ form.name.name }}" 
+                     id="{{ form.name.id_for_label }}"
+                     value="{{ form.name.value|default:'' }}"
+                     class="w-full pl-10 pr-4 py-2.5 bg-stone-50 dark:bg-stone-700 border border-stone-300 dark:border-stone-600 rounded-lg text-stone-900 dark:text-white placeholder-stone-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
+                     placeholder="main.tex"
+                     required>
+            </div>
+            <p class="mt-2 text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1">
+              <i class="bi bi-info-circle"></i>
+              e.g., "main.tex" or "chapter1.tex"
+            </p>
+          </div>
+          
+          <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <div class="relative">
+                <input type="checkbox" 
+                       name="{{ form.is_main.name }}" 
+                       id="{{ form.is_main.id_for_label }}"
+                       class="w-5 h-5 text-teal-600 bg-white dark:bg-stone-600 border-stone-300 dark:border-stone-500 rounded focus:ring-teal-500 focus:ring-2 transition-all">
+              </div>
+              <div class="flex-1">
+                <span class="text-sm font-medium text-stone-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                  Set as main document
+                </span>
+                <p class="text-xs text-stone-500 dark:text-stone-400">The main file to compile</p>
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" 
+                  class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <i class="bi bi-plus-lg text-lg"></i>
+            Create & Open
+          </button>
+        </form>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="border-t border-stone-200 dark:border-stone-700 p-4 bg-stone-50 dark:bg-stone-900">
+        <p class="text-xs text-stone-600 dark:text-stone-400 mb-2 font-semibold">Quick Actions</p>
+        <div class="space-y-2">
+          <a href="{% url 'editor:project_list' %}" class="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+            <i class="bi bi-arrow-left"></i>
+            Back to Projects
+          </a>
+          <a href="#" class="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+            <i class="bi bi-gear"></i>
+            Project Settings
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out;
+  }
+</style>
+{% endblock %}

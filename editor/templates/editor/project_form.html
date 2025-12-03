@@ -1,0 +1,134 @@
+{% extends "editor/base1.html" %}
+{% block title %}New Project{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto animate-fade-in">
+  <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-teal-50 to-blue-50 dark:from-stone-700 dark:to-stone-800 p-6 border-b border-stone-200 dark:border-stone-700">
+      <h2 class="text-2xl font-bold text-stone-900 dark:text-white flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-teal-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+          <i class="bi bi-plus-lg text-white text-xl"></i>
+        </div>
+        Create New Project
+      </h2>
+      <p class="text-sm text-stone-600 dark:text-stone-400 mt-2">Start a new LaTeX project and begin writing your document</p>
+    </div>
+    
+    <!-- Form Body -->
+    <div class="p-6 md:p-8">
+      {% if from_converter %}
+      <!-- Coming from Converter Notification -->
+      <div class="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl p-4">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
+              <i class="bi bi-file-earmark-code text-white text-lg"></i>
+            </div>
+          </div>
+          <div class="flex-1">
+            <h4 class="text-sm font-bold text-purple-900 dark:text-purple-300 mb-1">LaTeX Code Ready!</h4>
+            <p class="text-xs text-purple-700 dark:text-purple-400">Your converted LaTeX code will be automatically added to this project as <code class="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/40 rounded text-purple-800 dark:text-purple-300 font-mono">{{ latex_filename }}</code></p>
+          </div>
+          <i class="bi bi-check-circle-fill text-2xl text-purple-600 dark:text-purple-400"></i>
+        </div>
+      </div>
+      {% endif %}
+      
+      <form method="post" action="{% url 'editor:project_create' %}" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Hidden fields for LaTeX code from converter -->
+        {% if latex_code %}
+        <input type="hidden" name="latex_code" value="{{ latex_code }}">
+        <input type="hidden" name="latex_filename" value="{{ latex_filename }}">
+        {% endif %}
+        
+        <!-- Project Name -->
+        <div>
+          <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-stone-900 dark:text-white mb-2">
+            Project Name <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="bi bi-folder-fill text-stone-400"></i>
+            </div>
+            <input type="text" 
+                   name="{{ form.name.name }}" 
+                   id="{{ form.name.id_for_label }}"
+                   value="{{ form.name.value|default:'' }}"
+                   class="w-full pl-10 pr-4 py-3 bg-stone-50 dark:bg-stone-700 border border-stone-300 dark:border-stone-600 rounded-lg text-stone-900 dark:text-white placeholder-stone-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300"
+                   placeholder="My Research Paper"
+                   required>
+          </div>
+          {% if form.name.errors %}
+            <div class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              {{ form.name.errors.as_text }}
+            </div>
+          {% endif %}
+          <p class="mt-2 text-xs text-stone-500 dark:text-stone-400">Choose a descriptive name for your project</p>
+        </div>
+        
+        <!-- Description -->
+        <div>
+          <label for="{{ form.description.id_for_label }}" class="block text-sm font-semibold text-stone-900 dark:text-white mb-2">
+            Description <span class="text-stone-400 font-normal">(Optional)</span>
+          </label>
+          <textarea name="{{ form.description.name }}" 
+                    id="{{ form.description.id_for_label }}"
+                    rows="4"
+                    class="w-full px-4 py-3 bg-stone-50 dark:bg-stone-700 border border-stone-300 dark:border-stone-600 rounded-lg text-stone-900 dark:text-white placeholder-stone-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-300 resize-none"
+                    placeholder="Add a brief description of what this project is about...">{{ form.description.value|default:'' }}</textarea>
+          {% if form.description.errors %}
+            <div class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              {{ form.description.errors.as_text }}
+            </div>
+          {% endif %}
+        </div>
+        
+        <!-- Divider -->
+        <div class="border-t border-stone-200 dark:border-stone-700"></div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button type="submit" 
+                  class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <i class="bi bi-plus-circle-fill text-lg"></i>
+            Create Project
+          </button>
+          <a href="{% url 'editor:project_list' %}" 
+             class="flex items-center justify-center gap-2 px-6 py-3 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 font-medium rounded-xl border border-stone-300 dark:border-stone-600 transition-all duration-300">
+            <i class="bi bi-x-lg"></i>
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Help Text -->
+  <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+    <div class="flex items-start gap-3">
+      <div class="flex-shrink-0">
+        <i class="bi bi-info-circle-fill text-blue-600 dark:text-blue-400 text-xl"></i>
+      </div>
+      <div>
+        <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">Quick Tip</h4>
+        <p class="text-xs text-blue-700 dark:text-blue-400">After creating your project, you'll be able to add LaTeX documents, organize files in folders, and compile your work with live preview.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+</style>
+{% endblock %}

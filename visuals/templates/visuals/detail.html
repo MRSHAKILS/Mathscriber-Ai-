@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}Visual Detail - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-5xl mx-auto">
+        <!-- Hero Header -->
+        <div class="bg-gradient-to-br from-blue-50 via-teal-50 to-purple-50 dark:from-blue-900/20 dark:via-teal-900/20 dark:to-purple-900/20 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl border border-blue-100 dark:border-blue-800 animate-fade-in">
+            <a href="{% url 'visuals:gallery' %}" class="group inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 mb-4 font-semibold text-stone-700 dark:text-stone-300">
+                <i class="bi bi-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                <span>Back to Gallery</span>
+            </a>
+            <h1 class="text-3xl sm:text-4xl font-extrabold mb-2">
+                <span class="bg-gradient-to-r from-blue-600 via-teal-600 to-purple-600 bg-clip-text text-transparent">Visual Details</span>
+            </h1>
+            <p class="text-stone-600 dark:text-stone-400">View and manage your generated visual</p>
+        </div>
+        
+        <div class="bg-white dark:bg-stone-800 rounded-2xl shadow-2xl border-2 border-stone-200 dark:border-stone-700 p-6 sm:p-8 md:p-10 animate-slide-up">
+            <!-- Status Badge -->
+            <div class="mb-6">
+                {% if visual.status == 'completed' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-check-circle-fill"></i> Completed
+                </span>
+                {% elif visual.status == 'processing' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-hourglass-split"></i> Processing
+                </span>
+                {% elif visual.status == 'pending' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-clock"></i> Pending
+                </span>
+                {% elif visual.status == 'failed' %}
+                <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 rounded-lg text-sm font-medium">
+                    <i class="bi bi-x-circle-fill"></i> Failed
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Visual Image -->
+            <div class="mb-8">
+                {% if visual.status == 'completed' and visual.file_path %}
+                <img src="{{ MEDIA_URL }}{{ visual.file_path }}" 
+                     alt="Visual" 
+                     class="w-full rounded-lg shadow-lg">
+                {% elif visual.status == 'processing' or visual.status == 'pending' %}
+                <div class="w-full aspect-video bg-stone-100 dark:bg-stone-700 rounded-lg flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-600 mb-4"></div>
+                        <p class="text-stone-600 dark:text-stone-400">Generating visual...</p>
+                        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                        </button>
+                    </div>
+                </div>
+                {% elif visual.status == 'failed' %}
+                <div class="w-full aspect-video bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-red-200 dark:border-red-800 flex items-center justify-center">
+                    <div class="text-center text-red-600 dark:text-red-400">
+                        <i class="bi bi-exclamation-triangle text-5xl mb-3"></i>
+                        <p class="text-lg font-semibold mb-2">Generation Failed</p>
+                        {% if visual.error_message %}
+                        <p class="text-sm">{{ visual.error_message }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Visual Info -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-900 dark:text-white mb-4">Content</h2>
+                <p class="text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-stone-700 rounded-lg p-4">
+                    {{ visual.content }}
+                </p>
+            </div>
+            
+            {% if visual.context %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-2">Context</h3>
+                <p class="text-stone-600 dark:text-stone-400">{{ visual.context }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Metadata -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Format</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.format|upper }}</div>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Status</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.status|title }}</div>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Color Mode</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.color_mode|title }}</div>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Created</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.created_at|date:"M d, Y" }}</div>
+                </div>
+                {% if visual.visual_query %}
+                <div class="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-3">
+                    <div class="text-xs text-teal-600 dark:text-teal-400 mb-1">Diagram Type</div>
+                    <div class="font-semibold text-teal-900 dark:text-teal-300">{{ visual.visual_query|title }}</div>
+                </div>
+                {% endif %}
+                {% if visual.orientation and visual.orientation != 'auto' %}
+                <div class="bg-stone-50 dark:bg-stone-700 rounded-lg p-3">
+                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-1">Orientation</div>
+                    <div class="font-semibold text-stone-900 dark:text-white">{{ visual.orientation|title }}</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Actions -->
+            <div class="bg-stone-50 dark:bg-stone-900/50 rounded-xl p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="text-lg font-bold text-stone-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="bi bi-tools text-teal-600"></i>
+                    <span>Actions</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% if visual.status == 'completed' and visual.file_path %}
+                    <a href="{{ MEDIA_URL }}{{ visual.file_path }}" 
+                       download 
+                       class="group flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-download text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Download</span>
+                    </a>
+                    <button onclick="duplicateVisual('{{ visual.id }}')" 
+                            class="group flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-files text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Duplicate</span>
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'visuals:gallery' %}" 
+                       class="group flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-collection text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Gallery</span>
+                    </a>
+                    <a href="{% url 'visuals:generator' %}" 
+                       class="group flex items-center justify-center gap-2 px-6 py-3 bg-stone-600 hover:bg-stone-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-plus-lg text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+                        <span>Create New</span>
+                    </a>
+                    <button onclick="deleteVisual('{{ visual.id }}')" 
+                            class="group flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                        <i class="bi bi-trash text-lg group-hover:scale-110 transition-transform"></i>
+                        <span>Delete</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function duplicateVisual(visualId) {
+        if (!confirm('Duplicate this visual?')) return;
+        
+        try {
+            const response = await fetch(`/visuals/api/${visualId}/duplicate/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/visuals/${data.id}/`;
+            } else {
+                alert('Failed to duplicate visual');
+            }
+        } catch (error) {
+            alert('Network error');
+        }
+    }
+    
+    async function deleteVisual(visualId) {
+        if (!confirm('Are you sure you want to delete this visual? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/visuals/api/${visualId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                window.location.href = '{% url "visuals:gallery" %}';
+            } else {
+                alert('Failed to delete visual');
+            }
+        } catch (error) {
+            alert('Network error');
+            console.error(error);
+        }
+    }
+</script>
+{% endblock %}

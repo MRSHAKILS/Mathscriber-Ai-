@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagram Converter Guide - MathScriber{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="mb-4">📊 Diagram Converter Guide</h1>
+            
+            <!-- Warning Alert -->
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading">⚠️ HuggingFace Diagram Converter Status</h5>
+                <p><strong>HuggingFace vision models are currently deprecated</strong> and return error 410.</p>
+                <p class="mb-0">The HuggingFace converter now generates templates only. <strong>Use Gemini, OpenAI, or DeepSeek for AI-powered conversion.</strong></p>
+            </div>
+
+            <!-- Recommended Option -->
+            <div class="card border-success mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">✅ Recommended: Gemini Diagram (FREE)</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Why Gemini?</strong></p>
+                            <ul>
+                                <li>💯 <strong>100% FREE</strong> with generous limits</li>
+                                <li>⭐ Excellent quality (nearly as good as OpenAI)</li>
+                                <li>⚡ Fast processing (5-15 seconds)</li>
+                                <li>🎯 Accurate diagram understanding</li>
+                                <li>🔓 No credit card required</li>
+                            </ul>
+                            
+                            <div class="alert alert-info mt-3">
+                                <strong>Quick Setup:</strong>
+                                <ol class="mb-0">
+                                    <li>Get free API key: <a href="https://makersuite.google.com/app/apikey" target="_blank">https://makersuite.google.com/app/apikey</a></li>
+                                    <li>Add to <code>.env</code> file: <code>GOOGLE_API_KEY="your-key"</code></li>
+                                    <li>Select "Gemini Diagram" in converter dropdown</li>
+                                    <li>Upload and convert!</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h3 class="text-success">$0.00</h3>
+                                    <p class="mb-0">Cost per 100 diagrams</p>
+                                    <hr>
+                                    <h4>⭐⭐⭐⭐⭐</h4>
+                                    <p class="mb-0 small">Quality Rating</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">📊 Converter Comparison</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Converter</th>
+                                    <th>Quality</th>
+                                    <th>Speed</th>
+                                    <th>Cost</th>
+                                    <th>AI Vision</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="table-success">
+                                    <td><strong>Gemini</strong></td>
+                                    <td>⭐⭐⭐⭐⭐</td>
+                                    <td>⚡⚡⚡</td>
+                                    <td><span class="badge bg-success">FREE</span></td>
+                                    <td>✅ Yes</td>
+                                    <td><span class="badge bg-success">✅ Recommended</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>OpenAI</strong></td>
+                                    <td>⭐⭐⭐⭐⭐</td>
+                                    <td>⚡⚡⚡</td>
+                                    <td><span class="badge bg-warning">$1/100</span></td>
+                                    <td>✅ Yes</td>
+                                    <td><span class="badge bg-primary">Best Quality</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>DeepSeek</strong></td>
+                                    <td>⭐⭐⭐⭐</td>
+                                    <td>⚡⚡</td>
+                                    <td><span class="badge bg-info">$0.10/100</span></td>
+                                    <td>✅ Yes</td>
+                                    <td><span class="badge bg-info">Budget</span></td>
+                                </tr>
+                                <tr class="table-danger">
+                                    <td><strong>HuggingFace</strong></td>
+                                    <td>⭐⭐</td>
+                                    <td>⚡⚡⚡⚡</td>
+                                    <td><span class="badge bg-success">FREE</span></td>
+                                    <td>❌ No</td>
+                                    <td><span class="badge bg-danger">❌ Not Working</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Options -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">🏆 OpenAI Diagram</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Best for professionals & complex diagrams</strong></p>
+                            <ul>
+                                <li>Absolute best quality</li>
+                                <li>Most accurate understanding</li>
+                                <li>Fast processing</li>
+                            </ul>
+                            <p class="mb-0"><strong>Cost:</strong> ~$0.01 per diagram</p>
+                            <p class="small text-muted">Setup: <code>OPENAI_API_KEY</code> in .env</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">💰 DeepSeek Diagram</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Best for budget-conscious users</strong></p>
+                            <ul>
+                                <li>Very affordable (10x cheaper than OpenAI)</li>
+                                <li>Good quality output</li>
+                                <li>Great for batch processing</li>
+                            </ul>
+                            <p class="mb-0"><strong>Cost:</strong> ~$0.001 per diagram</p>
+                            <p class="small text-muted">Setup: <code>DEEPSEEK_API_KEY</code> in .env</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HuggingFace Status -->
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">❌ HuggingFace Diagram Status</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Current Issue:</strong> HuggingFace vision models return HTTP 410 (Gone) errors</p>
+                    <pre class="bg-light p-3"><code>[WARNING] Model Salesforce/blip-image-captioning-base returned status 410
+[INFO] Model is deprecated, trying next...</code></pre>
+                    
+                    <p><strong>What happened?</strong></p>
+                    <ul>
+                        <li>HuggingFace deprecated many free vision models</li>
+                        <li>Inference API no longer supports these models</li>
+                        <li>Converter now falls back to template generation</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Current Functionality:</strong> Template generation only (no AI vision)
+                        <br>
+                        <strong>Recommendation:</strong> Use <a href="#" class="alert-link">Gemini (FREE)</a> or <a href="#" class="alert-link">OpenAI</a> instead
+                    </div>
+                </div>
+            </div>
+
+            <!-- Getting Started -->
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>🚀 Quick Start Guide</h5>
+                    <ol>
+                        <li><strong>Get FREE Gemini API Key:</strong>
+                            <ul>
+                                <li>Visit: <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+                                <li>Click "Create API Key"</li>
+                                <li>Copy the key</li>
+                            </ul>
+                        </li>
+                        <li><strong>Add to your .env file:</strong>
+                            <pre class="bg-white p-2 mt-2"><code>GOOGLE_API_KEY="your-api-key-here"</code></pre>
+                        </li>
+                        <li><strong>Use in MathScriber:</strong>
+                            <ul>
+                                <li>Go to Upload page</li>
+                                <li>Select "Gemini Diagram" from dropdown</li>
+                                <li>Upload your diagram</li>
+                                <li>Click "Convert to LaTeX"</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'upload' %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-upload"></i> Start Converting Diagrams
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
