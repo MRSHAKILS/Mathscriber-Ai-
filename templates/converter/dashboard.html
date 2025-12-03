@@ -56,6 +56,11 @@
         }
         .carousel-item {
             flex: 0 0 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .carousel-item.active {
+            opacity: 1;
         }
         .carousel-indicators {
             position: absolute;
@@ -398,7 +403,7 @@
                                 <div class="carousel mb-4">
                                     <div class="carousel-inner" id="conversion-carousel">
                                         <!-- Equation Conversion -->
-                                        <div class="carousel-item">
+                                        <div class="carousel-item active">
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <!-- Output Column -->
                                                 <div class="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-lg p-4 border-2 border-teal-300 shadow-lg">
@@ -694,7 +699,7 @@
                             <h3 class="text-xl font-semibold text-teal-700">Pro (Academic)</h3>
                             <p class="text-stone-500 mt-2 flex-grow">For researchers, power-users, and professionals.</p>
                             <div class="mt-6">
-                                <span class="text-4xl font-bold text-stone-900" data-price-monthly="$5" data-price-yearly="$48">$5</span>
+                                <span class="text-4xl font-bold text-stone-900" data-price-monthly="$9.99" data-price-yearly="$95">$9.99</span>
                                 <span class="text-stone-500" data-price-monthly-suffix="/ month" data-price-yearly-suffix="/ year">/ month</span>
                             </div>
                             <ul class="mt-6 space-y-3 text-stone-600">
@@ -709,20 +714,20 @@
                         </div>
                         
                         <div class="pricing-card bg-white/90 backdrop-blur-sm border-2 border-purple-200 rounded-xl shadow-2xl p-8 flex flex-col stagger-item hover:border-purple-400 transition-all duration-300" style="animation-delay: 0.2s">
-                            <h3 class="text-xl font-semibold text-stone-800">Enterprise (API)</h3>
-                            <p class="text-stone-500 mt-2 flex-grow">For teams and developers integrating our tech.</p>
+                            <h3 class="text-xl font-semibold text-stone-800">Pay as you Go</h3>
+                            <p class="text-stone-500 mt-2 flex-grow">Student Saver Pack - Only pay for what you use.</p>
                             <div class="mt-6">
-                                <span class="text-4xl font-bold text-stone-900" data-price-monthly="$50" data-price-yearly="$480">$50</span>
-                                <span class="text-stone-500" data-price-monthly-suffix="/ month" data-price-yearly-suffix="/ year">/ month</span>
+                                <span class="text-4xl font-bold text-stone-900">$3.99</span>
+                                <span class="text-stone-500">/ 20 Conversions</span>
                             </div>
                             <ul class="mt-6 space-y-3 text-stone-600">
-                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>All Pro Features</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>10,000 API Calls / month</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>Priority Support</li>
-                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>Team Management</li>
+                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>Limited Pro Features</li>
+                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>Pay Per Use </li>
+                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>No Monthly Commitment</li>
+                                <li class="flex items-center"><span class="text-teal-500 mr-3 text-xl">&check;</span>Perfect for Beginners</li>
                             </ul>
                             <a href="#" class="mt-8 w-full text-center bg-stone-100 text-stone-700 font-medium py-3 px-6 rounded-lg hover:bg-stone-200 transition duration-300">
-                                Contact Sales
+                                Get Started
                             </a>
                         </div>
                         
@@ -1410,6 +1415,15 @@
                     ease: "power2.out"
                 });
                 
+                // Update carousel items visibility
+                items.forEach((item, index) => {
+                    if (index === currentIndex) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+                
                 // Update indicators
                 indicators.forEach((indicator, index) => {
                     if (index === currentIndex) {
@@ -1472,6 +1486,9 @@
             carousel.addEventListener('mouseleave', () => {
                 resetAutoRotate();
             });
+            
+            // Initialize carousel on page load
+            updateCarousel();
         }
         
         // Initialize Testimonials Swiper
