@@ -9,12 +9,12 @@ load_dotenv(BASE_DIR / '.env')
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', "django-insecure-*_k*l$0h8ve_0y^u_5ga0t$22ejg-t9@syli!yg9tk0uhyb9tg")
+SECRET_KEY = os.environ.get('SECRET_KEY', "django-insecure-*_k*l$0h8ve_0y^u_5ga0t$22ejg-t9@syli!yg9tk0uhyb9tg")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "converter",  
     "editor",
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -68,11 +70,11 @@ WSGI_APPLICATION = "MathScriber.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "mathscriber"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "NAME": os.environ.get("DB_NAME", "mathscriber"),
+        "USER": os.environ.get("DB_USER", "postgres"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
@@ -123,7 +125,19 @@ REST_FRAMEWORK = {
 }
 
 # Napkin AI Configuration
-import os
+NAPKIN_API_KEY = os.environ.get('NAPKIN_API_KEY', 'sk-7e9fb09c4363d79a6457a8e20fc3d4bb1a0f56b40c8e9b69ab948150ffc1b80b')
+NAPKIN_API_URL = os.environ.get('NAPKIN_API_URL', 'https://api.napkin.ai/v1')
 
-NAPKIN_API_KEY = os.getenv('NAPKIN_API_KEY', 'sk-7e9fb09c4363d79a6457a8e20fc3d4bb1a0f56b40c8e9b69ab948150ffc1b80b')
-NAPKIN_API_URL = os.getenv('NAPKIN_API_URL', 'https://api.napkin.ai/v1')
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if os.environ.get('CORS_ALLOWED_ORIGINS') else []
+CORS_ALLOW_ALL_ORIGINS = len(CORS_ALLOWED_ORIGINS) == 0  # Allow all if none specified in development
+
+# API Keys Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+MISTRAL_API_KEY = os.environ.get('MISTRAL_API_KEY', '')
+HF_API_KEY = os.environ.get('HF_API_KEY', '')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', '')
+QWEN_API_KEY = os.environ.get('Qwen_API_KEY', '')

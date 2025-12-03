@@ -1,6 +1,7 @@
 # Render Deployment Guide for MathScriber AI
 
 ## Files Created for Deployment:
+
 1. `build.sh` - Build script for Render
 2. `Procfile` - Tells Render how to run the app
 3. `runtime.txt` - Specifies Python version
@@ -10,6 +11,7 @@
 ## Render Configuration:
 
 ### 1. Create a New Web Service on Render
+
 - Go to https://dashboard.render.com
 - Click "New +" → "Web Service"
 - Connect your GitHub repository
@@ -17,11 +19,13 @@
 ### 2. Configure Build & Deploy Settings:
 
 **Build Command:**
+
 ```bash
 ./build.sh
 ```
 
 **Start Command:**
+
 ```bash
 gunicorn MathScriber.wsgi:application
 ```
@@ -29,6 +33,7 @@ gunicorn MathScriber.wsgi:application
 ### 3. Environment Variables to Add in Render Dashboard:
 
 **Required:**
+
 ```
 PYTHON_VERSION=3.11.0
 SECRET_KEY=your-super-secret-key-here-generate-a-new-one
@@ -37,6 +42,7 @@ ALLOWED_HOSTS=your-app-name.onrender.com,www.your-domain.com
 ```
 
 **Database (PostgreSQL):**
+
 ```
 DB_NAME=your_db_name
 DB_USER=your_db_user
@@ -47,6 +53,7 @@ DATABASE_URL=postgresql://user:password@host:5432/dbname
 ```
 
 **API Keys (from your .env):**
+
 ```
 GOOGLE_API_KEY=your_google_api_key
 GEMINI_API_KEY=your_gemini_api_key
@@ -61,6 +68,7 @@ NAPKIN_API_URL=https://api.napkin.ai/v1
 ```
 
 ### 4. Create PostgreSQL Database on Render:
+
 1. Go to Dashboard → "New +" → "PostgreSQL"
 2. Create database
 3. Copy the connection details to environment variables above
@@ -68,17 +76,20 @@ NAPKIN_API_URL=https://api.napkin.ai/v1
 ### 5. Important Notes:
 
 **Static Files:**
+
 - WhiteNoise is configured to serve static files
 - No need for external storage in development
 - For production with heavy traffic, consider using AWS S3 or similar
 
 **Media Files:**
+
 - Current setup stores media files locally
 - For production, configure cloud storage (AWS S3, Cloudinary, etc.)
 - Add to settings.py if using cloud storage
 
 **Build Script Permissions:**
 If build fails, make build.sh executable:
+
 ```bash
 chmod +x build.sh
 ```
@@ -86,16 +97,19 @@ chmod +x build.sh
 ### 6. After Deployment:
 
 **Check logs:**
+
 ```bash
 # In Render dashboard, go to Logs tab
 ```
 
 **Create superuser (via Render Shell):**
+
 ```bash
 python manage.py createsuperuser
 ```
 
 **Collect static files (if needed):**
+
 ```bash
 python manage.py collectstatic --no-input
 ```
@@ -117,6 +131,7 @@ Solution: Check logs, ensure gunicorn is starting correctly
 ### 8. Generate New SECRET_KEY:
 
 Run this in Python:
+
 ```python
 from django.core.management.utils import get_random_secret_key
 print(get_random_secret_key())
@@ -164,5 +179,6 @@ gunicorn MathScriber.wsgi:application
 ```
 
 ## Support:
+
 - Render Docs: https://render.com/docs
 - Django Deployment: https://docs.djangoproject.com/en/stable/howto/deployment/
