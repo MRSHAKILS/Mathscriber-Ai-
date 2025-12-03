@@ -18,13 +18,14 @@ import mimetypes
 def user_can_edit(project, user):
     return project.owner_id == user.id or Collaborator.objects.filter(project=project, user=user, role__in=['owner','editor']).exists()
 
-@login_required
 def project_list(request):
-    projects = Project.objects.filter(owner=request.user) | Project.objects.filter(collaborators__user=request.user)
-    projects = projects.distinct().order_by('-created_at')
+    if request.user.is_authenticated:
+        projects = Project.objects.filter(owner=request.user) | Project.objects.filter(collaborators__user=request.user)
+        projects = projects.distinct().order_by('-created_at')
+    else:
+        projects = Project.objects.none()
     return render(request, 'editor/project_list.html', {'projects': projects})
 
-@login_required
 def project_create_view(request):
     if request.method == 'POST':
         # Check if we have LaTeX code from converter
@@ -36,7 +37,7 @@ def project_create_view(request):
         if latex_from_post and project_name_from_post:
             project = Project.objects.create(
                 name=project_name_from_post,
-                owner=request.user,
+                owner=request.user if request.user.is_authenticated else None,
                 description=f"Created from MathScriber converter"
             )
             
@@ -58,7 +59,7 @@ def project_create_view(request):
         form = ProjectForm(request.POST)
         if form.is_valid():
             project = form.save(commit=False)
-            project.owner = request.user
+            project.owner = request.user if request.user.is_authenticated else None
             project.save()
             
             if latex_from_post:
@@ -166,10 +167,11 @@ Oranges & 3 & \$1.80 \\
         }
         return render(request, 'editor/project_form.html', context)
 
-@login_required
 def project_delete(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if project.owner != request.user:
+    if request.user.is_authenticated and project.owner != request.user:
+        return HttpResponseForbidden()
+    elif not request.user.is_authenticated:
         return HttpResponseForbidden()
     if request.method == "POST":
         project.delete()
@@ -177,7 +179,6 @@ def project_delete(request, pk):
     return redirect("editor:project_detail", pk=pk)
 
 
-@login_required
 def project_detail(request, pk):
     project = get_object_or_404(Project, pk=pk)
     # This view is now just a detail page, forms are in the editor
@@ -224,7 +225,6 @@ from .forms import DocumentForm # Make sure DocumentForm is imported
 
 # ...
 
-@login_required
 def document_editor(request, pk, doc_id):
     project = get_object_or_404(Project, pk=pk)
     doc = get_object_or_404(Document, pk=doc_id, project=project)
@@ -259,14 +259,13 @@ def document_editor(request, pk, doc_id):
     }
     return render(request, 'editor/document_editor.html', context)
 
-@login_required
 @require_POST
 @transaction.atomic
 def live_compile(request, pk, doc_id):
     project = get_object_or_404(Project, pk=pk)
     doc = get_object_or_404(Document, pk=doc_id, project=project)
 
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return HttpResponseForbidden()
 
     try:
@@ -308,11 +307,10 @@ def live_compile(request, pk, doc_id):
 
 
 # --- OLD VIEWS (May be needed) ---
-@login_required
 def document_create(request, pk):
     # This is the old, non-ajax view
     project = get_object_or_404(Project, pk=pk)
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return HttpResponseForbidden()
     if request.method == "POST":
         form = DocumentForm(request.POST)
@@ -323,23 +321,20 @@ def document_create(request, pk):
             return redirect('editor:document_editor', pk=pk, doc_id=doc.pk)
     return redirect('editor:project_detail', pk=pk)
 
-@login_required
 def compile_project(request, pk):
     # Old compile view
     project = get_object_or_404(Project, pk=pk)
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return HttpResponseForbidden()
     run = CompileRun.objects.create(project=project, status='queued')
     compile_latex_pdf(project, run)
     return redirect('editor:compile_status', pk=pk, run_id=run.pk)
 
-@login_required
 def compile_status(request, pk, run_id):
     project = get_object_or_404(Project, pk=pk)
     run = get_object_or_404(CompileRun, pk=run_id, project=project)
     return render(request, 'editor/compile_status.html', {'project': project, 'run': run})
 
-@login_required
 def download_pdf(request, pk, run_id):
     project = get_object_or_404(Project, pk=pk)
     run = get_object_or_404(CompileRun, pk=run_id, project=project)
@@ -355,12 +350,11 @@ def download_pdf(request, pk, run_id):
 
 # --- NEW AJAX VIEWS ---
 
-@login_required
 @require_POST
 @transaction.atomic
 def folder_create_ajax(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return JsonResponse({'error': 'Permission denied.'}, status=403)
 
     form = NewFolderForm(request.POST)
@@ -379,12 +373,11 @@ def folder_create_ajax(request, pk):
     
     return JsonResponse({'error': 'Invalid data.'}, status=400)
 
-@login_required
 @require_POST
 @transaction.atomic
 def document_create_ajax(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return JsonResponse({'error': 'Permission denied.'}, status=403)
 
     form = NewDocumentForm(request.POST)
@@ -409,12 +402,11 @@ def document_create_ajax(request, pk):
     
     return JsonResponse({'error': 'Invalid data.'}, status=400)
 
-@login_required
 @require_POST
 @transaction.atomic
 def binary_file_upload_ajax(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return JsonResponse({'error': 'Permission denied.'}, status=403)
 
     form = UploadBinaryFileForm(request.POST, request.FILES)
@@ -443,7 +435,6 @@ def binary_file_upload_ajax(request, pk):
         return JsonResponse({'success': True})
     
     return JsonResponse({'error': 'Invalid data or no file provided.'}, status=400)
-@login_required
 def pdf_frame(request, pk):
     """
     Renders an HTML snippet (to be used in an iframe) that shows
@@ -466,17 +457,17 @@ import mimetypes
 
 # ... other views ...
 
-@login_required
 def download_binary(request, pk, file_id):
     """
     Serves a BinaryFile (like an image) to the user.
     """
     project = get_object_or_404(Project, pk=pk)
     
-    # Check if user has permission
-    can_view = project.owner == request.user or Collaborator.objects.filter(project=project, user=request.user).exists()
-    if not can_view:
-        return HttpResponseForbidden("You do not have access to this project.")
+    # Check if user has permission (allow anonymous for now, or check if they own the project)
+    if request.user.is_authenticated:
+        can_view = project.owner == request.user or Collaborator.objects.filter(project=project, user=request.user).exists()
+        if not can_view:
+            return HttpResponseForbidden("You do not have access to this project.")
         
     binary_file = get_object_or_404(BinaryFile, pk=file_id, project=project)
     
@@ -502,12 +493,11 @@ def download_binary(request, pk, file_id):
         return HttpResponse(f"Error serving file: {e}", status=500)
 
 # ... rest of your views.py ...
-@login_required
 @require_POST
 @transaction.atomic
 def move_item_ajax(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if not user_can_edit(project, request.user):
+    if request.user.is_authenticated and not user_can_edit(project, request.user):
         return JsonResponse({'error': 'Permission denied.'}, status=403)
     
     try:
