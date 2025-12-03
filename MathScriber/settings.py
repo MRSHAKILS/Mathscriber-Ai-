@@ -12,9 +12,9 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = "django-insecure-*_k*l$0h8ve_0y^u_5ga0t$22ejg-t9@syli!yg9tk0uhyb9tg"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+ALLOWED_HOSTS = ['*']  
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
