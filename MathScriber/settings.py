@@ -126,7 +126,7 @@ REST_FRAMEWORK = {
 }
 
 # Napkin AI Configuration
-NAPKIN_API_KEY = os.environ.get('NAPKIN_API_KEY', 'sk-7e9fb09c4363d79a6457a8e20fc3d4bb1a0f56b40c8e9b69ab948150ffc1b80b')
+NAPKIN_API_KEY = os.environ.get('NAPKIN_API_KEY', '')
 NAPKIN_API_URL = os.environ.get('NAPKIN_API_URL', 'https://api.napkin.ai/v1')
 
 # CORS Configuration
